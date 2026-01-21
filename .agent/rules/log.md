@@ -11,3 +11,4 @@ Format:
 - **[Timestamp]**: [Brief description of changes] ([Files modified])
 
 -------------------------------------------------------------------------------
+- **[2026-01-21 22:35]**: Created App Shell components (Button, Sheet, Sidebar, Header, Layout) ([src/components/ui/button.tsx], [src/components/ui/sheet.tsx], [src/components/layout/sidebar.tsx], [src/components/layout/header.tsx], [src/app/dashboard/layout.tsx])
