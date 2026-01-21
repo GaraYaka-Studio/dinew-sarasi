@@ -1,0 +1,8 @@
+if ! npm run style:check; then
+    echo -e "\033[33mSome files does not match the code style! Running Prettier...\033[0m"
+    npm run style
+fi
+
+git update-index --again
+
+# vim: ft=bash

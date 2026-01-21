@@ -9,7 +9,8 @@
         "lint": "eslint . --fix",
         "format": "prettier . --write",
         "style:check": "eslint . && prettier . --check",
-        "style": "eslint . --fix && prettier . --write"
+        "style": "eslint . --fix && prettier . --write",
+        "prepare": "husky"
     },
     "dependencies": {
         "@supabase/ssr": "^0.8.0",
@@ -33,6 +34,7 @@
         "eslint": "^9",
         "eslint-config-next": "16.1.4",
         "eslint-config-prettier": "^10.1.8",
+        "husky": "^9.1.7",
         "prettier": "^3.8.1",
         "prettier-plugin-tailwindcss": "^0.7.2",
         "tailwindcss": "^4",
