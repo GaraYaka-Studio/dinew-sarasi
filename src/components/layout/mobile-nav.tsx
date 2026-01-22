@@ -36,8 +36,6 @@ import {
     AccordionTrigger,
 } from '@/components/ui/accordion';
 
-type SidebarProps = React.HTMLAttributes<HTMLDivElement>;
-
 interface NavItem {
     title: string;
     href: string;
@@ -50,7 +48,7 @@ interface NavGroup {
     items: NavItem[];
 }
 
-// Navigation Configuration
+// Navigation Configuration (Same as Sidebar)
 const NAV_ITEMS = {
     primary: {
         title: 'Dashboard',
@@ -216,150 +214,121 @@ const NAV_ITEMS = {
     },
 };
 
-export function Sidebar({ className, ...props }: SidebarProps) {
+export function MobileNav() {
     const pathname = usePathname();
 
     const isActive = (href: string) => pathname === href;
 
     return (
-        <aside
-            className={cn(
-                // General Layout: Fixed width, Full height, Fixed position
-                'fixed inset-y-0 left-0 w-64 border-r bg-card',
-                // Hiding on Mobile: Hidden by default (handled by Sheet on mobile), Visible on md+
-                'hidden md:flex md:flex-col',
-                className
-            )}
-            {...props}
-        >
-            {/* Header */}
-            <div className="flex h-16 items-center border-b px-6">
-                <h2 className="text-xl font-bold tracking-tight">
-                    Sarasi Institute
-                </h2>
+        <nav className="flex flex-col space-y-1">
+            {/* Primary Entry: Dashboard */}
+            <Link
+                href={NAV_ITEMS.primary.href}
+                className={cn(
+                    'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                    isActive(NAV_ITEMS.primary.href)
+                        ? 'bg-accent text-accent-foreground'
+                        : 'text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground'
+                )}
+            >
+                <NAV_ITEMS.primary.icon className="h-5 w-5" />
+                {NAV_ITEMS.primary.title}
+            </Link>
+
+            {/* Operations Section */}
+            <div className="pt-4">
+                <p className="mb-2 px-3 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                    {NAV_ITEMS.operations.title}
+                </p>
+                <Accordion type="single" collapsible className="space-y-1">
+                    {NAV_ITEMS.operations.groups.map((group) => (
+                        <AccordionItem
+                            key={group.title}
+                            value={group.title}
+                            className="border-none"
+                        >
+                            <AccordionTrigger
+                                className={cn(
+                                    'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:no-underline',
+                                    'text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground'
+                                )}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <group.icon className="h-5 w-5" />
+                                    {group.title}
+                                </div>
+                            </AccordionTrigger>
+                            <AccordionContent className="pt-1 pb-1">
+                                <div className="space-y-1">
+                                    {group.items.map((item) => (
+                                        <Link
+                                            key={item.href}
+                                            href={item.href}
+                                            className={cn(
+                                                'flex items-center gap-3 rounded-md py-2 pr-3 pl-11 text-sm transition-colors',
+                                                isActive(item.href)
+                                                    ? 'bg-accent font-medium text-accent-foreground'
+                                                    : 'text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground'
+                                            )}
+                                        >
+                                            {item.title}
+                                        </Link>
+                                    ))}
+                                </div>
+                            </AccordionContent>
+                        </AccordionItem>
+                    ))}
+                </Accordion>
             </div>
 
-            {/* Navigation Content (Scrollable) */}
-            <div className="flex-1 overflow-y-auto px-3 py-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                <nav className="space-y-1">
-                    {/* Primary Entry: Dashboard */}
-                    <Link
-                        href={NAV_ITEMS.primary.href}
-                        className={cn(
-                            'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                            isActive(NAV_ITEMS.primary.href)
-                                ? 'bg-accent text-accent-foreground'
-                                : 'text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground'
-                        )}
-                    >
-                        <NAV_ITEMS.primary.icon className="h-5 w-5" />
-                        {NAV_ITEMS.primary.title}
-                    </Link>
-
-                    {/* Operations Section */}
-                    <div className="pt-4">
-                        <p className="mb-2 px-3 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                            {NAV_ITEMS.operations.title}
-                        </p>
-                        <Accordion
-                            type="single"
-                            collapsible
-                            className="space-y-1"
+            {/* Academics & Management Section */}
+            <div className="pt-4">
+                <p className="mb-2 px-3 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                    {NAV_ITEMS.academics.title}
+                </p>
+                <Accordion type="single" collapsible className="space-y-1">
+                    {NAV_ITEMS.academics.groups.map((group) => (
+                        <AccordionItem
+                            key={group.title}
+                            value={group.title}
+                            className="border-none"
                         >
-                            {NAV_ITEMS.operations.groups.map((group) => (
-                                <AccordionItem
-                                    key={group.title}
-                                    value={group.title}
-                                    className="border-none"
-                                >
-                                    <AccordionTrigger
-                                        className={cn(
-                                            'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:no-underline',
-                                            'text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground'
-                                        )}
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <group.icon className="h-5 w-5" />
-                                            {group.title}
-                                        </div>
-                                    </AccordionTrigger>
-                                    <AccordionContent className="pt-1 pb-1">
-                                        <div className="space-y-1">
-                                            {group.items.map((item) => (
-                                                <Link
-                                                    key={item.href}
-                                                    href={item.href}
-                                                    className={cn(
-                                                        'flex items-center gap-3 rounded-md py-2 pr-3 pl-11 text-sm transition-colors',
-                                                        isActive(item.href)
-                                                            ? 'bg-accent font-medium text-accent-foreground'
-                                                            : 'text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground'
-                                                    )}
-                                                >
-                                                    {item.title}
-                                                </Link>
-                                            ))}
-                                        </div>
-                                    </AccordionContent>
-                                </AccordionItem>
-                            ))}
-                        </Accordion>
-                    </div>
-
-                    {/* Academics & Management Section */}
-                    <div className="pt-4">
-                        <p className="mb-2 px-3 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                            {NAV_ITEMS.academics.title}
-                        </p>
-                        <Accordion
-                            type="single"
-                            collapsible
-                            className="space-y-1"
-                        >
-                            {NAV_ITEMS.academics.groups.map((group) => (
-                                <AccordionItem
-                                    key={group.title}
-                                    value={group.title}
-                                    className="border-none"
-                                >
-                                    <AccordionTrigger
-                                        className={cn(
-                                            'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:no-underline',
-                                            'text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground'
-                                        )}
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <group.icon className="h-5 w-5" />
-                                            {group.title}
-                                        </div>
-                                    </AccordionTrigger>
-                                    <AccordionContent className="pt-1 pb-1">
-                                        <div className="space-y-1">
-                                            {group.items.map((item) => (
-                                                <Link
-                                                    key={item.href}
-                                                    href={item.href}
-                                                    className={cn(
-                                                        'flex items-center gap-3 rounded-md py-2 pr-3 pl-11 text-sm transition-colors',
-                                                        isActive(item.href)
-                                                            ? 'bg-accent font-medium text-accent-foreground'
-                                                            : 'text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground'
-                                                    )}
-                                                >
-                                                    {item.title}
-                                                </Link>
-                                            ))}
-                                        </div>
-                                    </AccordionContent>
-                                </AccordionItem>
-                            ))}
-                        </Accordion>
-                    </div>
-                </nav>
+                            <AccordionTrigger
+                                className={cn(
+                                    'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:no-underline',
+                                    'text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground'
+                                )}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <group.icon className="h-5 w-5" />
+                                    {group.title}
+                                </div>
+                            </AccordionTrigger>
+                            <AccordionContent className="pt-1 pb-1">
+                                <div className="space-y-1">
+                                    {group.items.map((item) => (
+                                        <Link
+                                            key={item.href}
+                                            href={item.href}
+                                            className={cn(
+                                                'flex items-center gap-3 rounded-md py-2 pr-3 pl-11 text-sm transition-colors',
+                                                isActive(item.href)
+                                                    ? 'bg-accent font-medium text-accent-foreground'
+                                                    : 'text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground'
+                                            )}
+                                        >
+                                            {item.title}
+                                        </Link>
+                                    ))}
+                                </div>
+                            </AccordionContent>
+                        </AccordionItem>
+                    ))}
+                </Accordion>
             </div>
 
-            {/* System Section (Pinned at Bottom) */}
-            <div className="border-t bg-card p-3">
+            {/* System Section */}
+            <div className="pt-4">
                 <Accordion type="single" collapsible>
                     <AccordionItem value="settings" className="border-none">
                         <AccordionTrigger
@@ -394,6 +363,6 @@ export function Sidebar({ className, ...props }: SidebarProps) {
                     </AccordionItem>
                 </Accordion>
             </div>
-        </aside>
+        </nav>
     );
 }

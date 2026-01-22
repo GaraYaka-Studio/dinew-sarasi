@@ -1,7 +1,14 @@
-import { Menu } from "lucide-react"
+import { Menu } from 'lucide-react';
 
-import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from "@/components/ui/sheet"
+import { Button } from '@/components/ui/button';
+import {
+    Sheet,
+    SheetContent,
+    SheetTrigger,
+    SheetTitle,
+    SheetDescription,
+} from '@/components/ui/sheet';
+import { MobileNav } from '@/components/layout/mobile-nav';
 
 export function Header() {
     return (
@@ -16,15 +23,14 @@ export function Header() {
                 </SheetTrigger>
                 <SheetContent side="left" className="w-64 sm:w-80">
                     <SheetTitle>Navigation</SheetTitle>
-                    <SheetDescription className="hidden">Main Navigation Menu</SheetDescription>
+                    <SheetDescription className="hidden">
+                        Main Navigation Menu
+                    </SheetDescription>
                     <div className="px-1 py-6">
-                        <h2 className="mb-4 text-xl font-bold tracking-tight px-2">Sarasi Institute</h2>
-                        {/* Mobile Nav Placeholders */}
-                        <div className="space-y-4 px-2">
-                            <div className="h-4 w-3/4 rounded bg-muted/50 animate-pulse" />
-                            <div className="h-4 w-1/2 rounded bg-muted/50 animate-pulse" />
-                            <div className="h-4 w-5/6 rounded bg-muted/50 animate-pulse" />
-                        </div>
+                        <h2 className="mb-4 px-2 text-xl font-bold tracking-tight">
+                            Sarasi Institute
+                        </h2>
+                        <MobileNav />
                     </div>
                 </SheetContent>
             </Sheet>
@@ -32,11 +38,11 @@ export function Header() {
             {/* Header Content */}
             <div className="ml-4 flex flex-1 items-center justify-between">
                 {/* Placeholder for Breadcrumbs / Title */}
-                <div className="h-4 w-32 rounded bg-muted animate-pulse" />
+                <div className="h-4 w-32 animate-pulse rounded bg-muted" />
 
                 {/* Placeholder for User Nav / Actions */}
-                <div className="h-8 w-8 rounded-full bg-muted animate-pulse" />
+                <div className="h-8 w-8 animate-pulse rounded-full bg-muted" />
             </div>
         </header>
-    )
+    );
 }
