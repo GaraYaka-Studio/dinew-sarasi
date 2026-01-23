@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import Home from '../../src/app/page';
 
 test('Home Page', () => {
@@ -7,7 +7,9 @@ test('Home Page', () => {
     expect(
         screen.getByRole('heading', {
             level: 1,
-            name: /^To get started, edit the page\.tsx file\.$/,
+            name: /.*Sarasi Institute.*/,
         })
     ).toBeDefined();
+
+    cleanup();
 });
