@@ -1,0 +1,9 @@
+# Ignore package manager files:
+package-lock.json
+
+# Ignore artifacts:
+build
+coverage
+
+# Ignore all agent rules:
+/.agent
