@@ -21,7 +21,10 @@ export function Header() {
                         <span className="sr-only">Toggle navigation menu</span>
                     </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-64 sm:w-80 flex flex-col p-0">
+                <SheetContent
+                    side="left"
+                    className="flex w-64 flex-col p-0 sm:w-80"
+                >
                     <SheetTitle className="sr-only">Navigation</SheetTitle>
                     <SheetDescription className="hidden">
                         Main Navigation Menu
