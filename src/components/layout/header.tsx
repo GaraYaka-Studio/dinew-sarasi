@@ -21,12 +21,12 @@ export function Header() {
                         <span className="sr-only">Toggle navigation menu</span>
                     </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-64 sm:w-80">
-                    <SheetTitle>Navigation</SheetTitle>
+                <SheetContent side="left" className="w-64 sm:w-80 flex flex-col p-0">
+                    <SheetTitle className="sr-only">Navigation</SheetTitle>
                     <SheetDescription className="hidden">
                         Main Navigation Menu
                     </SheetDescription>
-                    <div className="px-1 py-6">
+                    <div className="flex-1 overflow-y-auto px-1 py-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                         <h2 className="mb-4 px-2 text-xl font-bold tracking-tight">
                             Sarasi Institute
                         </h2>
