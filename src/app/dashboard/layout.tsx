@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
+import { Toaster } from '@/components/ui/sonner';
 
 export const metadata: Metadata = {
     title: 'Sarasi Institute Dashboard',
@@ -28,6 +29,7 @@ export default function DashboardLayout({
                 <Header />
                 <main className="flex-1 p-6">{children}</main>
             </div>
+            <Toaster />
         </div>
     );
 }
