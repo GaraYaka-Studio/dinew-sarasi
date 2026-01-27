@@ -58,15 +58,11 @@ export const NAV_ITEMS = {
                 icon: QrCode,
                 items: [
                     {
-                        title: 'Rapid Scan',
+                        title: 'Mark Attendance',
                         href: '/dashboard/attendance/scan',
                         icon: Scan,
                     },
-                    {
-                        title: 'Manual Entry',
-                        href: '/dashboard/attendance/manual',
-                        icon: UserPlus,
-                    },
+
                     {
                         title: 'Attendance Log',
                         href: '/dashboard/attendance/log',

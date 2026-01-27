@@ -16,3 +16,6 @@ Format:
 - **[2026-01-24 10:30]**: Refined ScanControls Spacing - Applied strict 10px gap between components, removed excessive vertical scaling ([src/components/features/attendance/scan/scan-controls.tsx])
 
 - **[2026-01-27 22:04]**: Fixed missing dependency error by installing @radix-ui/react-separator ([package.json], [package-lock.json])
+
+- **[2026-01-27 22:30]**: Removed "Manual Entry" from Sidebar navigation as it is merged with Rapid Scan ([src/config/nav.tsx])
+- **[2026-01-27 22:36]**: Renamed "Rapid Scan" to "Mark Attendance" in Sidebar navigation ([src/config/nav.tsx])
