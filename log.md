@@ -19,3 +19,6 @@ Format:
 
 - **[2026-01-27 22:30]**: Removed "Manual Entry" from Sidebar navigation as it is merged with Rapid Scan ([src/config/nav.tsx])
 - **[2026-01-27 22:36]**: Renamed "Rapid Scan" to "Mark Attendance" in Sidebar navigation ([src/config/nav.tsx])
+- **[2026-01-27 23:13]**: Implemented Attendance Log page with accordion-style class grouping, date picker, student rows with avatars, delete confirmation, and empty state ([src/app/dashboard/attendance/log/page.tsx])
+- **[2026-01-27 23:23]**: Added mock date filter logic to Attendance Log - only shows data for today's date to test empty state ([src/app/dashboard/attendance/log/page.tsx])
+- **[2026-01-27 23:34]**: Added ScrollArea to Attendance Log for large student lists (400px fixed height) and created 3rd mock class with 30 students ([src/app/dashboard/attendance/log/page.tsx])
