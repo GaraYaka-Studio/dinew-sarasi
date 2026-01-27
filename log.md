@@ -14,3 +14,5 @@ Format:
 - **[2026-01-24 10:05]**: Implemented Attendance & Rapid Scan Interface (Phase 1-4) & Fixed compilation errors - Added Scan Page, Controls, Result Card, and missing UI components (Select, Sonner) ([src/app/dashboard/attendance/scan/page.tsx], [src/components/ui/select.tsx], [src/components/ui/sonner.tsx], [package.json])
 - **[2026-01-24 10:20]**: Applied Critical UI Fixes - Fixed Mobile Rapid Mode layout (single row), Hidden Header in Rapid Mode, Fixed Spacing, Added Class Selector Logic & mock 'Kamal' data ([src/app/dashboard/attendance/scan/page.tsx], [src/components/features/attendance/scan/scan-controls.tsx], [src/components/features/attendance/scan/attendance-header.tsx])
 - **[2026-01-24 10:30]**: Refined ScanControls Spacing - Applied strict 10px gap between components, removed excessive vertical scaling ([src/components/features/attendance/scan/scan-controls.tsx])
+
+- **[2026-01-27 22:04]**: Fixed missing dependency error by installing @radix-ui/react-separator ([package.json], [package-lock.json])
