@@ -9,18 +9,18 @@ import { cn } from '@/lib/utils';
 
 // Mock Data for Demo
 const MOCK_STUDENT = {
-    name: "Dinew S. Bandara",
-    id: "ST-2025-001",
-    image: "",
+    name: 'Dinew S. Bandara',
+    id: 'ST-2025-001',
+    image: '',
     hasPaid: false,
     arrears: 2500,
     attendanceHistory: [true, true, false, true],
 };
 
 const MOCK_STUDENT_KAMAL = {
-    name: "Kamal Perera",
-    id: "ST-2025-888",
-    image: "",
+    name: 'Kamal Perera',
+    id: 'ST-2025-888',
+    image: '',
     hasPaid: true,
     arrears: 0,
     attendanceHistory: [true, true, true, true],
@@ -31,9 +31,11 @@ export default function AttendanceScanPage() {
     const [scanMode, setScanMode] = useState<'normal' | 'rapid'>('normal');
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [searchQuery, setSearchQuery] = useState(''); // Keep for logic if needed
-    const [student, setStudent] = useState<typeof MOCK_STUDENT | undefined>(undefined);
+    const [student, setStudent] = useState<typeof MOCK_STUDENT | undefined>(
+        undefined
+    );
     const [status, setStatus] = useState<'idle' | 'active'>('idle');
-    const [activeClass, setActiveClass] = useState("2026-revision");
+    const [activeClass, setActiveClass] = useState('2026-revision');
     const [isMobile, setIsMobile] = useState(false);
 
     // Mobile Check for Header Hiding
@@ -55,7 +57,7 @@ export default function AttendanceScanPage() {
         const lowerQuery = query.toLowerCase();
 
         // 1. Check for "Kamal" Mock
-        if (lowerQuery.includes("kamal")) {
+        if (lowerQuery.includes('kamal')) {
             if (scanMode === 'rapid') {
                 simulateScanSuccess(MOCK_STUDENT_KAMAL);
             } else {
@@ -80,7 +82,7 @@ export default function AttendanceScanPage() {
     const simulateScanSuccess = (studentData: typeof MOCK_STUDENT) => {
         setStudent(studentData);
         setStatus('active');
-        toast.success("Attendance Marked!", {
+        toast.success('Attendance Marked!', {
             description: `${studentData.name} - Present`,
             duration: 2000,
         });
@@ -93,7 +95,7 @@ export default function AttendanceScanPage() {
     };
 
     const handleMarkPresent = () => {
-        toast.success("Attendance Marked Successfully");
+        toast.success('Attendance Marked Successfully');
         setStudent(undefined);
         setStatus('idle');
         setSearchQuery('');
@@ -109,7 +111,7 @@ export default function AttendanceScanPage() {
     const showHeader = !(isMobile && scanMode === 'rapid');
 
     return (
-        <div className="flex min-h-screen flex-col bg-background h-screen overflow-hidden">
+        <div className="flex h-screen min-h-screen flex-col overflow-hidden bg-background">
             {/* Sticky Header - Conditional */}
             {showHeader && (
                 <AttendanceHeader
@@ -120,13 +122,14 @@ export default function AttendanceScanPage() {
             )}
 
             {/* Main Content Area - Split View */}
-            <main className="flex flex-col md:flex-row h-full overflow-hidden">
-
+            <main className="flex h-full flex-col overflow-hidden md:flex-row">
                 {/* LEFT PANEL: Controls (30-35%) */}
-                <section className={cn(
-                    "w-full shrink-0 border-b bg-card/30 p-3 md:h-full md:w-[35%] md:border-b-0 md:border-r md:p-6 overflow-y-auto transition-all",
-                    scanMode === 'rapid' ? "h-auto" : "" // Allow height to shrink/grow based on content in rapid
-                )}>
+                <section
+                    className={cn(
+                        'w-full shrink-0 overflow-y-auto border-b bg-card/30 p-3 transition-all md:h-full md:w-[35%] md:border-r md:border-b-0 md:p-6',
+                        scanMode === 'rapid' ? 'h-auto' : '' // Allow height to shrink/grow based on content in rapid
+                    )}
+                >
                     <ScanControls
                         isRapidMode={scanMode === 'rapid'}
                         onToggleMode={handleModeToggle}
@@ -136,15 +139,20 @@ export default function AttendanceScanPage() {
                 </section>
 
                 {/* RIGHT PANEL: Results (65-70%) */}
-                <section className="flex-1 bg-background p-4 md:p-8 overflow-y-auto relative">
+                <section className="relative flex-1 overflow-y-auto bg-background p-4 md:p-8">
                     <StudentResultCard
                         status={status}
                         student={student}
-                        onMarkPresent={scanMode === 'normal' ? handleMarkPresent : undefined}
-                        onCancel={scanMode === 'normal' ? handleCancel : undefined}
+                        onMarkPresent={
+                            scanMode === 'normal'
+                                ? handleMarkPresent
+                                : undefined
+                        }
+                        onCancel={
+                            scanMode === 'normal' ? handleCancel : undefined
+                        }
                     />
                 </section>
-
             </main>
         </div>
     );

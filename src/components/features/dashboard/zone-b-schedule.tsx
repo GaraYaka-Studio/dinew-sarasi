@@ -121,7 +121,7 @@ export function ZoneBSchedule() {
                                     key={item.id}
                                     className={cn(
                                         item.status === 'active' &&
-                                        'bg-emerald-50/30'
+                                            'bg-emerald-50/30'
                                     )}
                                 >
                                     <TableCell className="font-mono font-medium">
