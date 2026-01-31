@@ -359,8 +359,7 @@ export default function AttendanceLogPage() {
     const todayStr = new Date().toISOString().split('T')[0];
 
     // Logic: දිනේ "අද" නම් විතරක් Data පෙන්නන්න. නැත්නම් හිස් List එකක් යවන්න.
-    const sessionsToDisplay =
-        selectedDate === todayStr ? MOCK_LOG_DATA : [];
+    const sessionsToDisplay = selectedDate === todayStr ? MOCK_LOG_DATA : [];
     const hasClasses = sessionsToDisplay.length > 0;
 
     return (
@@ -373,7 +372,7 @@ export default function AttendanceLogPage() {
 
                 {/* Date Picker */}
                 <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Calendar className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
                         type="date"
                         value={selectedDate}
@@ -387,7 +386,11 @@ export default function AttendanceLogPage() {
             <div className="flex-1 overflow-y-auto p-6">
                 {hasClasses ? (
                     <div className="mx-auto max-w-4xl">
-                        <Accordion type="single" collapsible className="space-y-4">
+                        <Accordion
+                            type="single"
+                            collapsible
+                            className="space-y-4"
+                        >
                             {sessionsToDisplay.map((classSession) => (
                                 <AccordionItem
                                     key={classSession.id}
@@ -395,7 +398,7 @@ export default function AttendanceLogPage() {
                                     className="overflow-hidden rounded-lg border bg-card"
                                 >
                                     {/* Accordion Header */}
-                                    <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-muted/50">
+                                    <AccordionTrigger className="px-6 py-4 hover:bg-muted/50 hover:no-underline">
                                         <div className="flex w-full items-center justify-between pr-4">
                                             <div className="flex flex-col items-start gap-1">
                                                 <span className="text-base font-semibold">
@@ -409,7 +412,8 @@ export default function AttendanceLogPage() {
                                                 variant="default"
                                                 className="bg-green-500/10 text-green-700 hover:bg-green-500/20 dark:text-green-400"
                                             >
-                                                🟢 {classSession.totalPresent} Present
+                                                🟢 {classSession.totalPresent}{' '}
+                                                Present
                                             </Badge>
                                         </div>
                                     </AccordionTrigger>
@@ -418,52 +422,64 @@ export default function AttendanceLogPage() {
                                     <AccordionContent className="px-6 pb-4">
                                         <ScrollArea className="h-[400px]">
                                             <div className="space-y-2 pr-4">
-                                                {classSession.students.map((student) => (
-                                                    <div
-                                                        key={student.id}
-                                                        className="flex items-center justify-between rounded-md border bg-card px-4 py-3 transition-colors hover:bg-muted/50"
-                                                    >
-                                                        {/* Left: Time */}
-                                                        <div className="w-20 text-sm text-muted-foreground">
-                                                            {student.scanTime}
-                                                        </div>
-
-                                                        {/* Center: Student Info */}
-                                                        <div className="flex flex-1 items-center gap-3">
-                                                            <Avatar className="h-8 w-8">
-                                                                <AvatarImage
-                                                                    src={student.avatarUrl}
-                                                                />
-                                                                <AvatarFallback className="text-xs">
-                                                                    {getInitials(student.name)}
-                                                                </AvatarFallback>
-                                                            </Avatar>
-                                                            <div className="flex flex-col">
-                                                                <span className="text-sm font-medium">
-                                                                    {student.name}
-                                                                </span>
-                                                                <span className="text-xs text-muted-foreground">
-                                                                    {student.studentId}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Right: Delete Button */}
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                                                            onClick={() =>
-                                                                handleDelete(
-                                                                    student.name,
-                                                                    student.id
-                                                                )
-                                                            }
+                                                {classSession.students.map(
+                                                    (student) => (
+                                                        <div
+                                                            key={student.id}
+                                                            className="flex items-center justify-between rounded-md border bg-card px-4 py-3 transition-colors hover:bg-muted/50"
                                                         >
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
-                                                    </div>
-                                                ))}
+                                                            {/* Left: Time */}
+                                                            <div className="w-20 text-sm text-muted-foreground">
+                                                                {
+                                                                    student.scanTime
+                                                                }
+                                                            </div>
+
+                                                            {/* Center: Student Info */}
+                                                            <div className="flex flex-1 items-center gap-3">
+                                                                <Avatar className="h-8 w-8">
+                                                                    <AvatarImage
+                                                                        src={
+                                                                            student.avatarUrl
+                                                                        }
+                                                                    />
+                                                                    <AvatarFallback className="text-xs">
+                                                                        {getInitials(
+                                                                            student.name
+                                                                        )}
+                                                                    </AvatarFallback>
+                                                                </Avatar>
+                                                                <div className="flex flex-col">
+                                                                    <span className="text-sm font-medium">
+                                                                        {
+                                                                            student.name
+                                                                        }
+                                                                    </span>
+                                                                    <span className="text-xs text-muted-foreground">
+                                                                        {
+                                                                            student.studentId
+                                                                        }
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Right: Delete Button */}
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                                                onClick={() =>
+                                                                    handleDelete(
+                                                                        student.name,
+                                                                        student.id
+                                                                    )
+                                                                }
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </Button>
+                                                        </div>
+                                                    )
+                                                )}
                                             </div>
                                         </ScrollArea>
                                     </AccordionContent>

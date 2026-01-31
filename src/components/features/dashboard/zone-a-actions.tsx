@@ -69,7 +69,7 @@ export function ZoneAActions() {
                                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
                                 <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
                             </div>
-                            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                            <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
                                 Happening Now
                             </p>
                         </div>
