@@ -15,7 +15,11 @@ interface StudentSheetProps {
     onOpenChange: (open: boolean) => void;
 }
 
-export function StudentSheet({ student, isOpen, onOpenChange }: StudentSheetProps) {
+export function StudentSheet({
+    student,
+    isOpen,
+    onOpenChange,
+}: StudentSheetProps) {
     return (
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
             <SheetContent className="w-full sm:max-w-[540px]">
@@ -24,20 +28,27 @@ export function StudentSheet({ student, isOpen, onOpenChange }: StudentSheetProp
                         {student?.name || 'Student Profile'}
                     </SheetTitle>
                     <SheetDescription>
-                        {student?.studentId || 'View and edit student information'}
+                        {student?.studentId ||
+                            'View and edit student information'}
                     </SheetDescription>
                 </SheetHeader>
                 <div className="mt-6 space-y-4">
-                    <div className="h-40 bg-gray-100 rounded-lg flex items-center justify-center">
-                        <p className="text-muted-foreground text-sm">Avatar Section</p>
+                    <div className="flex h-40 items-center justify-center rounded-lg bg-gray-100">
+                        <p className="text-sm text-muted-foreground">
+                            Avatar Section
+                        </p>
                     </div>
-                    <div className="h-60 bg-gray-100 rounded-lg flex items-center justify-center">
-                        <p className="text-muted-foreground text-sm">Student Details</p>
+                    <div className="flex h-60 items-center justify-center rounded-lg bg-gray-100">
+                        <p className="text-sm text-muted-foreground">
+                            Student Details
+                        </p>
                     </div>
-                    <div className="h-40 bg-gray-100 rounded-lg flex items-center justify-center">
-                        <p className="text-muted-foreground text-sm">Actions & Status</p>
+                    <div className="flex h-40 items-center justify-center rounded-lg bg-gray-100">
+                        <p className="text-sm text-muted-foreground">
+                            Actions & Status
+                        </p>
                     </div>
-                    <div className="text-xs text-center text-muted-foreground">
+                    <div className="text-center text-xs text-muted-foreground">
                         Student Profile Details coming soon...
                     </div>
                 </div>

@@ -23,8 +23,8 @@ export function StudentDialog({ isOpen, onOpenChange }: StudentDialogProps) {
                         Complete the registration wizard to add a new student.
                     </DialogDescription>
                 </DialogHeader>
-                <div className="min-h-[400px] bg-gray-100 rounded-lg flex items-center justify-center">
-                    <p className="text-muted-foreground text-sm">
+                <div className="flex min-h-[400px] items-center justify-center rounded-lg bg-gray-100">
+                    <p className="text-sm text-muted-foreground">
                         Stepper Wizard implementation coming soon...
                     </p>
                 </div>

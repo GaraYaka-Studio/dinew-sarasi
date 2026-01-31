@@ -22,10 +22,22 @@ interface StudentListProps {
 
 const getPaymentBadge = (status: Student['paymentStatus']) => {
     const variants = {
-        paid: { label: 'Paid', className: 'bg-green-100 text-green-800 border-green-200' },
-        pending: { label: 'Pending', className: 'bg-orange-100 text-orange-800 border-orange-200' },
-        free: { label: 'Free', className: 'bg-gray-100 text-gray-800 border-gray-200' },
-        draft: { label: 'Draft', className: 'bg-gray-100 text-gray-600 border-gray-200' },
+        paid: {
+            label: 'Paid',
+            className: 'bg-green-100 text-green-800 border-green-200',
+        },
+        pending: {
+            label: 'Pending',
+            className: 'bg-orange-100 text-orange-800 border-orange-200',
+        },
+        free: {
+            label: 'Free',
+            className: 'bg-gray-100 text-gray-800 border-gray-200',
+        },
+        draft: {
+            label: 'Draft',
+            className: 'bg-gray-100 text-gray-600 border-gray-200',
+        },
     };
     return variants[status];
 };
@@ -34,7 +46,7 @@ export function StudentList({ onViewStudent }: StudentListProps) {
     return (
         <>
             {/* Desktop Table View */}
-            <div className="hidden md:block border rounded-lg">
+            <div className="hidden rounded-lg border md:block">
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -43,23 +55,29 @@ export function StudentList({ onViewStudent }: StudentListProps) {
                             <TableHead>Academic</TableHead>
                             <TableHead>Payment Status</TableHead>
                             <TableHead>Activity</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
+                            <TableHead className="text-right">
+                                Actions
+                            </TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {studentData.map((student) => {
-                            const paymentBadge = getPaymentBadge(student.paymentStatus);
+                            const paymentBadge = getPaymentBadge(
+                                student.paymentStatus
+                            );
                             return (
                                 <TableRow key={student.id}>
                                     <TableCell>
                                         <div className="flex items-center gap-3">
                                             <Avatar className="h-9 w-9">
-                                                <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                                                <AvatarFallback className="bg-primary/10 text-xs text-primary">
                                                     {student.initials}
                                                 </AvatarFallback>
                                             </Avatar>
                                             <div>
-                                                <p className="font-medium">{student.name}</p>
+                                                <p className="font-medium">
+                                                    {student.name}
+                                                </p>
                                                 <p className="text-xs text-muted-foreground">
                                                     {student.studentId}
                                                 </p>
@@ -71,7 +89,9 @@ export function StudentList({ onViewStudent }: StudentListProps) {
                                     </TableCell>
                                     <TableCell>
                                         <div>
-                                            <p className="text-sm font-medium">{student.grade}</p>
+                                            <p className="text-sm font-medium">
+                                                {student.grade}
+                                            </p>
                                             <p className="text-xs text-muted-foreground">
                                                 {student.batch}
                                             </p>
@@ -80,7 +100,10 @@ export function StudentList({ onViewStudent }: StudentListProps) {
                                     <TableCell>
                                         <Badge
                                             variant="outline"
-                                            className={cn('text-xs', paymentBadge.className)}
+                                            className={cn(
+                                                'text-xs',
+                                                paymentBadge.className
+                                            )}
                                         >
                                             {paymentBadge.label}
                                         </Badge>
@@ -92,7 +115,9 @@ export function StudentList({ onViewStudent }: StudentListProps) {
                                         <Button
                                             variant="ghost"
                                             size="sm"
-                                            onClick={() => onViewStudent(student)}
+                                            onClick={() =>
+                                                onViewStudent(student)
+                                            }
                                         >
                                             <Eye className="h-4 w-4" />
                                         </Button>
@@ -105,21 +130,23 @@ export function StudentList({ onViewStudent }: StudentListProps) {
             </div>
 
             {/* Mobile Card View */}
-            <div className="md:hidden space-y-3">
+            <div className="space-y-3 md:hidden">
                 {studentData.map((student) => {
                     const paymentBadge = getPaymentBadge(student.paymentStatus);
                     return (
                         <Card key={student.id} className="p-4">
                             <div className="flex items-start gap-3">
                                 <Avatar className="h-10 w-10">
-                                    <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                                    <AvatarFallback className="bg-primary/10 text-sm text-primary">
                                         {student.initials}
                                     </AvatarFallback>
                                 </Avatar>
-                                <div className="flex-1 min-w-0">
+                                <div className="min-w-0 flex-1">
                                     <div className="flex items-start justify-between gap-2">
-                                        <div className="flex-1 min-w-0">
-                                            <p className="font-medium truncate">{student.name}</p>
+                                        <div className="min-w-0 flex-1">
+                                            <p className="truncate font-medium">
+                                                {student.name}
+                                            </p>
                                             <p className="text-xs text-muted-foreground">
                                                 {student.studentId}
                                             </p>
@@ -127,7 +154,9 @@ export function StudentList({ onViewStudent }: StudentListProps) {
                                         <Button
                                             variant="ghost"
                                             size="sm"
-                                            onClick={() => onViewStudent(student)}
+                                            onClick={() =>
+                                                onViewStudent(student)
+                                            }
                                         >
                                             <Eye className="h-4 w-4" />
                                         </Button>
@@ -138,7 +167,10 @@ export function StudentList({ onViewStudent }: StudentListProps) {
                                         </span>
                                         <Badge
                                             variant="outline"
-                                            className={cn('text-xs', paymentBadge.className)}
+                                            className={cn(
+                                                'text-xs',
+                                                paymentBadge.className
+                                            )}
                                         >
                                             {paymentBadge.label}
                                         </Badge>
