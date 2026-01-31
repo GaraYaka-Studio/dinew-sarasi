@@ -1,8 +1,7 @@
 'use client';
 
-import { CheckCircle2, XCircle, AlertTriangle, CreditCard } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, CreditCard } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
