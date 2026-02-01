@@ -7,7 +7,6 @@ import {
     SheetDescription,
 } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import type { StudentDetail } from '@/lib/mock-data';
 import { SheetHeader } from './sheet/sheet-header';
 import { SheetFooter } from './sheet/sheet-footer';

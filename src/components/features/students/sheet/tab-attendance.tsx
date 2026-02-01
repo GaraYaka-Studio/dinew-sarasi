@@ -72,7 +72,7 @@ export function TabAttendance({ student }: TabAttendanceProps) {
                     Recent Activity
                 </h3>
                 <div className="space-y-2">
-                    {student.attendanceHistory.map((record, index) => {
+                    {student.attendanceHistory.map((record) => {
                         const StatusIcon = getStatusIcon(record.status);
                         return (
                             <div

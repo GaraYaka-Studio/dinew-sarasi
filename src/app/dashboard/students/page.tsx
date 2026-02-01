@@ -25,7 +25,7 @@ export default function StudentsPage() {
     const [selectedStudent, setSelectedStudent] =
         useState<StudentDetail | null>(null);
 
-    const handleViewStudent = (student: Student) => {
+    const handleViewStudent = () => {
         // TODO: Fetch full student details from API
         // For now, use mock data
         setSelectedStudent(MOCK_SELECTED_STUDENT);
