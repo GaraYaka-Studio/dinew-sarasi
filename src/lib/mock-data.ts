@@ -659,3 +659,58 @@ export const MOCK_SELECTED_STUDENT: StudentDetail = {
         },
     ],
 };
+
+// Fee Collection Page Mocks
+export interface FeeMonth {
+    month: string;
+    status: 'paid' | 'unpaid' | 'partial' | 'selected';
+    amount: number;
+    paidAmount?: number;
+    year: number;
+}
+
+export interface ClassFeeStructure {
+    classId: string;
+    className: string;
+    monthlyFee: number;
+    months: FeeMonth[];
+}
+
+export const MOCK_FEE_STRUCTURE: {
+    student: StudentDetail;
+    feeClasses: ClassFeeStructure[];
+} = {
+    // Re-using the student with Pending Admission
+    student: {
+        ...MOCK_SELECTED_STUDENT,
+        admissionStatus: 'PENDING',
+    },
+    feeClasses: [
+        {
+            classId: 'c1',
+            className: 'Combined Maths - 2026 A/L',
+            monthlyFee: 2500,
+            months: [
+                { month: 'JAN', year: 2026, status: 'paid', amount: 2500, paidAmount: 2500 },
+                { month: 'FEB', year: 2026, status: 'unpaid', amount: 2500 },
+                { month: 'MAR', year: 2026, status: 'unpaid', amount: 2500 },
+                { month: 'APR', year: 2026, status: 'unpaid', amount: 2500 },
+                { month: 'MAY', year: 2026, status: 'unpaid', amount: 2500 },
+                { month: 'JUN', year: 2026, status: 'unpaid', amount: 2500 },
+            ]
+        },
+        {
+            classId: 'c2',
+            className: 'Physics - 2026 A/L',
+            monthlyFee: 2000,
+            months: [
+                { month: 'JAN', year: 2026, status: 'paid', amount: 2000, paidAmount: 2000 },
+                { month: 'FEB', year: 2026, status: 'partial', amount: 2000, paidAmount: 1000 },
+                { month: 'MAR', year: 2026, status: 'unpaid', amount: 2000 },
+                { month: 'APR', year: 2026, status: 'unpaid', amount: 2000 },
+                { month: 'MAY', year: 2026, status: 'unpaid', amount: 2000 },
+                { month: 'JUN', year: 2026, status: 'unpaid', amount: 2000 },
+            ]
+        }
+    ]
+};
