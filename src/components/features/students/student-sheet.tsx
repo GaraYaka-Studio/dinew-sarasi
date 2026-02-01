@@ -1,6 +1,11 @@
 'use client';
 
-import { Sheet, SheetContent, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import {
+    Sheet,
+    SheetContent,
+    SheetTitle,
+    SheetDescription,
+} from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { StudentDetail } from '@/lib/mock-data';
@@ -10,7 +15,6 @@ import { TabProfile } from './sheet/tab-profile';
 import { TabPayments } from './sheet/tab-payments';
 import { TabAttendance } from './sheet/tab-attendance';
 import { TabClasses } from './sheet/tab-classes';
-
 
 interface StudentSheetProps {
     student: StudentDetail | null;
@@ -33,7 +37,8 @@ export function StudentSheet({
                     {student.name} - Student Profile
                 </SheetTitle>
                 <SheetDescription className="sr-only">
-                    View and manage student information including profile, payments, attendance, and classes.
+                    View and manage student information including profile,
+                    payments, attendance, and classes.
                 </SheetDescription>
 
                 {/* Fixed Header */}
@@ -42,7 +47,10 @@ export function StudentSheet({
                 </div>
 
                 {/* Scrollable Tabs Content */}
-                <Tabs defaultValue="profile" className="flex min-h-0 flex-1 flex-col">
+                <Tabs
+                    defaultValue="profile"
+                    className="flex min-h-0 flex-1 flex-col"
+                >
                     <TabsList className="w-full shrink-0 justify-start rounded-none border-b px-6">
                         <TabsTrigger value="profile">Profile</TabsTrigger>
                         <TabsTrigger value="payments">Payments</TabsTrigger>
