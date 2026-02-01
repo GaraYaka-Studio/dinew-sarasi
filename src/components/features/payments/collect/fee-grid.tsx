@@ -1,9 +1,9 @@
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ClassFeeStructure, FeeMonth } from "@/lib/mock-data";
-import { Check, CircleAlert, Coins } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ClassFeeStructure } from '@/lib/mock-data';
+import { Check, CircleAlert } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface FeeGridProps {
     feeClasses: ClassFeeStructure[];
@@ -46,32 +46,54 @@ export function FeeGrid({ feeClasses, onToggleMonth }: FeeGridProps) {
                                 return (
                                     <Button
                                         key={`${feeClass.classId}-${month.month}`}
-                                        variant={isSelected ? "default" : isPaid ? "secondary" : "outline"}
+                                        variant={
+                                            isSelected
+                                                ? 'default'
+                                                : isPaid
+                                                  ? 'secondary'
+                                                  : 'outline'
+                                        }
                                         className={cn(
-                                            "relative flex h-16 w-full flex-col gap-1 text-xs font-semibold sm:text-sm",
-                                            isPaid && "bg-green-100 text-green-700 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400 font-bold opacity-80 cursor-not-allowed",
-                                            isSelected && "border-primary bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2",
-                                            isPartial && !isSelected && "border-yellow-500 bg-yellow-50 text-yellow-700 dark:bg-yellow-900/10 dark:text-yellow-500"
+                                            'relative flex h-16 w-full flex-col gap-1 text-xs font-semibold sm:text-sm',
+                                            isPaid &&
+                                                'cursor-not-allowed bg-green-100 font-bold text-green-700 opacity-80 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400',
+                                            isSelected &&
+                                                'border-primary bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2',
+                                            isPartial &&
+                                                !isSelected &&
+                                                'border-yellow-500 bg-yellow-50 text-yellow-700 dark:bg-yellow-900/10 dark:text-yellow-500'
                                         )}
-                                        onClick={() => !isPaid && onToggleMonth(feeClass.classId, idx)}
+                                        onClick={() =>
+                                            !isPaid &&
+                                            onToggleMonth(feeClass.classId, idx)
+                                        }
                                         disabled={isPaid}
                                     >
-                                        <span className="uppercase">{month.month}</span>
-                                        
+                                        <span className="uppercase">
+                                            {month.month}
+                                        </span>
+
                                         {isPaid && (
-                                            <Badge variant="secondary" className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-green-200 p-0 text-green-800 dark:bg-green-800 dark:text-green-100 shadow-sm">
+                                            <Badge
+                                                variant="secondary"
+                                                className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-green-200 p-0 text-green-800 shadow-sm dark:bg-green-800 dark:text-green-100"
+                                            >
                                                 <Check className="h-3 w-3" />
                                             </Badge>
                                         )}
 
                                         {isPartial && !isSelected && (
                                             <span className="text-[10px] font-normal opacity-80">
-                                                Due: {month.amount - (month.paidAmount || 0)}
+                                                Due:{' '}
+                                                {month.amount -
+                                                    (month.paidAmount || 0)}
                                             </span>
                                         )}
-                                        
+
                                         {month.status === 'unpaid' && (
-                                           <span className="text-[10px] font-normal opacity-50">{month.year}</span>
+                                            <span className="text-[10px] font-normal opacity-50">
+                                                {month.year}
+                                            </span>
                                         )}
                                     </Button>
                                 );

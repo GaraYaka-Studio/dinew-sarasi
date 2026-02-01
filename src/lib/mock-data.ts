@@ -691,26 +691,44 @@ export const MOCK_FEE_STRUCTURE: {
             className: 'Combined Maths - 2026 A/L',
             monthlyFee: 2500,
             months: [
-                { month: 'JAN', year: 2026, status: 'paid', amount: 2500, paidAmount: 2500 },
+                {
+                    month: 'JAN',
+                    year: 2026,
+                    status: 'paid',
+                    amount: 2500,
+                    paidAmount: 2500,
+                },
                 { month: 'FEB', year: 2026, status: 'unpaid', amount: 2500 },
                 { month: 'MAR', year: 2026, status: 'unpaid', amount: 2500 },
                 { month: 'APR', year: 2026, status: 'unpaid', amount: 2500 },
                 { month: 'MAY', year: 2026, status: 'unpaid', amount: 2500 },
                 { month: 'JUN', year: 2026, status: 'unpaid', amount: 2500 },
-            ]
+            ],
         },
         {
             classId: 'c2',
             className: 'Physics - 2026 A/L',
             monthlyFee: 2000,
             months: [
-                { month: 'JAN', year: 2026, status: 'paid', amount: 2000, paidAmount: 2000 },
-                { month: 'FEB', year: 2026, status: 'partial', amount: 2000, paidAmount: 1000 },
+                {
+                    month: 'JAN',
+                    year: 2026,
+                    status: 'paid',
+                    amount: 2000,
+                    paidAmount: 2000,
+                },
+                {
+                    month: 'FEB',
+                    year: 2026,
+                    status: 'partial',
+                    amount: 2000,
+                    paidAmount: 1000,
+                },
                 { month: 'MAR', year: 2026, status: 'unpaid', amount: 2000 },
                 { month: 'APR', year: 2026, status: 'unpaid', amount: 2000 },
                 { month: 'MAY', year: 2026, status: 'unpaid', amount: 2000 },
                 { month: 'JUN', year: 2026, status: 'unpaid', amount: 2000 },
-            ]
-        }
-    ]
+            ],
+        },
+    ],
 };

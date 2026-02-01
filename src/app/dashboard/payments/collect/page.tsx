@@ -1,17 +1,29 @@
 'use client';
 
 import { useState } from 'react';
-import { toast } from 'sonner'; 
-import { Search, ShoppingCart, User } from 'lucide-react';
+import { toast } from 'sonner';
+import { ShoppingCart, User } from 'lucide-react';
 
 import { StudentSearch } from '@/components/features/payments/collect/student-search';
 import { StudentContext } from '@/components/features/payments/collect/student-context';
 import { FeeGrid } from '@/components/features/payments/collect/fee-grid';
-import { PaymentTerminal, CartItem } from '@/components/features/payments/collect/payment-terminal';
+import {
+    PaymentTerminal,
+    CartItem,
+} from '@/components/features/payments/collect/payment-terminal';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import { Badge } from '@/components/ui/badge';
-import { MOCK_FEE_STRUCTURE, ClassFeeStructure, StudentDetail } from '@/lib/mock-data';
+import {
+    Sheet,
+    SheetContent,
+    SheetTrigger,
+    SheetTitle,
+    SheetDescription,
+} from '@/components/ui/sheet';
+import {
+    MOCK_FEE_STRUCTURE,
+    ClassFeeStructure,
+    StudentDetail,
+} from '@/lib/mock-data';
 
 export default function FeesCollectionPage() {
     // State
@@ -24,12 +36,12 @@ export default function FeesCollectionPage() {
     const totalAmount = cart.reduce((acc, item) => acc + item.amount, 0);
 
     // Handlers
-    const handleSearch = (query: string) => {
+    const handleSearch = () => {
         // Simulate API Fetch
         const mockData = MOCK_FEE_STRUCTURE;
         setStudent(mockData.student);
         setFeeClasses(JSON.parse(JSON.stringify(mockData.feeClasses))); // Deep copy to allow visual state changes
-        
+
         // Admission Trap Logic
         if (mockData.student.admissionStatus === 'PENDING') {
             const admissionFee: CartItem = {
@@ -40,7 +52,9 @@ export default function FeesCollectionPage() {
                 type: 'admission',
             };
             setCart([admissionFee]);
-            toast.warning("Admission Pending: Fee added to bill automatically.");
+            toast.warning(
+                'Admission Pending: Fee added to bill automatically.'
+            );
         } else {
             setCart([]);
         }
@@ -54,24 +68,26 @@ export default function FeesCollectionPage() {
     };
 
     const handleToggleMonth = (classId: string, monthIndex: number) => {
-        setFeeClasses(currentClasses => {
-            return currentClasses.map(cls => {
+        setFeeClasses((currentClasses) => {
+            return currentClasses.map((cls) => {
                 if (cls.classId !== classId) return cls;
 
                 const updatedMonths = [...cls.months];
                 const targetMonth = cls.months[monthIndex];
-                
+
                 // Toggle Logic in Cart
                 const itemId = `${classId}-${monthIndex}`;
-                
+
                 if (targetMonth.status === 'selected') {
                     // Deselect
                     targetMonth.status = 'unpaid'; // Revert to unpaid (or partial if logic was deeper)
-                    setCart(prev => prev.filter(item => item.id !== itemId));
+                    setCart((prev) =>
+                        prev.filter((item) => item.id !== itemId)
+                    );
                 } else if (targetMonth.status !== 'paid') {
                     // Select
                     targetMonth.status = 'selected';
-                    
+
                     const newItem: CartItem = {
                         id: itemId,
                         label: `${cls.className}`,
@@ -79,9 +95,9 @@ export default function FeesCollectionPage() {
                         amount: targetMonth.amount, // Or remaining due if partial (simplified for now)
                         type: 'monthly_fee',
                         classId,
-                        monthIndex
+                        monthIndex,
                     };
-                    setCart(prev => [...prev, newItem]);
+                    setCart((prev) => [...prev, newItem]);
                 }
 
                 return { ...cls, months: updatedMonths };
@@ -91,27 +107,36 @@ export default function FeesCollectionPage() {
 
     const handleRemoveCartItem = (id: string) => {
         // If it's a monthly fee, we need to uncheck the grid
-        const item = cart.find(i => i.id === id);
-        if (item && item.type === 'monthly_fee' && item.classId && item.monthIndex !== undefined) {
-             handleToggleMonth(item.classId, item.monthIndex); // Re-use toggle logic to deselect
+        const item = cart.find((i) => i.id === id);
+        if (
+            item &&
+            item.type === 'monthly_fee' &&
+            item.classId &&
+            item.monthIndex !== undefined
+        ) {
+            handleToggleMonth(item.classId, item.monthIndex); // Re-use toggle logic to deselect
         } else {
-            setCart(prev => prev.filter(i => i.id !== id));
+            setCart((prev) => prev.filter((i) => i.id !== id));
         }
     };
 
     const handleCompletePayment = (cashReceived: number) => {
-        console.log("Processing Payment...", { ...student, cart, cashReceived });
-        toast.success("Payment Recorded Successfully", {
-             description: `Receipt generated for ${student?.name}. Amount: ${totalAmount} LKR`
+        console.log('Processing Payment...', {
+            ...student,
+            cart,
+            cashReceived,
         });
-        
+        toast.success('Payment Recorded Successfully', {
+            description: `Receipt generated for ${student?.name}. Amount: ${totalAmount} LKR`,
+        });
+
         // Reset or Print logic
         handleClear();
     };
 
     const handlePayAdmission = () => {
-        if (cart.find(c => c.type === 'admission')) return;
-        
+        if (cart.find((c) => c.type === 'admission')) return;
+
         const admissionFee: CartItem = {
             id: 'admission-fee',
             label: 'Admission Fee',
@@ -119,52 +144,63 @@ export default function FeesCollectionPage() {
             amount: 1000,
             type: 'admission',
         };
-        setCart(prev => [...prev, admissionFee]);
+        setCart((prev) => [...prev, admissionFee]);
     };
 
     return (
-        <div className="flex h-[calc(100vh-140px)] flex-col md:flex-row gap-0 md:gap-0 overflow-hidden rounded-lg border bg-background shadow-sm">
-            
+        <div className="flex h-[calc(100vh-140px)] flex-col gap-0 overflow-hidden rounded-lg border bg-background shadow-sm md:flex-row md:gap-0">
             {/* Left Panel: Context & Selection (65%) */}
-            <div className="flex flex-1 flex-col overflow-hidden bg-muted/10 md:w-[65%] border-r">
-                
+            <div className="flex flex-1 flex-col overflow-hidden border-r bg-muted/10 md:w-[65%]">
                 {/* 1. Omni-Search Bar */}
-                <div className="z-10 bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-                    <StudentSearch onSearch={handleSearch} onClear={handleClear} />
+                <div className="z-10 border-b bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                    <StudentSearch
+                        onSearch={handleSearch}
+                        onClear={handleClear}
+                    />
                 </div>
 
                 {/* Scrollable Content */}
-                <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
+                <div className="flex-1 space-y-6 overflow-y-auto p-4 md:p-6">
                     {student ? (
                         <>
                             {/* 2. Student Context */}
-                            <div className="animate-in fade-in-50 slide-in-from-top-5 duration-500">
-                                <StudentContext student={student} onPayAdmission={handlePayAdmission} />
+                            <div className="animate-in duration-500 fade-in-50 slide-in-from-top-5">
+                                <StudentContext
+                                    student={student}
+                                    onPayAdmission={handlePayAdmission}
+                                />
                             </div>
 
                             {/* 3. Fee Selection Grids */}
-                            <div className="animate-in fade-in-50 slide-in-from-bottom-5 duration-500 delay-75">
-                                <h3 className="mb-4 text-lg font-semibold tracking-tight text-foreground">Select Fees</h3>
-                                <FeeGrid 
-                                    feeClasses={feeClasses} 
-                                    onToggleMonth={handleToggleMonth} 
+                            <div className="animate-in delay-75 duration-500 fade-in-50 slide-in-from-bottom-5">
+                                <h3 className="mb-4 text-lg font-semibold tracking-tight text-foreground">
+                                    Select Fees
+                                </h3>
+                                <FeeGrid
+                                    feeClasses={feeClasses}
+                                    onToggleMonth={handleToggleMonth}
                                 />
                             </div>
                         </>
                     ) : (
-                         <div className="flex h-full flex-col items-center justify-center space-y-4 text-muted-foreground opacity-70">
-                             <User className="h-16 w-16" />
-                             <p className="text-lg font-medium">Scan Student ID or Search to begin</p>
-                             <div className="text-sm">Type any 3 chars (e.g. "kav") to simulate scan</div>
-                         </div>
+                        <div className="flex h-full flex-col items-center justify-center space-y-4 text-muted-foreground opacity-70">
+                            <User className="h-16 w-16" />
+                            <p className="text-lg font-medium">
+                                Scan Student ID or Search to begin
+                            </p>
+                            <div className="text-sm">
+                                Type any 3 chars (e.g. &quot;kav&quot;) to
+                                simulate scan
+                            </div>
+                        </div>
                     )}
                 </div>
             </div>
 
             {/* Right Panel: The Terminal (35%) - DESKTOP */}
-            <div className="hidden md:block md:w-[35%] h-full bg-card shadow-lg z-20">
-                <PaymentTerminal 
-                    items={cart} 
+            <div className="z-20 hidden h-full bg-card shadow-lg md:block md:w-[35%]">
+                <PaymentTerminal
+                    items={cart}
                     onRemoveItem={handleRemoveCartItem}
                     onComplete={handleCompletePayment}
                     onClear={handleClear}
@@ -174,26 +210,41 @@ export default function FeesCollectionPage() {
             {/* Mobile Bottom Bar & Sheet */}
             <div className="md:hidden">
                 {student && (
-                    <div className="fixed bottom-0 left-0 right-0 border-t bg-background p-4 shadow-2xl z-50 pb-safe">
+                    <div className="pb-safe fixed right-0 bottom-0 left-0 z-50 border-t bg-background p-4 shadow-2xl">
                         <div className="flex items-center gap-4">
                             <div className="flex-1">
-                                <p className="text-xs text-muted-foreground">Total Due</p>
-                                <p className="text-xl font-bold">{totalAmount.toLocaleString()} LKR</p>
+                                <p className="text-xs text-muted-foreground">
+                                    Total Due
+                                </p>
+                                <p className="text-xl font-bold">
+                                    {totalAmount.toLocaleString()} LKR
+                                </p>
                             </div>
-                            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+                            <Sheet
+                                open={isSheetOpen}
+                                onOpenChange={setIsSheetOpen}
+                            >
                                 <SheetTrigger asChild>
-                                    <Button size="lg" className="px-8 font-bold">
+                                    <Button
+                                        size="lg"
+                                        className="px-8 font-bold"
+                                    >
                                         <ShoppingCart className="mr-2 h-4 w-4" />
                                         Review & Pay ({cart.length})
                                     </Button>
                                 </SheetTrigger>
-                                <SheetContent side="bottom" className="h-[90vh] p-0 rounded-t-2xl">
-                                    <SheetTitle className="sr-only">Payment Terminal</SheetTitle>
+                                <SheetContent
+                                    side="bottom"
+                                    className="h-[90vh] rounded-t-2xl p-0"
+                                >
+                                    <SheetTitle className="sr-only">
+                                        Payment Terminal
+                                    </SheetTitle>
                                     <SheetDescription className="sr-only">
                                         Complete your payment transaction
                                     </SheetDescription>
-                                    <PaymentTerminal 
-                                        items={cart} 
+                                    <PaymentTerminal
+                                        items={cart}
                                         onRemoveItem={handleRemoveCartItem}
                                         onComplete={(cash) => {
                                             handleCompletePayment(cash);

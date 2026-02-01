@@ -17,7 +17,7 @@ import { studentData, type Student } from '@/lib/mock-data';
 import { cn } from '@/lib/utils';
 
 interface StudentListProps {
-    onViewStudent: (student: Student) => void;
+    onViewStudent: (student?: Student) => void;
 }
 
 const getPaymentBadge = (status: Student['paymentStatus']) => {

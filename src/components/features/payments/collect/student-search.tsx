@@ -1,9 +1,9 @@
-import { Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { useEffect, useRef } from "react";
+import { Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { useEffect, useRef } from 'react';
 
 interface StudentSearchProps {
-    onSearch: (query: string) => void;
+    onSearch: () => void;
     onClear: () => void;
 }
 
@@ -30,7 +30,7 @@ export function StudentSearch({ onSearch, onClear }: StudentSearchProps) {
 
     return (
         <div className="relative w-full">
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+            <div className="absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground">
                 <Search className="h-5 w-5" />
             </div>
             <Input
@@ -41,12 +41,16 @@ export function StudentSearch({ onSearch, onClear }: StudentSearchProps) {
                 onChange={(e) => {
                     // Simulating instant search or scan
                     if (e.target.value.length > 2) {
-                        onSearch(e.target.value);
+                        onSearch();
                     }
                 }}
             />
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden text-xs text-muted-foreground sm:block">
-                Press <kbd className="rounded border bg-muted px-1 font-mono text-[10px]">F1</kbd> to focus
+            <div className="absolute top-1/2 right-3 hidden -translate-y-1/2 text-xs text-muted-foreground sm:block">
+                Press{' '}
+                <kbd className="rounded border bg-muted px-1 font-mono text-[10px]">
+                    F1
+                </kbd>{' '}
+                to focus
             </div>
         </div>
     );

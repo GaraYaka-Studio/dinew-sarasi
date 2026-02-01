@@ -8,7 +8,7 @@ interface SheetFooterProps {
     onClose: () => void;
 }
 
-export function SheetFooter({ student, onClose }: SheetFooterProps) {
+export function SheetFooter({ student }: SheetFooterProps) {
     const handleDeactivate = () => {
         // TODO: Implement deactivate logic
         console.log('Deactivate student:', student.id);
