@@ -153,6 +153,67 @@ export interface Student {
     admissionDate: string;
 }
 
+// Extended Student Detail Types
+export interface GuardianInfo {
+    name: string;
+    relationship: 'Father' | 'Mother' | 'Guardian';
+    phone: string;
+    isEmergencyContact: boolean;
+}
+
+export interface PaymentRecord {
+    id: string;
+    month: string;
+    class: string;
+    amount: number;
+    date: string;
+    status: 'paid' | 'pending';
+}
+
+export interface AttendanceRecord {
+    id: string;
+    date: string;
+    time: string;
+    status: 'present' | 'late' | 'absent';
+    class: string;
+}
+
+export interface EnrolledClass {
+    id: string;
+    name: string;
+    grade: string;
+    teacher: string;
+    schedule: string;
+}
+
+export interface StudentDetail extends Student {
+    // Personal
+    dateOfBirth: string;
+    gender: 'Male' | 'Female';
+    address: string;
+    school: string;
+
+    // Guardian
+    guardian: GuardianInfo;
+
+    // Academic
+    olYear?: number;
+    alYear?: number;
+
+    // Financial
+    admissionStatus: 'PENDING' | 'PAID';
+    admissionFee: number;
+    paymentHistory: PaymentRecord[];
+    arrears: number;
+
+    // Attendance
+    attendanceRate: number;
+    attendanceHistory: AttendanceRecord[];
+
+    // Classes
+    enrolledClasses: EnrolledClass[];
+}
+
 // Student Stats for Mini Grid
 export const studentStats: DashboardStat[] = [
     {
@@ -467,3 +528,134 @@ export const studentData: Student[] = [
         admissionDate: '2024-02-18',
     },
 ];
+
+// Mock Selected Student for Detail Sheet
+export const MOCK_SELECTED_STUDENT: StudentDetail = {
+    // Base Info
+    id: '2',
+    name: 'Nethmi Silva',
+    studentId: 'SRS-2024-002',
+    phone: '0776543210',
+    grade: 'Grade 11',
+    batch: '2026 A/L',
+    status: 'active',
+    paymentStatus: 'pending',
+    initials: 'NS',
+    lastActivity: '5 hours ago',
+    admissionDate: '2024-01-18',
+
+    // Personal Details
+    dateOfBirth: '2008-05-12',
+    gender: 'Female',
+    address: '125/3, Galle Road, Colombo 03',
+    school: 'Visakha Vidyalaya',
+
+    // Guardian
+    guardian: {
+        name: 'Mr. Kamal Perera',
+        relationship: 'Father',
+        phone: '0771234567',
+        isEmergencyContact: true,
+    },
+
+    // Academic
+    olYear: 2027,
+    alYear: 2029,
+
+    // Financial
+    admissionStatus: 'PENDING',
+    admissionFee: 1000,
+    arrears: 2500,
+    paymentHistory: [
+        {
+            id: 'p1',
+            month: 'JAN',
+            class: 'Combined Maths',
+            amount: 2500,
+            date: '2024-01-05',
+            status: 'paid',
+        },
+        {
+            id: 'p2',
+            month: 'FEB',
+            class: 'Combined Maths',
+            amount: 2500,
+            date: '2024-02-08',
+            status: 'pending',
+        },
+        {
+            id: 'p3',
+            month: 'JAN',
+            class: 'Physics',
+            amount: 2000,
+            date: '2024-01-12',
+            status: 'paid',
+        },
+        {
+            id: 'p4',
+            month: 'FEB',
+            class: 'Physics',
+            amount: 2000,
+            date: '2024-02-15',
+            status: 'pending',
+        },
+    ],
+
+    // Attendance
+    attendanceRate: 85,
+    attendanceHistory: [
+        {
+            id: 'a1',
+            date: '2024-01-25',
+            time: '08:05 AM',
+            status: 'present',
+            class: 'Combined Maths',
+        },
+        {
+            id: 'a2',
+            date: '2024-01-24',
+            time: '08:12 AM',
+            status: 'late',
+            class: 'Physics',
+        },
+        {
+            id: 'a3',
+            date: '2024-01-23',
+            time: '08:03 AM',
+            status: 'present',
+            class: 'Combined Maths',
+        },
+        {
+            id: 'a4',
+            date: '2024-01-22',
+            time: '--',
+            status: 'absent',
+            class: 'Physics',
+        },
+        {
+            id: 'a5',
+            date: '2024-01-21',
+            time: '08:07 AM',
+            status: 'present',
+            class: 'Combined Maths',
+        },
+    ],
+
+    // Enrolled Classes
+    enrolledClasses: [
+        {
+            id: 'c1',
+            name: 'Combined Maths',
+            grade: '2026 A/L',
+            teacher: 'Mr. Perera',
+            schedule: 'Mon, Wed, Fri - 2:30 PM',
+        },
+        {
+            id: 'c2',
+            name: 'Physics',
+            grade: '2026 A/L',
+            teacher: 'Ms. Silva',
+            schedule: 'Tue, Thu - 4:00 PM',
+        },
+    ],
+};

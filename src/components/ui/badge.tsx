@@ -18,6 +18,9 @@ const badgeVariants = cva(
                 // Attendance System එකට වැදගත් වන Success (Green) Variant එක
                 success:
                     'border-transparent bg-emerald-500 text-white shadow hover:bg-emerald-600',
+                // Warning (Orange) Variant for late attendance/pending issues
+                warning:
+                    'border-transparent bg-orange-500 text-white shadow hover:bg-orange-600',
             },
         },
         defaultVariants: {
