@@ -14,8 +14,8 @@ export function ClassStudentsTab({ classItem }: ClassStudentsTabProps) {
 
     if (students.length === 0) {
         return (
-             <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
-                <UsersIcon className="h-12 w-12 mb-2 opacity-20" />
+            <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
+                <UsersIcon className="mb-2 h-12 w-12 opacity-20" />
                 <p>No students enrolled yet.</p>
             </div>
         );
@@ -24,14 +24,16 @@ export function ClassStudentsTab({ classItem }: ClassStudentsTabProps) {
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between px-1">
-                <h3 className="font-semibold text-sm">Enrolled Students ({students.length})</h3>
+                <h3 className="text-sm font-semibold">
+                    Enrolled Students ({students.length})
+                </h3>
             </div>
-            
+
             <div className="space-y-3">
                 {students.map((student) => (
                     <div
                         key={student.id}
-                        className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                        className="flex items-center justify-between rounded-lg border bg-card p-3 transition-colors hover:bg-accent/50"
                     >
                         <div className="flex items-center gap-3">
                             <Avatar className="h-9 w-9">
@@ -41,8 +43,12 @@ export function ClassStudentsTab({ classItem }: ClassStudentsTabProps) {
                                 </AvatarFallback>
                             </Avatar>
                             <div>
-                                <p className="text-sm font-medium leading-none">{student.name}</p>
-                                <p className="text-xs text-muted-foreground mt-1">{student.id.toUpperCase()}</p>
+                                <p className="text-sm leading-none font-medium">
+                                    {student.name}
+                                </p>
+                                <p className="mt-1 text-xs text-muted-foreground">
+                                    {student.id.toUpperCase()}
+                                </p>
                             </div>
                         </div>
                         {/* Payment Status Badge */}
@@ -52,8 +58,8 @@ export function ClassStudentsTab({ classItem }: ClassStudentsTabProps) {
                                 student.paymentStatus === 'Paid'
                                     ? 'border-green-200 bg-green-50 text-green-700'
                                     : student.paymentStatus === 'Overdue'
-                                    ? 'border-red-200 bg-red-50 text-red-700'
-                                    : 'border-yellow-200 bg-yellow-50 text-yellow-700'
+                                      ? 'border-red-200 bg-red-50 text-red-700'
+                                      : 'border-yellow-200 bg-yellow-50 text-yellow-700'
                             }`}
                         >
                             {student.paymentStatus === 'Paid' ? (

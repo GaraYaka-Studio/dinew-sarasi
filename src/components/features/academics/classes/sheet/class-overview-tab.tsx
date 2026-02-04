@@ -24,15 +24,18 @@ export function ClassOverviewTab({ classItem }: ClassOverviewTabProps) {
                     <div className="flex items-center gap-4">
                         <Avatar className="h-12 w-12">
                             <AvatarImage src={classItem.teacher?.image} />
-                            <AvatarFallback className="bg-primary/10 text-primary text-lg">
+                            <AvatarFallback className="bg-primary/10 text-lg text-primary">
                                 {classItem.teacherName.charAt(0)}
                             </AvatarFallback>
                         </Avatar>
                         <div>
-                            <h3 className="font-semibold text-lg">{classItem.teacherName}</h3>
-                            <div className="text-sm text-muted-foreground space-y-1 mt-1">
+                            <h3 className="text-lg font-semibold">
+                                {classItem.teacherName}
+                            </h3>
+                            <div className="mt-1 space-y-1 text-sm text-muted-foreground">
                                 <p className="flex items-center gap-2">
-                                    <User className="h-3 w-3" /> {classItem.teacher?.id || 'T-XXX'}
+                                    <User className="h-3 w-3" />{' '}
+                                    {classItem.teacher?.id || 'T-XXX'}
                                 </p>
                                 <p>{classItem.teacher?.email}</p>
                                 <p>{classItem.teacher?.phone}</p>
@@ -43,7 +46,7 @@ export function ClassOverviewTab({ classItem }: ClassOverviewTabProps) {
             </Card>
 
             {/* Schedule & Stats Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <Card>
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -54,7 +57,9 @@ export function ClassOverviewTab({ classItem }: ClassOverviewTabProps) {
                         <div className="space-y-2">
                             <div className="flex items-center gap-2">
                                 <Calendar className="h-4 w-4 text-primary" />
-                                <span className="font-semibold">{classItem.schedule.day}</span>
+                                <span className="font-semibold">
+                                    {classItem.schedule.day}
+                                </span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <Clock className="h-4 w-4 text-primary" />
@@ -77,36 +82,52 @@ export function ClassOverviewTab({ classItem }: ClassOverviewTabProps) {
                                 LKR {classItem.fee.toLocaleString()}
                             </span>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-1">Per Month</p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                            Per Month
+                        </p>
                     </CardContent>
                 </Card>
             </div>
 
             {/* Summary Section */}
-             <Card>
+            <Card>
                 <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-medium text-muted-foreground">
                         Class Summary
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                     <div className="flex justify-between items-center border-b pb-2">
-                        <span className="text-sm text-muted-foreground">Total Students</span>
-                         <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-between border-b pb-2">
+                        <span className="text-sm text-muted-foreground">
+                            Total Students
+                        </span>
+                        <div className="flex items-center gap-2">
                             <Users className="h-4 w-4" />
-                            <span className="font-semibold">{classItem.studentCount}</span>
+                            <span className="font-semibold">
+                                {classItem.studentCount}
+                            </span>
                         </div>
-                     </div>
-                     <div className="flex justify-between items-center border-b pb-2">
-                        <span className="text-sm text-muted-foreground">Category</span>
+                    </div>
+                    <div className="flex items-center justify-between border-b pb-2">
+                        <span className="text-sm text-muted-foreground">
+                            Category
+                        </span>
                         <Badge variant="outline">{classItem.category}</Badge>
-                     </div>
-                     <div className="flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">Status</span>
-                         <Badge variant={classItem.status === 'Active' ? 'default' : 'secondary'}>
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">
+                            Status
+                        </span>
+                        <Badge
+                            variant={
+                                classItem.status === 'Active'
+                                    ? 'default'
+                                    : 'secondary'
+                            }
+                        >
                             {classItem.status}
                         </Badge>
-                     </div>
+                    </div>
                 </CardContent>
             </Card>
         </div>

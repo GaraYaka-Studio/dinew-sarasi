@@ -39,15 +39,19 @@ export function ClassSheet({
                 </SheetDescription>
 
                 {/* Fixed Header */}
-                <div className="shrink-0 border-b p-6 bg-muted/5">
+                <div className="shrink-0 border-b bg-muted/5 p-6">
                     <div className="flex items-start justify-between">
                         <div>
-                             <h2 className="text-xl font-bold tracking-tight">
+                            <h2 className="text-xl font-bold tracking-tight">
                                 {classItem.grade} - {classItem.subject}
                             </h2>
-                            <div className="flex gap-2 mt-2">
-                                <Badge variant="secondary">{classItem.medium}</Badge>
-                                <Badge variant="outline">{classItem.category}</Badge>
+                            <div className="mt-2 flex gap-2">
+                                <Badge variant="secondary">
+                                    {classItem.medium}
+                                </Badge>
+                                <Badge variant="outline">
+                                    {classItem.category}
+                                </Badge>
                             </div>
                         </div>
                         <Button variant="ghost" size="icon" title="Edit Class">
@@ -57,18 +61,27 @@ export function ClassSheet({
                 </div>
 
                 {/* Scrollable Tabs */}
-                <Tabs defaultValue="overview" className="flex min-h-0 flex-1 flex-col">
+                <Tabs
+                    defaultValue="overview"
+                    className="flex min-h-0 flex-1 flex-col"
+                >
                     <TabsList className="w-full shrink-0 justify-start rounded-none border-b px-6">
-                         <TabsTrigger value="overview">Overview</TabsTrigger>
+                        <TabsTrigger value="overview">Overview</TabsTrigger>
                         <TabsTrigger value="students">Students</TabsTrigger>
                     </TabsList>
 
                     <div className="min-h-0 flex-1 overflow-y-auto bg-background">
-                         <div className="p-6">
-                            <TabsContent value="overview" className="mt-0 space-y-4">
+                        <div className="p-6">
+                            <TabsContent
+                                value="overview"
+                                className="mt-0 space-y-4"
+                            >
                                 <ClassOverviewTab classItem={classItem} />
                             </TabsContent>
-                            <TabsContent value="students" className="mt-0 space-y-4">
+                            <TabsContent
+                                value="students"
+                                className="mt-0 space-y-4"
+                            >
                                 <ClassStudentsTab classItem={classItem} />
                             </TabsContent>
                         </div>
@@ -76,8 +89,12 @@ export function ClassSheet({
                 </Tabs>
 
                 {/* Fixed Footer */}
-                <div className="shrink-0 border-t p-4 sm:p-6 bg-muted/5">
-                    <Button variant="destructive" className="w-full sm:w-auto text-sm text-white" size="sm">
+                <div className="shrink-0 border-t bg-muted/5 p-4 sm:p-6">
+                    <Button
+                        variant="destructive"
+                        className="w-full text-sm text-white sm:w-auto"
+                        size="sm"
+                    >
                         <Archive className="mr-2 h-4 w-4" />
                         Archive Class
                     </Button>

@@ -27,7 +27,7 @@ export default function ClassesPage() {
         value: 'All Classes',
     });
     const [isFilterOpen, setIsFilterOpen] = useState(false);
-    
+
     // Popup State
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -55,16 +55,18 @@ export default function ClassesPage() {
     });
 
     return (
-        <div className="space-y-6 flex h-full flex-col p-4 md:p-8">
+        <div className="flex h-full flex-col space-y-6 p-4 md:p-8">
             {/* Header: Title + Actions */}
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                 {/* Left: Title */}
-                 <div className="flex items-center">
-                     <h2 className="text-2xl font-bold tracking-tight">Classes</h2>
-                 </div>
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                {/* Left: Title */}
+                <div className="flex items-center">
+                    <h2 className="text-2xl font-bold tracking-tight">
+                        Classes
+                    </h2>
+                </div>
 
                 {/* Right: Action Buttons (Desktop) */}
-                <div className="hidden lg:flex items-center gap-2">
+                <div className="hidden items-center gap-2 lg:flex">
                     <Button variant="outline" size="sm">
                         <Upload className="mr-2 h-3 w-3" />
                         Import
@@ -91,7 +93,7 @@ export default function ClassesPage() {
                     </Button>
                     <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
                         <SheetTrigger asChild>
-                             <Button
+                            <Button
                                 variant="outline"
                                 size="lg"
                                 className="px-4"
@@ -99,7 +101,7 @@ export default function ClassesPage() {
                                 <Filter className="h-4 w-4" />
                             </Button>
                         </SheetTrigger>
-                         <SheetContent side="bottom" className="h-[85vh]">
+                        <SheetContent side="bottom" className="h-[85vh]">
                             <SheetHeader>
                                 <SheetTitle>Classes Overview</SheetTitle>
                                 <SheetDescription>
@@ -155,8 +157,8 @@ export default function ClassesPage() {
                     {/* Mobile View (< lg) */}
                     <div className="lg:hidden">
                         {filteredClasses.length > 0 ? (
-                            <ClassListMobile 
-                                data={filteredClasses} 
+                            <ClassListMobile
+                                data={filteredClasses}
                                 onViewClass={handleViewClass}
                             />
                         ) : (
@@ -169,8 +171,8 @@ export default function ClassesPage() {
                     {/* Desktop View (>= lg) */}
                     <div className="hidden lg:block">
                         {filteredClasses.length > 0 ? (
-                            <ClassTable 
-                                data={filteredClasses} 
+                            <ClassTable
+                                data={filteredClasses}
                                 onViewClass={handleViewClass}
                             />
                         ) : (
@@ -184,10 +186,10 @@ export default function ClassesPage() {
                 {/* Filter Sidebar (Right Panel - 25%) */}
                 <div className="hidden lg:block lg:w-1/4">
                     <div className="sticky top-20">
-                         {/* Filter Component directly */}
+                        {/* Filter Component directly */}
                         <div className="space-y-4">
-                            <h3 className="font-semibold text-lg">Filters</h3>
-                             <ClassFilters
+                            <h3 className="text-lg font-semibold">Filters</h3>
+                            <ClassFilters
                                 activeFilter={activeFilter}
                                 onSelectFilter={setActiveFilter}
                             />
@@ -197,15 +199,15 @@ export default function ClassesPage() {
             </div>
 
             {/* Features (Popups) */}
-            <ClassDialog 
-                isOpen={isAddDialogOpen} 
-                onOpenChange={setIsAddDialogOpen} 
+            <ClassDialog
+                isOpen={isAddDialogOpen}
+                onOpenChange={setIsAddDialogOpen}
             />
 
-            <ClassSheet 
-                classItem={selectedClass} 
-                isOpen={isSheetOpen} 
-                onOpenChange={setIsSheetOpen} 
+            <ClassSheet
+                classItem={selectedClass}
+                isOpen={isSheetOpen}
+                onOpenChange={setIsSheetOpen}
             />
         </div>
     );
