@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Filter } from 'lucide-react';
+import { Plus, Filter, Upload, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
     Sheet,
@@ -17,7 +17,9 @@ import {
 } from '@/components/features/academics/classes/class-filters';
 import { ClassTable } from '@/components/features/academics/classes/class-table';
 import { ClassListMobile } from '@/components/features/academics/classes/class-list-mobile';
-import { CLASS_DATA } from '@/lib/mock-data-classes';
+import { ClassDialog } from '@/components/features/academics/classes/class-dialog';
+import { ClassSheet } from '@/components/features/academics/classes/class-sheet';
+import { CLASS_DATA, ClassItem } from '@/lib/mock-data-classes';
 
 export default function ClassesPage() {
     const [activeFilter, setActiveFilter] = useState<ClassFilterState>({
@@ -25,6 +27,16 @@ export default function ClassesPage() {
         value: 'All Classes',
     });
     const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+    // Popup State
+    const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+    const [isSheetOpen, setIsSheetOpen] = useState(false);
+    const [selectedClass, setSelectedClass] = useState<ClassItem | null>(null);
+
+    const handleViewClass = (data: ClassItem) => {
+        setSelectedClass(data);
+        setIsSheetOpen(true);
+    };
 
     // Filter logic
     const filteredClasses = CLASS_DATA.filter((item) => {
@@ -43,46 +55,98 @@ export default function ClassesPage() {
     });
 
     return (
-        <div className="flex h-full flex-col space-y-4 p-4 md:p-8">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold tracking-tight">Classes</h2>
-                <div className="flex items-center gap-2">
-                    {/* Mobile Filter Trigger */}
+        <div className="flex h-full flex-col space-y-6 p-4 md:p-8">
+            {/* Header: Title + Actions */}
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                {/* Left: Title */}
+                <div className="flex items-center">
+                    <h2 className="text-2xl font-bold tracking-tight">
+                        Classes
+                    </h2>
+                </div>
+
+                {/* Right: Action Buttons (Desktop) */}
+                <div className="hidden items-center gap-2 lg:flex">
+                    <Button variant="outline" size="sm">
+                        <Upload className="mr-2 h-3 w-3" />
+                        Import
+                    </Button>
+                    <Button variant="outline" size="sm">
+                        <Download className="mr-2 h-3 w-3" />
+                        Export
+                    </Button>
+                    <Button onClick={() => setIsAddDialogOpen(true)}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        New Class
+                    </Button>
+                </div>
+
+                {/* Mobile: Actions (Hidden on Desktop) */}
+                <div className="flex gap-2 lg:hidden">
+                    <Button
+                        onClick={() => setIsAddDialogOpen(true)}
+                        className="flex-1"
+                        size="lg"
+                    >
+                        <Plus className="mr-2 h-4 w-4" />
+                        New Class
+                    </Button>
                     <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
                         <SheetTrigger asChild>
                             <Button
                                 variant="outline"
-                                size="icon"
-                                className="lg:hidden"
+                                size="lg"
+                                className="px-4"
                             >
                                 <Filter className="h-4 w-4" />
-                                <span className="sr-only">Filter</span>
                             </Button>
                         </SheetTrigger>
-                        <SheetContent side="bottom" className="h-[80%]">
+                        <SheetContent side="bottom" className="h-[85vh]">
                             <SheetHeader>
-                                <SheetTitle>Filter Classes</SheetTitle>
+                                <SheetTitle>Classes Overview</SheetTitle>
                                 <SheetDescription>
-                                    Select a grade or category to filter.
+                                    View and manage class filters and actions.
                                 </SheetDescription>
                             </SheetHeader>
-                            <div className="mt-4 h-full overflow-y-auto">
-                                <ClassFilters
-                                    activeFilter={activeFilter}
-                                    onSelectFilter={(filter) => {
-                                        setActiveFilter(filter);
-                                        setIsFilterOpen(false);
-                                    }}
-                                />
+                            <div className="space-y-6 py-4">
+                                <div>
+                                    <h3 className="mb-4 text-lg font-semibold">
+                                        Filters
+                                    </h3>
+                                    <div className="h-60 overflow-y-auto">
+                                        <ClassFilters
+                                            activeFilter={activeFilter}
+                                            onSelectFilter={(filter) => {
+                                                setActiveFilter(filter);
+                                                setIsFilterOpen(false);
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 className="mb-4 text-lg font-semibold">
+                                        Actions
+                                    </h3>
+                                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                        <Button
+                                            variant="outline"
+                                            className="w-full"
+                                        >
+                                            <Upload className="mr-2 h-3 w-3" />
+                                            Import
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            className="w-full"
+                                        >
+                                            <Download className="mr-2 h-3 w-3" />
+                                            Export
+                                        </Button>
+                                    </div>
+                                </div>
                             </div>
                         </SheetContent>
                     </Sheet>
-
-                    <Button>
-                        <Plus className="mr-2 h-4 w-4" />
-                        New Class
-                    </Button>
                 </div>
             </div>
 
@@ -93,7 +157,10 @@ export default function ClassesPage() {
                     {/* Mobile View (< lg) */}
                     <div className="lg:hidden">
                         {filteredClasses.length > 0 ? (
-                            <ClassListMobile data={filteredClasses} />
+                            <ClassListMobile
+                                data={filteredClasses}
+                                onViewClass={handleViewClass}
+                            />
                         ) : (
                             <div className="py-10 text-center text-muted-foreground">
                                 No classes found for this filter.
@@ -104,7 +171,10 @@ export default function ClassesPage() {
                     {/* Desktop View (>= lg) */}
                     <div className="hidden lg:block">
                         {filteredClasses.length > 0 ? (
-                            <ClassTable data={filteredClasses} />
+                            <ClassTable
+                                data={filteredClasses}
+                                onViewClass={handleViewClass}
+                            />
                         ) : (
                             <div className="rounded-md border bg-muted/20 p-10 text-center text-muted-foreground">
                                 No classes found for {activeFilter.value}.
@@ -116,13 +186,29 @@ export default function ClassesPage() {
                 {/* Filter Sidebar (Right Panel - 25%) */}
                 <div className="hidden lg:block lg:w-1/4">
                     <div className="sticky top-20">
-                        <ClassFilters
-                            activeFilter={activeFilter}
-                            onSelectFilter={setActiveFilter}
-                        />
+                        {/* Filter Component directly */}
+                        <div className="space-y-4">
+                            <h3 className="text-lg font-semibold">Filters</h3>
+                            <ClassFilters
+                                activeFilter={activeFilter}
+                                onSelectFilter={setActiveFilter}
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
+
+            {/* Features (Popups) */}
+            <ClassDialog
+                isOpen={isAddDialogOpen}
+                onOpenChange={setIsAddDialogOpen}
+            />
+
+            <ClassSheet
+                classItem={selectedClass}
+                isOpen={isSheetOpen}
+                onOpenChange={setIsSheetOpen}
+            />
         </div>
     );
 }

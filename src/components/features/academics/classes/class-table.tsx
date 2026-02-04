@@ -9,23 +9,15 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-// DropdownMenu imports removed as they are unused
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ClassItem } from '@/lib/mock-data-classes';
 
 interface ClassTableProps {
     data: ClassItem[];
+    onViewClass: (classItem: ClassItem) => void;
 }
 
-export function ClassTable({ data }: ClassTableProps) {
+export function ClassTable({ data, onViewClass }: ClassTableProps) {
     return (
         <div className="rounded-md border">
             <Table>
@@ -87,34 +79,17 @@ export function ClassTable({ data }: ClassTableProps) {
                                 </Badge>
                             </TableCell>
                             <TableCell className="text-right">
-                                <Dialog>
-                                    <DialogTrigger asChild>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            title="View Class Sheet"
-                                        >
-                                            <Eye className="h-4 w-4" />
-                                            <span className="sr-only">
-                                                View Class Sheet
-                                            </span>
-                                        </Button>
-                                    </DialogTrigger>
-                                    <DialogContent>
-                                        <DialogHeader>
-                                            <DialogTitle>
-                                                Class Sheet
-                                            </DialogTitle>
-                                            <DialogDescription>
-                                                This feature is coming soon.
-                                            </DialogDescription>
-                                        </DialogHeader>
-                                        <div className="py-6 text-center text-muted-foreground">
-                                            Class details view is under
-                                            construction.
-                                        </div>
-                                    </DialogContent>
-                                </Dialog>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    title="View Class Sheet"
+                                    onClick={() => onViewClass(item)}
+                                >
+                                    <Eye className="h-4 w-4" />
+                                    <span className="sr-only">
+                                        View Class Sheet
+                                    </span>
+                                </Button>
                             </TableCell>
                         </TableRow>
                     ))}
