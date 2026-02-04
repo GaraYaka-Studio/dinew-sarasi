@@ -10,20 +10,13 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog';
 
 interface ClassListMobileProps {
     data: ClassItem[];
+    onViewClass: (classItem: ClassItem) => void;
 }
 
-export function ClassListMobile({ data }: ClassListMobileProps) {
+export function ClassListMobile({ data, onViewClass }: ClassListMobileProps) {
     return (
         <div className="grid gap-4">
             {data.map((item) => (
@@ -96,29 +89,15 @@ export function ClassListMobile({ data }: ClassListMobileProps) {
 
                     {/* Mobile Action View Button */}
                     <div className="flex justify-end pt-1">
-                        <Dialog>
-                            <DialogTrigger asChild>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-8 w-full text-xs"
-                                >
-                                    <Eye className="mr-2 h-3.5 w-3.5" />
-                                    View Class Sheet
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent>
-                                <DialogHeader>
-                                    <DialogTitle>Class Sheet</DialogTitle>
-                                    <DialogDescription>
-                                        This feature is coming soon.
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <div className="py-6 text-center text-muted-foreground">
-                                    Class details view is under construction.
-                                </div>
-                            </DialogContent>
-                        </Dialog>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 w-full text-xs"
+                            onClick={() => onViewClass(item)}
+                        >
+                            <Eye className="mr-2 h-3.5 w-3.5" />
+                            View Class Sheet
+                        </Button>
                     </div>
                 </div>
             ))}
