@@ -21,10 +21,10 @@ export function TimetableHeader({
         const diff = date.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
         const monday = new Date(date);
         monday.setDate(diff);
-        
+
         const sunday = new Date(monday);
         sunday.setDate(monday.getDate() + 6);
-        
+
         return { start: monday, end: sunday };
     };
 
@@ -51,7 +51,7 @@ export function TimetableHeader({
             {/* Left: Title */}
             <div>
                 <h1 className="text-2xl font-bold tracking-tight">Schedule</h1>
-                <p className="text-muted-foreground text-sm">
+                <p className="text-sm text-muted-foreground">
                     Manage weekly class sessions and timetables.
                 </p>
             </div>
@@ -67,12 +67,20 @@ export function TimetableHeader({
                     >
                         <ChevronLeft className="h-4 w-4" />
                     </Button>
-                    
+
                     <div className="flex min-w-[180px] items-center justify-center gap-2 px-2 text-sm font-medium">
-                        <Calendar className="text-muted-foreground h-4 w-4" />
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
                         <span>
-                            {start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} -{' '}
-                            {end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            {start.toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                            })}{' '}
+                            -{' '}
+                            {end.toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                            })}
                         </span>
                     </div>
 
@@ -86,7 +94,12 @@ export function TimetableHeader({
                     </Button>
                 </div>
 
-                <Button variant="ghost" size="sm" onClick={handleToday} className="text-xs">
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleToday}
+                    className="text-xs"
+                >
                     Today
                 </Button>
             </div>

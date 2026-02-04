@@ -38,7 +38,7 @@ export function DateTabs({ currentDate, onDateChange }: DateTabsProps) {
                 {weekDates.map((date) => {
                     const isActive = isSameDay(date, currentDate);
                     const isToday = isSameDay(date, new Date());
-                    
+
                     return (
                         <button
                             key={date.toISOString()}
@@ -46,19 +46,33 @@ export function DateTabs({ currentDate, onDateChange }: DateTabsProps) {
                             className={cn(
                                 'flex min-w-[100px] flex-col items-center justify-center rounded-lg border px-4 py-3 transition-all hover:bg-muted/50',
                                 isActive
-                                    ? 'bg-primary text-primary-foreground border-primary hover:bg-primary/90 shadow-sm'
-                                    : 'bg-background hover:border-sidebar-accent border-transparent text-muted-foreground',
-                                isToday && !isActive && 'border-muted-foreground/30 bg-muted/20'
+                                    ? 'border-primary bg-primary text-primary-foreground shadow-sm hover:bg-primary/90'
+                                    : 'border-transparent bg-background text-muted-foreground hover:border-sidebar-accent',
+                                isToday &&
+                                    !isActive &&
+                                    'border-muted-foreground/30 bg-muted/20'
                             )}
                         >
-                            <span className={cn("text-xs font-medium uppercase tracking-wider", isActive ? "text-primary-foreground/80" : "")}>
+                            <span
+                                className={cn(
+                                    'text-xs font-medium tracking-wider uppercase',
+                                    isActive ? 'text-primary-foreground/80' : ''
+                                )}
+                            >
                                 {format(date, 'EEE')}
                             </span>
-                            <span className={cn("text-xl font-bold", isActive ? "text-primary-foreground" : "text-foreground")}>
+                            <span
+                                className={cn(
+                                    'text-xl font-bold',
+                                    isActive
+                                        ? 'text-primary-foreground'
+                                        : 'text-foreground'
+                                )}
+                            >
                                 {format(date, 'd')}
                             </span>
                             {isHoliday(date) && (
-                                <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-red-500" />
+                                <span className="absolute top-2 right-2 h-1.5 w-1.5 rounded-full bg-red-500" />
                             )}
                         </button>
                     );

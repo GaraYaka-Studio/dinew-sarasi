@@ -13,9 +13,10 @@ export default function TimetablePage() {
     // In real app, this would default to new Date()
     const [currentDate, setCurrentDate] = useState(new Date('2026-02-12'));
     const [isAddSessionOpen, setIsAddSessionOpen] = useState(false);
-    
+
     // Sheet State
-    const [selectedSession, setSelectedSession] = useState<ScheduleSession | null>(null);
+    const [selectedSession, setSelectedSession] =
+        useState<ScheduleSession | null>(null);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
 
     // Filter sessions for selected date
@@ -40,15 +41,12 @@ export default function TimetablePage() {
             />
 
             {/* Date Navigation Tabs */}
-            <DateTabs
-                currentDate={currentDate}
-                onDateChange={setCurrentDate}
-            />
+            <DateTabs currentDate={currentDate} onDateChange={setCurrentDate} />
 
             {/* Main Schedule List */}
             <div className="flex-1">
-                <ScheduleList 
-                    sessions={filteredSessions} 
+                <ScheduleList
+                    sessions={filteredSessions}
                     onView={(session) => handleViewSession(session)} // This will be passed to ScheduleCard
                 />
             </div>

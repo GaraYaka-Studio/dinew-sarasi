@@ -21,7 +21,11 @@ interface SessionSheetProps {
     onOpenChange: (open: boolean) => void;
 }
 
-export function SessionSheet({ session, isOpen, onOpenChange }: SessionSheetProps) {
+export function SessionSheet({
+    session,
+    isOpen,
+    onOpenChange,
+}: SessionSheetProps) {
     if (!session) return null;
 
     return (
@@ -38,26 +42,32 @@ export function SessionSheet({ session, isOpen, onOpenChange }: SessionSheetProp
                     {/* Key Details */}
                     <div className="space-y-4 rounded-lg border p-4">
                         <div className="flex items-center gap-3">
-                            <Calendar className="text-muted-foreground h-4 w-4" />
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
                             <div className="text-sm">
                                 <span className="block font-medium">Date</span>
-                                <span className="text-muted-foreground text-xs">{session.date}</span>
+                                <span className="text-xs text-muted-foreground">
+                                    {session.date}
+                                </span>
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
-                            <Clock className="text-muted-foreground h-4 w-4" />
+                            <Clock className="h-4 w-4 text-muted-foreground" />
                             <div className="text-sm">
                                 <span className="block font-medium">Time</span>
-                                <span className="text-muted-foreground text-xs">
+                                <span className="text-xs text-muted-foreground">
                                     {session.startTime} - {session.endTime}
                                 </span>
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
-                            <MapPin className="text-muted-foreground h-4 w-4" />
+                            <MapPin className="h-4 w-4 text-muted-foreground" />
                             <div className="text-sm">
-                                <span className="block font-medium">Location</span>
-                                <span className="text-muted-foreground text-xs">{session.location}</span>
+                                <span className="block font-medium">
+                                    Location
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                    {session.location}
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -69,7 +79,7 @@ export function SessionSheet({ session, isOpen, onOpenChange }: SessionSheetProp
                         <div className="flex items-center justify-between">
                             <div className="space-y-0.5">
                                 <Label className="text-base">Cancelled</Label>
-                                <p className="text-muted-foreground text-xs">
+                                <p className="text-xs text-muted-foreground">
                                     Mark this specific session as cancelled.
                                 </p>
                             </div>

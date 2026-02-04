@@ -849,4 +849,3 @@ export const MOCK_TIMETABLE: ScheduleSession[] = [
         status: 'scheduled',
     },
 ];
-
