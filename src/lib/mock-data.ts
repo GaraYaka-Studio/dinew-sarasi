@@ -35,6 +35,23 @@ export interface LiveClass {
     present: number;
 }
 
+export interface ScheduleSession {
+    id: string;
+    date: string; // ISO Date "2024-02-12"
+    startTime: string; // "08:00 AM"
+    endTime: string; // "10:00 AM"
+    subject: string;
+    grade: string;
+    medium: 'Sinhala' | 'English' | 'Tamil';
+    type: 'Theory' | 'Revision' | 'Paper';
+    teacher: {
+        name: string;
+        avatar?: string;
+    };
+    location: string;
+    status: 'scheduled' | 'extra' | 'cancelled';
+}
+
 // Today's Schedule (Mock)
 export const todaySchedule: ScheduleItem[] = [
     {
@@ -732,3 +749,104 @@ export const MOCK_FEE_STRUCTURE: {
         },
     ],
 };
+
+// Mock Timetable Data for a specific week (Feb 12 - Feb 18, 2026)
+export const MOCK_TIMETABLE: ScheduleSession[] = [
+    // Monday Feb 12
+    {
+        id: 's1',
+        date: '2026-02-12',
+        startTime: '08:00 AM',
+        endTime: '10:00 AM',
+        subject: 'Combined Maths',
+        grade: 'Grade 12',
+        medium: 'Sinhala',
+        type: 'Theory',
+        teacher: { name: 'Mr. Perera' },
+        location: 'Hall A',
+        status: 'scheduled',
+    },
+    {
+        id: 's2',
+        date: '2026-02-12',
+        startTime: '08:00 AM',
+        endTime: '10:00 AM',
+        subject: 'Physics',
+        grade: 'Grade 13',
+        medium: 'English',
+        type: 'Revision',
+        teacher: { name: 'Ms. Silva' },
+        location: 'Hall B',
+        status: 'scheduled',
+    },
+    {
+        id: 's3',
+        date: '2026-02-12',
+        startTime: '10:30 AM',
+        endTime: '12:30 PM',
+        subject: 'Chemistry',
+        grade: 'Grade 12',
+        medium: 'Sinhala',
+        type: 'Theory',
+        teacher: { name: 'Mr. Fernando' },
+        location: 'Hall A',
+        status: 'extra',
+    },
+    // Tuesday Feb 13
+    {
+        id: 's4',
+        date: '2026-02-13',
+        startTime: '02:30 PM',
+        endTime: '04:30 PM',
+        subject: 'Biology',
+        grade: 'Grade 11',
+        medium: 'Sinhala',
+        type: 'Theory',
+        teacher: { name: 'Dr. Gunawardena' },
+        location: 'Hall C',
+        status: 'scheduled',
+    },
+    // Wednesday Feb 14
+    {
+        id: 's5',
+        date: '2026-02-14',
+        startTime: '08:00 AM',
+        endTime: '10:00 AM',
+        subject: 'Combined Maths',
+        grade: 'Grade 13',
+        medium: 'English',
+        type: 'Paper',
+        teacher: { name: 'Mr. Perera' },
+        location: 'Hall A',
+        status: 'cancelled',
+    },
+    // Thursday Feb 15
+    {
+        id: 's6',
+        date: '2026-02-15',
+        startTime: '03:30 PM',
+        endTime: '05:30 PM',
+        subject: 'Physics',
+        grade: 'Grade 11',
+        medium: 'Sinhala',
+        type: 'Theory',
+        teacher: { name: 'Ms. Silva' },
+        location: 'Hall B',
+        status: 'scheduled',
+    },
+    // Friday Feb 16
+    {
+        id: 's7',
+        date: '2026-02-16',
+        startTime: '08:00 AM',
+        endTime: '10:00 AM',
+        subject: 'Combined Maths',
+        grade: 'Grade 12',
+        medium: 'English',
+        type: 'Revision',
+        teacher: { name: 'Mr. Perera' },
+        location: 'Hall A',
+        status: 'scheduled',
+    },
+];
+
