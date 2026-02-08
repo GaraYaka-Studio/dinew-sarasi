@@ -50,7 +50,9 @@ export function InstituteProfileCard({
                         <Input
                             id="instituteName"
                             value={instituteName}
-                            onChange={(e) => onChange('instituteName', e.target.value)}
+                            onChange={(e) =>
+                                onChange('instituteName', e.target.value)
+                            }
                             placeholder="Enter institute name"
                         />
                     </div>
@@ -61,7 +63,9 @@ export function InstituteProfileCard({
                         <Textarea
                             id="address"
                             value={address}
-                            onChange={(e) => onChange('address', e.target.value)}
+                            onChange={(e) =>
+                                onChange('address', e.target.value)
+                            }
                             placeholder="Enter institute address"
                             rows={3}
                         />
@@ -96,7 +100,9 @@ export function InstituteProfileCard({
                         <Input
                             id="website"
                             value={website || ''}
-                            onChange={(e) => onChange('website', e.target.value)}
+                            onChange={(e) =>
+                                onChange('website', e.target.value)
+                            }
                             placeholder="www.example.com"
                         />
                     </div>
@@ -130,7 +136,7 @@ export function InstituteProfileCard({
                             Change
                         </Button>
                     </div>
-                    <p className="text-xs text-muted-foreground text-center">
+                    <p className="text-center text-xs text-muted-foreground">
                         Recommended: Square image, PNG or JPG
                     </p>
                 </div>

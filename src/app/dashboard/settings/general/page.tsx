@@ -5,12 +5,16 @@ import { Button } from '@/components/ui/button';
 import { InstituteProfileCard } from '@/components/features/settings/institute-profile-card';
 import { AppSettingsCard } from '@/components/features/settings/app-settings-card';
 import { DangerZoneCard } from '@/components/features/settings/danger-zone-card';
-import { DEFAULT_SETTINGS, type SettingsFormData } from '@/lib/mock-data-settings';
+import {
+    DEFAULT_SETTINGS,
+    type SettingsFormData,
+} from '@/lib/mock-data-settings';
 import { Save } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function GeneralSettingsPage() {
-    const [settings, setSettings] = useState<SettingsFormData>(DEFAULT_SETTINGS);
+    const [settings, setSettings] =
+        useState<SettingsFormData>(DEFAULT_SETTINGS);
     const [isSaving, setIsSaving] = useState(false);
 
     const handleChange = (field: string, value: string | boolean) => {
@@ -77,7 +81,9 @@ export default function GeneralSettingsPage() {
                     {/* Danger Zone */}
                     <DangerZoneCard
                         maintenanceMode={settings.maintenanceMode}
-                        onChange={(value) => handleChange('maintenanceMode', value)}
+                        onChange={(value) =>
+                            handleChange('maintenanceMode', value)
+                        }
                     />
                 </div>
             </div>

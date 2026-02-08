@@ -25,7 +25,10 @@ export function DangerZoneCard({
 
             <div className="flex items-center justify-between rounded-lg border border-red-200 bg-white/50 p-4 dark:border-red-900 dark:bg-black/20">
                 <div className="space-y-0.5">
-                    <Label htmlFor="maintenanceMode" className="text-red-900 dark:text-red-100">
+                    <Label
+                        htmlFor="maintenanceMode"
+                        className="text-red-900 dark:text-red-100"
+                    >
                         Maintenance Mode
                     </Label>
                     <p className="text-xs text-red-700 dark:text-red-300">

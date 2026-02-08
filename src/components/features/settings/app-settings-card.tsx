@@ -33,7 +33,9 @@ export function AppSettingsCard({
                     <Textarea
                         id="receiptFooter"
                         value={receiptFooter}
-                        onChange={(e) => onChange('receiptFooter', e.target.value)}
+                        onChange={(e) =>
+                            onChange('receiptFooter', e.target.value)
+                        }
                         placeholder="Enter receipt footer text..."
                         rows={4}
                     />
@@ -62,7 +64,9 @@ export function AppSettingsCard({
                     <Input
                         id="academicYear"
                         value={academicYear}
-                        onChange={(e) => onChange('academicYear', e.target.value)}
+                        onChange={(e) =>
+                            onChange('academicYear', e.target.value)
+                        }
                         placeholder="2026"
                     />
                 </div>

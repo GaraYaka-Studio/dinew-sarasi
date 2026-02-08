@@ -28,7 +28,8 @@ export const DEFAULT_SETTINGS: SettingsFormData = {
     email: 'info@sarasinstitute.lk',
     website: 'www.sarasinstitute.lk',
 
-    receiptFooter: 'Terms & Conditions:\n - Please bring this receipt for any inquiries\nThank you for your payment!',
+    receiptFooter:
+        'Terms & Conditions:\n - Please bring this receipt for any inquiries\nThank you for your payment!',
     smsEnabled: true,
     academicYear: '2026',
 
