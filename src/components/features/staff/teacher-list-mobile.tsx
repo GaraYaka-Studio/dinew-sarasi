@@ -45,7 +45,7 @@ export function TeacherListMobile({
                                     <h3 className="truncate font-semibold">
                                         {teacher.name}
                                     </h3>
-                                    <div className="flex items-center gap-2 shrink-0">
+                                    <div className="flex shrink-0 items-center gap-2">
                                         <div
                                             className={cn(
                                                 'h-2 w-2 rounded-full',
@@ -58,7 +58,9 @@ export function TeacherListMobile({
                                             variant="ghost"
                                             size="icon"
                                             className="h-8 w-8"
-                                            onClick={() => onViewTeacher(teacher)}
+                                            onClick={() =>
+                                                onViewTeacher(teacher)
+                                            }
                                         >
                                             <Eye className="h-4 w-4" />
                                         </Button>
@@ -66,18 +68,18 @@ export function TeacherListMobile({
                                 </div>
 
                                 {/* Subjects - No badges */}
-                                <p className="text-sm text-muted-foreground mt-0.5">
+                                <p className="mt-0.5 text-sm text-muted-foreground">
                                     {teacher.subjects.join(', ')}
                                 </p>
 
                                 {/* Phone */}
-                                <div className="flex items-center gap-1.5 mt-2 text-sm">
+                                <div className="mt-2 flex items-center gap-1.5 text-sm">
                                     <Phone className="h-3.5 w-3.5 text-muted-foreground" />
                                     <span>{teacher.phone}</span>
                                 </div>
 
                                 {/* Classes */}
-                                <div className="flex items-center gap-1.5 mt-1 text-sm text-muted-foreground">
+                                <div className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
                                     <BookOpen className="h-3.5 w-3.5" />
                                     <span>
                                         {teacher.classCount} Classes Assigned
@@ -98,10 +100,14 @@ export function TeacherListMobile({
                                             <span className="text-muted-foreground">
                                                 Pending:
                                             </span>
-                                            <span className={cn(
-                                                'font-medium',
-                                                pendingDue > 0 ? 'text-orange-600' : ''
-                                            )}>
+                                            <span
+                                                className={cn(
+                                                    'font-medium',
+                                                    pendingDue > 0
+                                                        ? 'text-orange-600'
+                                                        : ''
+                                                )}
+                                            >
                                                 {formatCurrency(pendingDue)}
                                             </span>
                                         </>

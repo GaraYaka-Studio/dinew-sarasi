@@ -35,9 +35,7 @@ export function TeacherStats({ stats = TEACHER_STATS }: TeacherStatsProps) {
                         <p className="text-xs text-muted-foreground">
                             {stat.label}
                         </p>
-                        <p className="text-2xl font-semibold">
-                            {stat.value}
-                        </p>
+                        <p className="text-2xl font-semibold">{stat.value}</p>
                     </div>
                 </Card>
             ))}

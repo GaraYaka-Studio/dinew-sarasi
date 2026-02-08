@@ -62,7 +62,8 @@ export function TeacherDialog({ isOpen, onOpenChange }: TeacherDialogProps) {
                         {/* Personal Information Section */}
                         <div className="space-y-4">
                             <h3 className="flex items-center gap-2 text-sm font-medium tracking-wider text-muted-foreground uppercase">
-                                <User className="h-4 w-4" /> Personal Information
+                                <User className="h-4 w-4" /> Personal
+                                Information
                             </h3>
                             <div className="grid gap-4">
                                 <div className="space-y-2">

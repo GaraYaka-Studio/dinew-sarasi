@@ -15,7 +15,9 @@ import { Teacher } from '@/types/teacher.types';
 export default function TeachersPage() {
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
-    const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
+    const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(
+        null
+    );
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedSubject, setSelectedSubject] = useState('all');
 

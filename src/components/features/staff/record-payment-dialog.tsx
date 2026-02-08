@@ -28,9 +28,7 @@ export function RecordPaymentDialog({
 }: RecordPaymentDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [amount, setAmount] = useState('');
-    const [date, setDate] = useState(
-        new Date().toISOString().split('T')[0]
-    );
+    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [note, setNote] = useState('');
 
     const handleSubmit = async (e: React.FormEvent) => {

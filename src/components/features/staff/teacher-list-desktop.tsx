@@ -74,7 +74,11 @@ export function TeacherListDesktop({
                                     {teacher.phone}
                                 </TableCell>
                                 <TableCell className="text-sm">
-                                    {String(teacher.classCount).padStart(2, '0')} Classes
+                                    {String(teacher.classCount).padStart(
+                                        2,
+                                        '0'
+                                    )}{' '}
+                                    Classes
                                 </TableCell>
                                 <TableCell>
                                     {isPaidOff ? (
@@ -85,10 +89,14 @@ export function TeacherListDesktop({
                                             </span>
                                         </div>
                                     ) : (
-                                        <span className={cn(
-                                            'text-sm font-medium',
-                                            pendingDue > 0 ? 'text-orange-600' : ''
-                                        )}>
+                                        <span
+                                            className={cn(
+                                                'text-sm font-medium',
+                                                pendingDue > 0
+                                                    ? 'text-orange-600'
+                                                    : ''
+                                            )}
+                                        >
                                             {formatCurrency(pendingDue)}
                                         </span>
                                     )}

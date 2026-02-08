@@ -28,7 +28,7 @@ export function TeacherFilters({
         <div className="flex flex-col gap-4 sm:flex-row">
             {/* Search Input */}
             <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                     placeholder="Search by Name, NIC, or Phone..."
                     className="pl-10"
