@@ -7,9 +7,7 @@ interface ReportsSummaryCardsProps {
     reportType: ReportType;
 }
 
-export function ReportsSummaryCards({
-    reportType,
-}: ReportsSummaryCardsProps) {
+export function ReportsSummaryCards({ reportType }: ReportsSummaryCardsProps) {
     const cards = getSummaryCards(reportType);
 
     return (
@@ -23,9 +21,7 @@ export function ReportsSummaryCards({
                         <p className="text-xs text-muted-foreground">
                             {card.label}
                         </p>
-                        <p className="text-2xl font-semibold">
-                            {card.value}
-                        </p>
+                        <p className="text-2xl font-semibold">{card.value}</p>
                     </div>
                 </Card>
             ))}
