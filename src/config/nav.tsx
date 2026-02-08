@@ -164,6 +164,11 @@ export const NAV_ITEMS = {
                 icon: BarChart3,
                 items: [
                     {
+                        title: 'Reports Center',
+                        href: '/dashboard/reports',
+                        icon: BarChart3,
+                    },
+                    {
                         title: 'Financial Reports',
                         href: '/dashboard/reports/financial',
                         icon: DollarSign,
