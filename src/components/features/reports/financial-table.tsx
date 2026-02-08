@@ -56,7 +56,9 @@ export function FinancialTable({ data }: { data: FinancialRecord[] }) {
                     </TableHeader>
                     <TableBody>
                         {data.map((record) => {
-                            const categoryBadge = getCategoryBadge(record.category);
+                            const categoryBadge = getCategoryBadge(
+                                record.category
+                            );
                             return (
                                 <TableRow key={record.id}>
                                     <TableCell className="text-sm">

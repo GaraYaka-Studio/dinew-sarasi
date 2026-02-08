@@ -406,9 +406,7 @@ export interface SummaryCard {
     className: string;
 }
 
-export const getSummaryCards = (
-    type: ReportType
-): SummaryCard[] => {
+export const getSummaryCards = (type: ReportType): SummaryCard[] => {
     switch (type) {
         case 'financial':
             return [

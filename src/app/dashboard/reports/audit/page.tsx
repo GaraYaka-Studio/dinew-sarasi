@@ -13,8 +13,12 @@ import { Shield } from 'lucide-react';
 
 export default function AuditLogsPage() {
     const [searchQuery, setSearchQuery] = useState('');
-    const [actionFilter, setActionFilter] = useState<AuditAction | 'ALL'>('ALL');
-    const [moduleFilter, setModuleFilter] = useState<AuditModule | 'ALL'>('ALL');
+    const [actionFilter, setActionFilter] = useState<AuditAction | 'ALL'>(
+        'ALL'
+    );
+    const [moduleFilter, setModuleFilter] = useState<AuditModule | 'ALL'>(
+        'ALL'
+    );
 
     // Filter logs based on search and filters
     const filteredLogs = useMemo(() => {
@@ -22,16 +26,20 @@ export default function AuditLogsPage() {
             // Search filter
             const matchesSearch =
                 searchQuery === '' ||
-                log.user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                log.user.name
+                    .toLowerCase()
+                    .includes(searchQuery.toLowerCase()) ||
                 log.action.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 log.context.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 log.details.toLowerCase().includes(searchQuery.toLowerCase());
 
             // Action filter
-            const matchesAction = actionFilter === 'ALL' || log.action === actionFilter;
+            const matchesAction =
+                actionFilter === 'ALL' || log.action === actionFilter;
 
             // Module filter
-            const matchesModule = moduleFilter === 'ALL' || log.module === moduleFilter;
+            const matchesModule =
+                moduleFilter === 'ALL' || log.module === moduleFilter;
 
             return matchesSearch && matchesAction && matchesModule;
         });
@@ -57,7 +65,8 @@ export default function AuditLogsPage() {
                     </p>
                 </div>
                 <div className="text-sm text-muted-foreground">
-                    {filteredLogs.length} {filteredLogs.length === 1 ? 'record' : 'records'}
+                    {filteredLogs.length}{' '}
+                    {filteredLogs.length === 1 ? 'record' : 'records'}
                 </div>
             </div>
 
@@ -84,7 +93,9 @@ export default function AuditLogsPage() {
                                 No audit logs found
                             </h3>
                             <p className="mt-2 text-sm text-muted-foreground">
-                                {searchQuery || actionFilter !== 'ALL' || moduleFilter !== 'ALL'
+                                {searchQuery ||
+                                actionFilter !== 'ALL' ||
+                                moduleFilter !== 'ALL'
                                     ? 'Try adjusting your filters to see more results.'
                                     : 'No audit logs have been recorded yet.'}
                             </p>

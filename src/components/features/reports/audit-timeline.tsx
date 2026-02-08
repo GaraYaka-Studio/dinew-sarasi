@@ -71,13 +71,13 @@ export function AuditTimeline({ groupedLogs }: AuditTimelineProps) {
                         <table className="w-full text-sm">
                             <thead className="bg-muted/30">
                                 <tr>
-                                    <th className="px-4 py-2 text-left font-medium text-muted-foreground w-[100px]">
+                                    <th className="w-[100px] px-4 py-2 text-left font-medium text-muted-foreground">
                                         Time
                                     </th>
                                     <th className="px-4 py-2 text-left font-medium text-muted-foreground">
                                         User
                                     </th>
-                                    <th className="px-4 py-2 text-left font-medium text-muted-foreground w-[100px]">
+                                    <th className="w-[100px] px-4 py-2 text-left font-medium text-muted-foreground">
                                         Action
                                     </th>
                                     <th className="px-4 py-2 text-left font-medium text-muted-foreground">
@@ -90,11 +90,13 @@ export function AuditTimeline({ groupedLogs }: AuditTimelineProps) {
                             </thead>
                             <tbody className="divide-y">
                                 {groupedLogs[dateKey].map((log) => {
-                                    const actionBadge = getActionBadge(log.action);
+                                    const actionBadge = getActionBadge(
+                                        log.action
+                                    );
                                     return (
                                         <tr
                                             key={log.id}
-                                            className="hover:bg-muted/50 transition-colors"
+                                            className="transition-colors hover:bg-muted/50"
                                         >
                                             <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
                                                 {formatTime(log.timestamp)}
@@ -103,7 +105,9 @@ export function AuditTimeline({ groupedLogs }: AuditTimelineProps) {
                                                 <div className="flex items-center gap-3">
                                                     <Avatar className="h-7 w-7">
                                                         <AvatarFallback className="bg-primary/10 text-xs text-primary">
-                                                            {getInitials(log.user.name)}
+                                                            {getInitials(
+                                                                log.user.name
+                                                            )}
                                                         </AvatarFallback>
                                                     </Avatar>
                                                     <div>
@@ -146,7 +150,7 @@ export function AuditTimeline({ groupedLogs }: AuditTimelineProps) {
                     <div className="space-y-4 lg:hidden">
                         <div className="relative pl-6">
                             {/* Timeline Line */}
-                            <div className="absolute left-2 top-0 h-full w-0.5 bg-muted" />
+                            <div className="absolute top-0 left-2 h-full w-0.5 bg-muted" />
 
                             {groupedLogs[dateKey].map((log, index) => {
                                 const actionBadge = getActionBadge(log.action);
@@ -156,7 +160,7 @@ export function AuditTimeline({ groupedLogs }: AuditTimelineProps) {
                                         className="relative pb-4 last:pb-0"
                                     >
                                         {/* Timeline Dot */}
-                                        <div className="absolute left-[-19px] top-4 h-3 w-3 rounded-full border-2 border-background bg-primary" />
+                                        <div className="absolute top-4 left-[-19px] h-3 w-3 rounded-full border-2 border-background bg-primary" />
 
                                         {/* Timeline Card */}
                                         <div className="rounded-lg border bg-card p-3 shadow-sm">
@@ -180,7 +184,9 @@ export function AuditTimeline({ groupedLogs }: AuditTimelineProps) {
                                             <div className="mb-2 flex items-center gap-2">
                                                 <Avatar className="h-6 w-6">
                                                     <AvatarFallback className="bg-primary/10 text-[10px] text-primary">
-                                                        {getInitials(log.user.name)}
+                                                        {getInitials(
+                                                            log.user.name
+                                                        )}
                                                     </AvatarFallback>
                                                 </Avatar>
                                                 <div>
@@ -188,7 +194,8 @@ export function AuditTimeline({ groupedLogs }: AuditTimelineProps) {
                                                         {log.user.name}
                                                     </p>
                                                     <p className="text-[10px] text-muted-foreground">
-                                                        {log.user.role} • {log.module}
+                                                        {log.user.role} •{' '}
+                                                        {log.module}
                                                     </p>
                                                 </div>
                                             </div>

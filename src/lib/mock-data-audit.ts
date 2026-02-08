@@ -3,7 +3,13 @@
 // ============================================================================
 
 export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'LOGIN' | 'EXPORT';
-export type AuditModule = 'Students' | 'Finance' | 'Classes' | 'Staff' | 'Settings' | 'System';
+export type AuditModule =
+    | 'Students'
+    | 'Finance'
+    | 'Classes'
+    | 'Staff'
+    | 'Settings'
+    | 'System';
 
 export interface AuditLog {
     id: string;
@@ -48,7 +54,12 @@ export const formatDateHeader = (dateStr: string): string => {
     if (getDateKey(yesterday.toISOString()) === dateStr) {
         return `Yesterday - ${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
     }
-    return date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
+    return date.toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+    });
 };
 
 // Mock Audit Logs Data
@@ -231,18 +242,27 @@ export const AUDIT_LOGS: AuditLog[] = [
 ];
 
 // Group logs by date
-export const groupLogsByDate = (logs: AuditLog[]): Record<string, AuditLog[]> => {
-    return logs.reduce((acc, log) => {
-        const dateKey = getDateKey(log.timestamp);
-        if (!acc[dateKey]) {
-            acc[dateKey] = [];
-        }
-        acc[dateKey].push(log);
-        return acc;
-    }, {} as Record<string, AuditLog[]>);
+export const groupLogsByDate = (
+    logs: AuditLog[]
+): Record<string, AuditLog[]> => {
+    return logs.reduce(
+        (acc, log) => {
+            const dateKey = getDateKey(log.timestamp);
+            if (!acc[dateKey]) {
+                acc[dateKey] = [];
+            }
+            acc[dateKey].push(log);
+            return acc;
+        },
+        {} as Record<string, AuditLog[]>
+    );
 };
 
 // Get sorted dates (newest first)
-export const getSortedDates = (groupedLogs: Record<string, AuditLog[]>): string[] => {
-    return Object.keys(groupedLogs).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+export const getSortedDates = (
+    groupedLogs: Record<string, AuditLog[]>
+): string[] => {
+    return Object.keys(groupedLogs).sort(
+        (a, b) => new Date(b).getTime() - new Date(a).getTime()
+    );
 };
