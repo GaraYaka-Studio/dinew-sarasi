@@ -1,5 +1,6 @@
-import 'dotenv/config';
 import { defineConfig } from 'drizzle-kit';
+
+import './envConfig.ts'
 
 if (!process.env.DATABASE_URL) throw new Error("Main Database URL is not set! (DATABASE_URL)");
 
