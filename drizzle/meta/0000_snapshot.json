@@ -1,11 +1,11 @@
 {
-  "id": "50d91055-5afe-4aa8-9daa-db75a74b920e",
+  "id": "682b9220-026a-438e-92dc-cff28cd0d5b1",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "public.student": {
-      "name": "student",
+    "public.students": {
+      "name": "students",
       "schema": "",
       "columns": {
         "id": {
