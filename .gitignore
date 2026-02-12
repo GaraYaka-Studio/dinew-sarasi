@@ -43,3 +43,11 @@ next-env.d.ts
 # nixos
 !.envrc
 /.direnv
+
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/

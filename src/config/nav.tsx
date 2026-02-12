@@ -8,11 +8,7 @@ import {
     BarChart3,
     Settings,
     Scan,
-    UserPlus,
     Users,
-    CreditCard,
-    TrendingUp,
-    Receipt,
     GraduationCap,
     BookMarked,
     Calendar,
@@ -20,8 +16,6 @@ import {
     FileText,
     Shield,
     Building2,
-    CalendarDays,
-    UsersRound,
 } from 'lucide-react';
 
 export interface NavItem {
@@ -58,15 +52,11 @@ export const NAV_ITEMS = {
                 icon: QrCode,
                 items: [
                     {
-                        title: 'Rapid Scan',
+                        title: 'Mark Attendance',
                         href: '/dashboard/attendance/scan',
                         icon: Scan,
                     },
-                    {
-                        title: 'Manual Entry',
-                        href: '/dashboard/attendance/manual',
-                        icon: UserPlus,
-                    },
+
                     {
                         title: 'Attendance Log',
                         href: '/dashboard/attendance/log',
@@ -79,24 +69,9 @@ export const NAV_ITEMS = {
                 icon: UserSquare2,
                 items: [
                     {
-                        title: 'Admissions',
-                        href: '/dashboard/students/admissions',
-                        icon: UserPlus,
-                    },
-                    {
                         title: 'All Students',
                         href: '/dashboard/students',
                         icon: Users,
-                    },
-                    {
-                        title: 'ID Cards',
-                        href: '/dashboard/students/ids',
-                        icon: CreditCard,
-                    },
-                    {
-                        title: 'Promotions',
-                        href: '/dashboard/students/promotions',
-                        icon: TrendingUp,
                     },
                 ],
             },
@@ -108,16 +83,6 @@ export const NAV_ITEMS = {
                         title: 'Collect Fees',
                         href: '/dashboard/payments/collect',
                         icon: DollarSign,
-                    },
-                    {
-                        title: 'Expenses',
-                        href: '/dashboard/payments/expenses',
-                        icon: Receipt,
-                    },
-                    {
-                        title: 'Transactions',
-                        href: '/dashboard/payments/transactions',
-                        icon: FileText,
                     },
                 ],
             },
@@ -156,11 +121,6 @@ export const NAV_ITEMS = {
                         href: '/dashboard/staff/teachers',
                         icon: Users,
                     },
-                    {
-                        title: 'Teacher Payments',
-                        href: '/dashboard/staff/payments',
-                        icon: DollarSign,
-                    },
                 ],
             },
             {
@@ -168,14 +128,9 @@ export const NAV_ITEMS = {
                 icon: BarChart3,
                 items: [
                     {
-                        title: 'Financial Reports',
-                        href: '/dashboard/reports/financial',
-                        icon: DollarSign,
-                    },
-                    {
-                        title: 'Attendance Reports',
-                        href: '/dashboard/reports/attendance',
-                        icon: Calendar,
+                        title: 'Reports Center',
+                        href: '/dashboard/reports',
+                        icon: BarChart3,
                     },
                     {
                         title: 'Audit Logs',
@@ -194,16 +149,6 @@ export const NAV_ITEMS = {
                 title: 'General Settings',
                 href: '/dashboard/settings/general',
                 icon: Building2,
-            },
-            {
-                title: 'Academic Years',
-                href: '/dashboard/settings/academic-years',
-                icon: CalendarDays,
-            },
-            {
-                title: 'User Management',
-                href: '/dashboard/settings/users',
-                icon: UsersRound,
             },
         ],
     },
