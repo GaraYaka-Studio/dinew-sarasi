@@ -5,8 +5,92 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1770723266218,
+      "when": 1771087758706,
       "tag": "0000_create_students_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1771087849897,
+      "tag": "0001_create_profiles_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1771087931087,
+      "tag": "0002_create_payments_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1771088002669,
+      "tag": "0003_create_subjects_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1771088053508,
+      "tag": "0004_create_teachers_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1771088097372,
+      "tag": "0005_create_academic_years_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1771088185772,
+      "tag": "0006_create_classes_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1771088271817,
+      "tag": "0007_create_payment_items_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1771088329713,
+      "tag": "0008_create_student_fees_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1771088397145,
+      "tag": "0009_create_enrollments_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1771088473193,
+      "tag": "0010_create_attendance_records_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1771088556434,
+      "tag": "0011_create_audit_logs_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1771088634086,
+      "tag": "0012_create_sms_logs_table",
       "breakpoints": true
     }
   ]
