@@ -1,14 +1,22 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { Button } from '@/components/ui/button';
+import { useState, useMemo, useEffect } from 'react';
+
+import { getClasses, getTeachers } from '@/lib/db/select';
+
 import { Plus, Download } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
 import { TeacherStats } from '@/components/features/staff/teacher-stats';
 import { TeacherFilters } from '@/components/features/staff/teacher-filters';
 import { TeacherListDesktop } from '@/components/features/staff/teacher-list-desktop';
 import { TeacherListMobile } from '@/components/features/staff/teacher-list-mobile';
 import { TeacherDialog } from '@/components/features/staff/teacher-dialog';
 import { TeacherSheet } from '@/components/features/staff/teacher-sheet';
+
+import { Teacher as Tchr } from '@/types/schema.types';
+import { Class } from '@/types/schema.types';
+
 import { MOCK_TEACHERS } from '@/lib/mock-data-teachers';
 import { Teacher } from '@/types/teacher.types';
 
@@ -45,13 +53,21 @@ export default function TeachersPage() {
         setIsSheetOpen(true);
     };
 
+    const [teachers, setTeachers] = useState<Tchr[]>([]);
+    const [classes, setClasses] = useState<Class[]>([]);
+
+    useEffect(() => {
+        getTeachers().then(setTeachers);
+        getClasses().then(setClasses);
+    }, []);
+
     return (
         <div className="space-y-6">
             {/* Header: Title + Stats + Actions */}
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
                 {/* Left: Mini Stats Grid (75% on Desktop) */}
                 <div className="hidden lg:col-span-3 lg:block">
-                    <TeacherStats />
+                    <TeacherStats teachers={teachers} classes={classes} />
                 </div>
 
                 {/* Right: Action Buttons (25% on Desktop) */}
@@ -88,7 +104,7 @@ export default function TeachersPage() {
                     </Button>
 
                     {/* Stats Cards */}
-                    <TeacherStats />
+                    <TeacherStats teachers={teachers} classes={classes} />
                 </div>
             </div>
 
