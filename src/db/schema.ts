@@ -92,7 +92,7 @@ export const attendanceStatus = pgEnum('attendance_status', [
 ]);
 
 export const profiles = pgTable('profiles', {
-    id: uuid().primaryKey(),
+    id: uuid().defaultRandom().primaryKey(),
     email: text().unique().notNull(),
     full_name: text().notNull(),
     role: userRole().default('staff'),
@@ -110,7 +110,7 @@ export const academicYears = pgTable('academic_years', {
 });
 
 export const subjects = pgTable('subjects', {
-    id: uuid().primaryKey(),
+    id: uuid().defaultRandom().primaryKey(),
     name: varchar({ length: 100 }).notNull(),
     code: varchar({ length: 20 }).notNull(),
     category: varchar({ length: 50 }),
@@ -121,8 +121,9 @@ export const subjects = pgTable('subjects', {
 ]);
 
 export const teachers = pgTable('teachers', {
-    id: uuid().primaryKey(),
+    id: uuid().defaultRandom().primaryKey(),
     name: varchar({ length: 255 }).notNull(),
+    display_name: varchar({ length: 255 }),
     nic: varchar({ length: 20 }).unique(),
     phone: varchar({ length: 20 }),
     subjects: text().array(),
@@ -134,7 +135,7 @@ export const teachers = pgTable('teachers', {
 });
 
 export const classes = pgTable('classes', {
-    id: uuid().primaryKey(),
+    id: uuid().defaultRandom().primaryKey(),
     name: varchar({ length: 100 }).notNull(),
     grade: varchar({ length: 20 }).notNull(),
     medium: classMedium().default('sinhala'),
@@ -152,7 +153,7 @@ export const classes = pgTable('classes', {
 });
 
 export const students = pgTable('students', {
-    id: uuid().primaryKey(),
+    id: uuid().defaultRandom().primaryKey(),
     student_id: serial(),
     full_name: text().notNull(),
     initials: varchar({ length: 20 }),
@@ -182,7 +183,7 @@ export const students = pgTable('students', {
 ]);
 
 export const enrollments = pgTable('enrollments', {
-    id: uuid().primaryKey(),
+    id: uuid().defaultRandom().primaryKey(),
     student_id: uuid().references(() => students.id),
     class_id: uuid().references(() => classes.id),
     enrolled_at: date().defaultNow(),
@@ -193,7 +194,7 @@ export const enrollments = pgTable('enrollments', {
 ]);
 
 export const studentFees = pgTable('student_fees', {
-    id: uuid().primaryKey(),
+    id: uuid().defaultRandom().primaryKey(),
     student_id: uuid().references(() => students.id),
     class_id: uuid().references(() => classes.id),
     year: integer().notNull(),
@@ -211,7 +212,7 @@ export const studentFees = pgTable('student_fees', {
 ]);
 
 export const payments = pgTable('payments', {
-    id: uuid().primaryKey(),
+    id: uuid().defaultRandom().primaryKey(),
     receipt_number: serial(),
     student_id: uuid().references(() => students.id),
     total_amount: decimal({ precision: 12, scale: 2 }).notNull(),
@@ -224,7 +225,7 @@ export const payments = pgTable('payments', {
 });
 
 export const paymentItems = pgTable('payment_items', {
-    id: uuid().primaryKey(),
+    id: uuid().defaultRandom().primaryKey(),
     payment_id: uuid().references(() => payments.id),
     type: feeType().notNull(),
     class_id: uuid().references(() => classes.id),
@@ -234,7 +235,7 @@ export const paymentItems = pgTable('payment_items', {
 });
 
 export const attendanceRecords = pgTable('attendance_records', {
-    id: uuid().primaryKey(),
+    id: uuid().defaultRandom().primaryKey(),
     student_id: uuid().references(() => students.id),
     class_id: uuid().references(() => classes.id),
     date: date().defaultNow(),
@@ -249,7 +250,7 @@ export const attendanceRecords = pgTable('attendance_records', {
 ]);
 
 export const auditLogs = pgTable('audit_log', {
-    id: uuid().primaryKey(),
+    id: uuid().defaultRandom().primaryKey(),
     user_id: uuid().references(() => profiles.id),
     action: text(),
     details: jsonb(),
@@ -257,7 +258,7 @@ export const auditLogs = pgTable('audit_log', {
 });
 
 export const smsLogs = pgTable('sms_logs', {
-    id: uuid().primaryKey(),
+    id: uuid().defaultRandom().primaryKey(),
     recipient_phone: varchar({ length: 20 }),
     message: text(),
     status: varchar({ length: 20 }),
