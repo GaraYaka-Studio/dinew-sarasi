@@ -14,47 +14,42 @@ import { TeacherListMobile } from '@/components/features/staff/teacher-list-mobi
 import { TeacherDialog } from '@/components/features/staff/teacher-dialog';
 import { TeacherSheet } from '@/components/features/staff/teacher-sheet';
 
-import { Teacher as Tchr } from '@/types/schema.types';
+import { Teacher } from '@/types/schema.types';
 import { Class } from '@/types/schema.types';
-
-import { MOCK_TEACHERS } from '@/lib/mock-data-teachers';
-import { Teacher } from '@/types/teacher.types';
 
 export default function TeachersPage() {
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
-    const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(
-        null
-    );
+    const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedSubject, setSelectedSubject] = useState('all');
 
+    const [teachers, setTeachers] = useState<Teacher[]>([]);
+    const [classes, setClasses] = useState<Class[]>([]);
+
     // Filter teachers based on search and subject
     const filteredTeachers = useMemo(() => {
-        return MOCK_TEACHERS.filter((teacher) => {
+        return teachers.filter((teacher) => {
             const matchesSearch =
                 !searchQuery ||
                 teacher.name
                     .toLowerCase()
                     .includes(searchQuery.toLowerCase()) ||
-                teacher.nic.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                teacher.phone.includes(searchQuery);
+                teacher.nic?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                teacher.phone?.includes(searchQuery);
 
             const matchesSubject =
                 selectedSubject === 'all' ||
-                teacher.subjects.includes(selectedSubject);
+                teacher.subjects?.includes(selectedSubject);
 
             return matchesSearch && matchesSubject;
         });
-    }, [searchQuery, selectedSubject]);
+    }, [teachers, searchQuery, selectedSubject]);
 
     const handleViewTeacher = (teacher: Teacher) => {
         setSelectedTeacher(teacher);
         setIsSheetOpen(true);
     };
-
-    const [teachers, setTeachers] = useState<Tchr[]>([]);
-    const [classes, setClasses] = useState<Class[]>([]);
 
     useEffect(() => {
         getTeachers().then(setTeachers);
@@ -119,12 +114,14 @@ export default function TeachersPage() {
             {/* Desktop Table */}
             <TeacherListDesktop
                 teachers={filteredTeachers}
+                classes={classes}
                 onViewTeacher={handleViewTeacher}
             />
 
             {/* Mobile Cards */}
             <TeacherListMobile
                 teachers={filteredTeachers}
+                classes={classes}
                 onViewTeacher={handleViewTeacher}
             />
 

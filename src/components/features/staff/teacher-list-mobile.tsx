@@ -3,16 +3,20 @@
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Phone, BookOpen, Eye, CheckCircle2 } from 'lucide-react';
-import { Teacher } from '@/types/teacher.types';
-import { cn } from '@/lib/utils';
+
+import { cn, getInitials } from '@/lib/utils';
+
+import { Class, Teacher } from '@/types/schema.types';
 
 interface TeacherListMobileProps {
     teachers: Teacher[];
+    classes: Class[];
     onViewTeacher: (teacher: Teacher) => void;
 }
 
 export function TeacherListMobile({
     teachers,
+    classes,
     onViewTeacher,
 }: TeacherListMobileProps) {
     const formatCurrency = (amount: number) => {
@@ -22,8 +26,10 @@ export function TeacherListMobile({
     return (
         <div className="grid gap-4 lg:hidden">
             {teachers.map((teacher) => {
-                const pendingDue = teacher.paymentInfo?.balanceDue || 0;
+                const pendingDue = Number(teacher.total_earned) - Number(teacher.amount_paid) || 0;
                 const isPaidOff = pendingDue === 0;
+
+                const numClasses = classes?.filter(cls => cls.teacher_id === teacher.id).length || 0;
 
                 return (
                     <div
@@ -34,7 +40,7 @@ export function TeacherListMobile({
                             {/* Avatar */}
                             <Avatar className="h-12 w-12">
                                 <AvatarFallback className="bg-primary/10 text-sm text-primary">
-                                    {teacher.initials}
+                                    {getInitials(teacher.name)}
                                 </AvatarFallback>
                             </Avatar>
 
@@ -69,7 +75,7 @@ export function TeacherListMobile({
 
                                 {/* Subjects - No badges */}
                                 <p className="mt-0.5 text-sm text-muted-foreground">
-                                    {teacher.subjects.join(', ')}
+                                    {teacher.subjects?.join(', ')}
                                 </p>
 
                                 {/* Phone */}
@@ -82,7 +88,7 @@ export function TeacherListMobile({
                                 <div className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
                                     <BookOpen className="h-3.5 w-3.5" />
                                     <span>
-                                        {teacher.classCount} Classes Assigned
+                                        {numClasses} Classes Assigned
                                     </span>
                                 </div>
 

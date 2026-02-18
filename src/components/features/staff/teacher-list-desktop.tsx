@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 import {
     Table,
     TableBody,
@@ -11,16 +13,20 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Eye, CheckCircle2 } from 'lucide-react';
-import { Teacher } from '@/types/teacher.types';
-import { cn } from '@/lib/utils';
+
+import { Class, Teacher } from '@/types/schema.types';
+
+import { cn, getInitials } from '@/lib/utils';
 
 interface TeacherListDesktopProps {
     teachers: Teacher[];
+    classes: Class[];
     onViewTeacher: (teacher: Teacher) => void;
 }
 
 export function TeacherListDesktop({
     teachers,
+    classes,
     onViewTeacher,
 }: TeacherListDesktopProps) {
     const formatCurrency = (amount: number) => {
@@ -43,8 +49,10 @@ export function TeacherListDesktop({
                 </TableHeader>
                 <TableBody>
                     {teachers.map((teacher) => {
-                        const pendingDue = teacher.paymentInfo?.balanceDue || 0;
+                        const pendingDue = Number(teacher.total_earned) - Number(teacher.amount_paid) || 0;
                         const isPaidOff = pendingDue === 0;
+
+                        const numClasses = classes?.filter(cls => cls.teacher_id === teacher.id).length || 0;
 
                         return (
                             <TableRow key={teacher.id}>
@@ -52,7 +60,7 @@ export function TeacherListDesktop({
                                     <div className="flex items-center gap-3">
                                         <Avatar className="h-9 w-9">
                                             <AvatarFallback className="bg-primary/10 text-xs text-primary">
-                                                {teacher.initials}
+                                                {getInitials(teacher.name)}
                                             </AvatarFallback>
                                         </Avatar>
                                         <div>
@@ -67,14 +75,14 @@ export function TeacherListDesktop({
                                 </TableCell>
                                 <TableCell>
                                     <span className="text-sm">
-                                        {teacher.subjects.join(', ')}
+                                        {teacher.subjects?.join(', ')}
                                     </span>
                                 </TableCell>
                                 <TableCell className="text-sm">
                                     {teacher.phone}
                                 </TableCell>
                                 <TableCell className="text-sm">
-                                    {String(teacher.classCount).padStart(
+                                    {String(numClasses).padStart(
                                         2,
                                         '0'
                                     )}{' '}
