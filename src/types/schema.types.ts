@@ -13,6 +13,7 @@ import {
     studentFees,
     students,
     subjects,
+    teacherPayments,
     teachers,
 } from '@/db/schema';
 
@@ -23,6 +24,7 @@ export type Teacher = InferSelectModel<typeof teachers>;
 export type Class = InferSelectModel<typeof classes>;
 export type Student = InferSelectModel<typeof students>;
 export type Enrollment = InferSelectModel<typeof enrollments>;
+export type TeacherPayment = InferSelectModel<typeof teacherPayments>;
 export type Fee = InferSelectModel<typeof studentFees>;
 export type Payment = InferSelectModel<typeof payments>;
 export type PaymentItem = InferSelectModel<typeof paymentItems>; 
@@ -37,6 +39,7 @@ export type NewTeacher = InferInsertModel<typeof teachers>;
 export type NewClass = InferInsertModel<typeof classes>;
 export type NewStudent = InferInsertModel<typeof students>;
 export type NewEnrollment = InferInsertModel<typeof enrollments>;
+export type NewTeacherPayment = InferInsertModel<typeof teacherPayments>;
 export type NewFee = InferInsertModel<typeof studentFees>;
 export type NewPayment = InferInsertModel<typeof payments>;
 export type NewPaymentItem = InferInsertModel<typeof paymentItems>; 

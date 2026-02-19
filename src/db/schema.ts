@@ -193,6 +193,14 @@ export const enrollments = pgTable('enrollments', {
     uniqueIndex('idx_unique_enrollment').on(tb.student_id, tb.class_id),
 ]);
 
+export const teacherPayments = pgTable('teacher_payments', {
+    id: uuid().defaultRandom().primaryKey(),
+    teacher_id: uuid().references(() => teachers.id),
+    amount: decimal({ precision: 10, scale: 2 }).notNull(),
+    date: date().defaultNow(),
+    notes: text(),
+});
+
 export const studentFees = pgTable('student_fees', {
     id: uuid().defaultRandom().primaryKey(),
     student_id: uuid().references(() => students.id),
