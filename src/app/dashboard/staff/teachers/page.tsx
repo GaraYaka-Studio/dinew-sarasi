@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 
-import { getClasses, getTeachers } from '@/lib/db/select';
+import { getClasses, getTeacherClasses, getTeacherPayments, getTeachers } from '@/lib/db/select';
 
 import { Plus, Download } from 'lucide-react';
 
@@ -14,7 +14,7 @@ import { TeacherListMobile } from '@/components/features/staff/teacher-list-mobi
 import { TeacherDialog } from '@/components/features/staff/teacher-dialog';
 import { TeacherSheet } from '@/components/features/staff/teacher-sheet';
 
-import { Teacher } from '@/types/schema.types';
+import { Teacher, TeacherPayment } from '@/types/schema.types';
 import { Class } from '@/types/schema.types';
 
 export default function TeachersPage() {
@@ -26,6 +26,8 @@ export default function TeachersPage() {
 
     const [teachers, setTeachers] = useState<Teacher[]>([]);
     const [classes, setClasses] = useState<Class[]>([]);
+    const [teacherClasses, setTeacherClasses] = useState<Class[]>([]);
+    const [teacherPayments, setTeacherPayments] = useState<TeacherPayment[]>([]);
 
     // Filter teachers based on search and subject
     const filteredTeachers = useMemo(() => {
@@ -54,7 +56,12 @@ export default function TeachersPage() {
     useEffect(() => {
         getTeachers().then(setTeachers);
         getClasses().then(setClasses);
-    }, []);
+
+        if (selectedTeacher !== null) {
+            getTeacherClasses(selectedTeacher).then(setTeacherClasses);
+            getTeacherPayments(selectedTeacher).then(setTeacherPayments);
+        }
+    }, [selectedTeacher]);
 
     return (
         <div className="space-y-6">
@@ -134,6 +141,8 @@ export default function TeachersPage() {
             {/* View Teacher Sheet */}
             <TeacherSheet
                 teacher={selectedTeacher}
+                classes={teacherClasses}
+                payments={teacherPayments}
                 isOpen={isSheetOpen}
                 onOpenChange={setIsSheetOpen}
             />
