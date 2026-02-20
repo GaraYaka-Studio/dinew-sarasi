@@ -1,6 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useActionState, useEffect, useEffectEvent, useState } from 'react';
+
+import { toast } from 'sonner';
+
+import { Wallet } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
@@ -13,43 +17,48 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Wallet } from 'lucide-react';
+
+import { recordTeacherPayment } from '@/lib/db/insert';
+
+import { Teacher } from '@/types/schema.types';
 
 interface RecordPaymentDialogProps {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
-    teacherName: string;
+    teacher: Teacher;
 }
 
 export function RecordPaymentDialog({
     isOpen,
     onOpenChange,
-    teacherName,
+    teacher,
 }: RecordPaymentDialogProps) {
-    const [isLoading, setIsLoading] = useState(false);
-    const [amount, setAmount] = useState('');
-    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-    const [note, setNote] = useState('');
+    const [formValues, setFormValues] = useState({
+        amount: '',
+        date: new Date().toISOString().split('T')[0],
+        notes: '',
+    });
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsLoading(true);
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        setIsLoading(false);
-        // Reset form
-        setAmount('');
-        setNote('');
-        setDate(new Date().toISOString().split('T')[0]);
-        onOpenChange(false);
-    };
+    const recordTeacherPaymentWithId = recordTeacherPayment.bind(null, teacher.id);
+    const [state, formAction, pending] = useActionState(recordTeacherPaymentWithId, { success: false, status: 0, error: null });
 
-    const handleCancel = () => {
-        setAmount('');
-        setNote('');
-        setDate(new Date().toISOString().split('T')[0]);
-        onOpenChange(false);
-    };
+    const clearForm = useEffectEvent(() => {
+        setFormValues({
+            amount: '',
+            date: new Date().toISOString().split('T')[0],
+            notes: '',
+        });
+    });
+
+    useEffect(() => {
+        if (state.error) {
+            toast.error(state.error);
+        } else if (state.success) {
+            toast.success('Payment recorded successfully!');
+            onOpenChange(false);
+            clearForm();
+        }
+    }, [state, onOpenChange]);
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -60,19 +69,25 @@ export function RecordPaymentDialog({
                         Record Payment
                     </DialogTitle>
                     <DialogDescription>
-                        Record a payment for <strong>{teacherName}</strong>
+                        Record a payment for <strong>{teacher.name}</strong>
                     </DialogDescription>
                 </DialogHeader>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form action={formAction} className="space-y-4">
                     <div className="space-y-2">
                         <Label htmlFor="amount">Amount (LKR)</Label>
                         <Input
                             id="amount"
+                            name="amount"
                             type="number"
                             placeholder="e.g., 50000"
-                            value={amount}
-                            onChange={(e) => setAmount(e.target.value)}
+                            defaultValue={formValues.amount}
+                            onChange={(e) => {
+                                setFormValues({
+                                    ...formValues,
+                                    amount: e.target.value,
+                                });
+                            }}
                             required
                             min="1"
                         />
@@ -82,9 +97,15 @@ export function RecordPaymentDialog({
                         <Label htmlFor="date">Date</Label>
                         <Input
                             id="date"
+                            name="date"
                             type="date"
-                            value={date}
-                            onChange={(e) => setDate(e.target.value)}
+                            defaultValue={formValues.date}
+                            onChange={(e) => {
+                                setFormValues({
+                                    ...formValues,
+                                    date: e.target.value,
+                                });
+                            }}
                             required
                         />
                     </div>
@@ -92,10 +113,16 @@ export function RecordPaymentDialog({
                     <div className="space-y-2">
                         <Label htmlFor="note">Note (Optional)</Label>
                         <Textarea
-                            id="note"
+                            id="notes"
+                            name="notes"
                             placeholder="e.g., January salary payment"
-                            value={note}
-                            onChange={(e) => setNote(e.target.value)}
+                            defaultValue={formValues.notes}
+                            onChange={(e) => {
+                                setFormValues({
+                                    ...formValues,
+                                    notes: e.target.value,
+                                });
+                            }}
                             rows={2}
                         />
                     </div>
@@ -104,17 +131,24 @@ export function RecordPaymentDialog({
                         <Button
                             type="button"
                             variant="outline"
-                            onClick={handleCancel}
-                            disabled={isLoading}
+                            disabled={pending}
+                            onClick={() => {
+                                setFormValues({
+                                    amount: '',
+                                    date: new Date().toISOString().split('T')[0],
+                                    notes: '',
+                                });
+                                onOpenChange(false);
+                            }}
                         >
                             Cancel
                         </Button>
                         <Button
                             type="submit"
-                            disabled={isLoading}
+                            disabled={pending}
                             className="bg-black text-white hover:bg-black/90"
                         >
-                            {isLoading ? 'Recording...' : 'Record Payment'}
+                            {pending ? 'Recording...' : 'Record Payment'}
                         </Button>
                     </DialogFooter>
                 </form>

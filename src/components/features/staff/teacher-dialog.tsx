@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect, useEffectEvent, useRef, useState } from 'react';
+import { useActionState, useEffect, useEffectEvent, useState } from 'react';
 
 import { toast } from 'sonner';
 
@@ -53,7 +53,7 @@ export function TeacherDialog({ isOpen, onOpenChange }: TeacherDialogProps) {
             phone: '',
         });
         setSelectedSubjects([]);
-    })
+    });
 
     useEffect(() => {
         if (state.error) {
@@ -208,6 +208,7 @@ export function TeacherDialog({ isOpen, onOpenChange }: TeacherDialogProps) {
                     <Button
                         type="button"
                         variant="outline"
+                        disabled={pending}
                         onClick={() => {
                             onOpenChange(false);
                             setFormValues({

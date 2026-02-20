@@ -339,7 +339,7 @@ export function TeacherSheet({
             <RecordPaymentDialog
                 isOpen={isRecordPaymentOpen}
                 onOpenChange={setIsRecordPaymentOpen}
-                teacherName={teacher.name}
+                teacher={teacher}
             />
         </Sheet>
     );
