@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { deleteSubject } from '@/lib/db/delete';
 import { getInitials } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/use-media-query';
 
@@ -110,7 +111,10 @@ export function SubjectDetails({
                 <Button
                     variant="destructive"
                     className="bg-red-600 text-white hover:bg-red-700"
-                    onClick={() => setOpen(false)}
+                    onClick={() => {
+                        deleteSubject(subject);
+                        setOpen(false);
+                    }}
                 >
                     Delete
                 </Button>
