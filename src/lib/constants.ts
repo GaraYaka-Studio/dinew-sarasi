@@ -1,3 +1,5 @@
+import { SubjectCategory } from '@/types/constants.types';
+
 export const TEACHING_SUBJECTS = [
     'Mathematics',
     'Science',
@@ -19,6 +21,15 @@ export const TEACHING_SUBJECTS = [
     'Sports',
     'Literature',
     'General Knowledge',
+];
+
+export const GRADES = Array.from({ length: 13 }, (_, i) => `Grade ${i + 1}`);
+
+export const SECTIONS = [
+    { value: 'primary', label: 'Primary (1-5)' },
+    { value: 'junior', label: 'Junior (6-9)' },
+    { value: 'ol', label: 'Ordinary Level (10-11)' },
+    { value: 'al', label: 'Advanced Level (12-13)' },
 ];
 
 export const CATEGORIES: SubjectCategory[] = [
