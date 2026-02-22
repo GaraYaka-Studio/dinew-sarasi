@@ -20,3 +20,12 @@ export const TEACHING_SUBJECTS = [
     'Literature',
     'General Knowledge',
 ];
+
+export const CATEGORIES: SubjectCategory[] = [
+    'All',
+    'Primary',
+    'Junior',
+    'Ordinary Level',
+    'Advanced Level',
+    'Other',
+];
