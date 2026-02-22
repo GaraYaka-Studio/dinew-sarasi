@@ -27,6 +27,7 @@ import { RecordPaymentDialog } from './record-payment-dialog';
 import { Class, Teacher, TeacherPayment } from '@/types/schema.types';
 
 import { cn, getInitials } from '@/lib/utils';
+import { deleteTeacher } from '@/lib/db/delete';
 
 interface TeacherSheetProps {
     teacher: Teacher | null;
@@ -169,10 +170,9 @@ export function TeacherSheet({
 
                         {/* Classes Tab */}
                         <TabsContent value="classes" className="mt-0 space-y-3">
-                            {classes &&
-                                classes.length > 0 ? (
-                                    classes.map((cls) => (
-                                        <Link
+                            {classes && classes.length > 0 ? (
+                                classes.map((cls) => (
+                                    <Link
                                         key={cls.id}
                                         href="/dashboard/academics/classes"
                                         className="block"
@@ -271,30 +271,30 @@ export function TeacherSheet({
                                 </h3>
                                 {payments.length > 0 ? (
                                     <div className="space-y-2">
-                                        {payments.map(
-                                            (payment) => (
-                                                <Card
-                                                    key={payment.id}
-                                                    className="p-3"
-                                                >
-                                                    <div className="flex items-center justify-between">
-                                                        <div>
-                                                            <p className="text-sm font-medium">
-                                                                {formatCurrency(
-                                                                    Number(payment.amount)
-                                                                )}
-                                                            </p>
-                                                            <p className="text-xs text-muted-foreground">
-                                                                {payment.date}
-                                                            </p>
-                                                        </div>
-                                                        <p className="max-w-[50%] text-right text-sm text-muted-foreground">
-                                                            {payment.notes}
+                                        {payments.map((payment) => (
+                                            <Card
+                                                key={payment.id}
+                                                className="p-3"
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <p className="text-sm font-medium">
+                                                            {formatCurrency(
+                                                                Number(
+                                                                    payment.amount
+                                                                )
+                                                            )}
+                                                        </p>
+                                                        <p className="text-xs text-muted-foreground">
+                                                            {payment.date}
                                                         </p>
                                                     </div>
-                                                </Card>
-                                            )
-                                        )}
+                                                    <p className="max-w-[50%] text-right text-sm text-muted-foreground">
+                                                        {payment.notes}
+                                                    </p>
+                                                </div>
+                                            </Card>
+                                        ))}
                                     </div>
                                 ) : (
                                     <div className="py-8 text-center text-muted-foreground">
@@ -327,6 +327,10 @@ export function TeacherSheet({
                         <Button
                             variant="outline"
                             className="flex-1 text-destructive hover:text-destructive"
+                            onClick={() => {
+                                deleteTeacher(teacher);
+                                isOpen = false;
+                            }}
                         >
                             <Trash2 className="mr-2 h-4 w-4" />
                             Remove
