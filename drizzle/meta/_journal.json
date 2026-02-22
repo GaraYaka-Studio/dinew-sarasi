@@ -113,6 +113,13 @@
       "when": 1771527109653,
       "tag": "0015_create_teacher_payments_table",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1771959641713,
+      "tag": "0016_update_subjects_table",
+      "breakpoints": true
     }
   ]
 }

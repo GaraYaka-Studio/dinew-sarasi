@@ -109,16 +109,23 @@ export const academicYears = pgTable('academic_years', {
     end_date: date(),
 });
 
-export const subjects = pgTable('subjects', {
-    id: uuid().defaultRandom().primaryKey(),
-    name: varchar({ length: 100 }).notNull(),
-    code: varchar({ length: 20 }).notNull(),
-    category: varchar({ length: 50 }),
-    is_active: boolean().default(true),
-    deleted_at: timestamp(),
-}, (tb) => [
-    uniqueIndex().on(tb.code).where(sql`${tb.is_active} = true`)
-]);
+export const subjects = pgTable(
+    'subjects',
+    {
+        id: uuid().defaultRandom().primaryKey(),
+        name: varchar({ length: 100 }).notNull(),
+        grades: text().array().notNull().default([]),
+        code: varchar({ length: 20 }).notNull(),
+        category: varchar({ length: 50 }),
+        is_active: boolean().default(true),
+        deleted_at: timestamp(),
+    },
+    (tb) => [
+        uniqueIndex()
+            .on(tb.code)
+            .where(sql`${tb.is_active} = true`),
+    ]
+);
 
 export const teachers = pgTable('teachers', {
     id: uuid().defaultRandom().primaryKey(),
