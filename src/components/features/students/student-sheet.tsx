@@ -19,12 +19,14 @@ interface StudentSheetProps {
     student: Student | null;
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
+    onStudentAdded?: () => void;
 }
 
 export function StudentSheet({
     student,
     isOpen,
     onOpenChange,
+    onStudentAdded,
 }: StudentSheetProps) {
     if (!student) return null;
 
@@ -83,6 +85,7 @@ export function StudentSheet({
                     <SheetFooter
                         student={student}
                         onClose={() => onOpenChange(false)}
+                        onStudentAdded={onStudentAdded}
                     />
                 </div>
             </SheetContent>

@@ -153,6 +153,7 @@ export default function StudentsPage() {
                 student={selectedStudent}
                 isOpen={isSheetOpen}
                 onOpenChange={setIsSheetOpen}
+                onStudentAdded={handleStudentAdded}
             />
         </div>
     );
