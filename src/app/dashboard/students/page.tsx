@@ -40,7 +40,7 @@ export default function StudentsPage() {
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
                 {/* Left: Mini Stats Grid (75% on Desktop, Hidden on Mobile) */}
                 <div className="hidden lg:col-span-3 lg:block">
-                    <StudentStats />
+                    <StudentStats students={students} />
                 </div>
 
                 {/* Right: Action Buttons (25% on Desktop, Hidden on Mobile) */}
@@ -102,7 +102,7 @@ export default function StudentsPage() {
                                     <h3 className="mb-4 text-lg font-semibold">
                                         Statistics
                                     </h3>
-                                    <StudentStats />
+                                    <StudentStats students={students} />
                                 </div>
                                 <div>
                                     <h3 className="mb-4 text-lg font-semibold">
