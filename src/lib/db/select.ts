@@ -3,10 +3,10 @@
 import { db } from '@/db';
 import { classes, students, subjects, teacherPayments, teachers } from '@/db/schema';
 import { Student, Subject, Teacher } from '@/types/schema.types';
-import { eq } from 'drizzle-orm';
+import { eq, isNull } from 'drizzle-orm';
 
 export async function getStudents() {
-    return await db.select().from(students);
+    return await db.select().from(students).where(isNull(students.deleted_at));
 }
 
 export async function getTeachers() {

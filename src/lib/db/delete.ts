@@ -16,5 +16,7 @@ export async function deleteSubject(subject: Subject) {
 }
 
 export async function deleteStudent(student: Student) {
-    await db.delete(students).where(eq(students.id, student.id));
+    await db.update(students)
+        .set({ deleted_at: new Date() })
+        .where(eq(students.id, student.id));
 }
