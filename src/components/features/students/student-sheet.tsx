@@ -7,7 +7,7 @@ import {
     SheetDescription,
 } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import type { StudentDetail } from '@/lib/mock-data';
+import { Student } from '@/types/schema.types';
 import { SheetHeader } from './sheet/sheet-header';
 import { SheetFooter } from './sheet/sheet-footer';
 import { TabProfile } from './sheet/tab-profile';
@@ -16,7 +16,7 @@ import { TabAttendance } from './sheet/tab-attendance';
 import { TabClasses } from './sheet/tab-classes';
 
 interface StudentSheetProps {
-    student: StudentDetail | null;
+    student: Student | null;
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
 }
@@ -33,7 +33,7 @@ export function StudentSheet({
             <SheetContent className="flex h-full w-full flex-col p-0 sm:max-w-xl">
                 {/* Visually Hidden Title for Screen Readers */}
                 <SheetTitle className="sr-only">
-                    {student.name} - Student Profile
+                    {student.full_name} - Student Profile
                 </SheetTitle>
                 <SheetDescription className="sr-only">
                     View and manage student information including profile,

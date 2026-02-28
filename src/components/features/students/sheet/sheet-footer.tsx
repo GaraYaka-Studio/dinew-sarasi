@@ -1,10 +1,10 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import type { StudentDetail } from '@/lib/mock-data';
+import { Student } from '@/types/schema.types';
 
 interface SheetFooterProps {
-    student: StudentDetail;
+    student: Student;
     onClose: () => void;
 }
 

@@ -1,9 +1,13 @@
 'use server';
 
 import { db } from '@/db';
-import { classes, subjects, teacherPayments, teachers } from '@/db/schema';
-import { Subject, Teacher } from '@/types/schema.types';
+import { classes, students, subjects, teacherPayments, teachers } from '@/db/schema';
+import { Student, Subject, Teacher } from '@/types/schema.types';
 import { eq } from 'drizzle-orm';
+
+export async function getStudents() {
+    return await db.select().from(students);
+}
 
 export async function getTeachers() {
     return await db.select().from(teachers);

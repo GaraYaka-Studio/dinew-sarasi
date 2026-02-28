@@ -13,15 +13,16 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Eye } from 'lucide-react';
-import { studentData, type Student } from '@/lib/mock-data';
-import { cn } from '@/lib/utils';
+import { Student } from '@/types/schema.types';
+import { cn, getInitials } from '@/lib/utils';
 
 interface StudentListProps {
-    onViewStudent: (student?: Student) => void;
+    students: Student[];
+    onViewStudent: (student: Student) => void;
 }
 
-const getPaymentBadge = (status: Student['paymentStatus']) => {
-    const variants = {
+const getPaymentBadge = (status: string) => {
+    const variants: Record<string, { label: string; className: string }> = {
         paid: {
             label: 'Paid',
             className: 'bg-green-100 text-green-800 border-green-200',
@@ -34,15 +35,11 @@ const getPaymentBadge = (status: Student['paymentStatus']) => {
             label: 'Free',
             className: 'bg-gray-100 text-gray-800 border-gray-200',
         },
-        draft: {
-            label: 'Draft',
-            className: 'bg-gray-100 text-gray-600 border-gray-200',
-        },
     };
-    return variants[status];
+    return variants[status] || variants.pending;
 };
 
-export function StudentList({ onViewStudent }: StudentListProps) {
+export function StudentList({ students, onViewStudent }: StudentListProps) {
     return (
         <>
             {/* Desktop Table View */}
@@ -53,17 +50,16 @@ export function StudentList({ onViewStudent }: StudentListProps) {
                             <TableHead>Student</TableHead>
                             <TableHead>Contact</TableHead>
                             <TableHead>Academic</TableHead>
-                            <TableHead>Payment Status</TableHead>
-                            <TableHead>Activity</TableHead>
+                            <TableHead>Status</TableHead>
                             <TableHead className="text-right">
                                 Actions
                             </TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {studentData.map((student) => {
+                        {students.map((student) => {
                             const paymentBadge = getPaymentBadge(
-                                student.paymentStatus
+                                student.admission_status || 'pending'
                             );
                             return (
                                 <TableRow key={student.id}>
@@ -71,15 +67,15 @@ export function StudentList({ onViewStudent }: StudentListProps) {
                                         <div className="flex items-center gap-3">
                                             <Avatar className="h-9 w-9">
                                                 <AvatarFallback className="bg-primary/10 text-xs text-primary">
-                                                    {student.initials}
+                                                    {getInitials(student.full_name)}
                                                 </AvatarFallback>
                                             </Avatar>
                                             <div>
                                                 <p className="font-medium">
-                                                    {student.name}
+                                                    {student.full_name}
                                                 </p>
                                                 <p className="text-xs text-muted-foreground">
-                                                    {student.studentId}
+                                                    {student.student_id}
                                                 </p>
                                             </div>
                                         </div>
@@ -90,10 +86,10 @@ export function StudentList({ onViewStudent }: StudentListProps) {
                                     <TableCell>
                                         <div>
                                             <p className="text-sm font-medium">
-                                                {student.grade}
+                                                {student.current_grade}
                                             </p>
                                             <p className="text-xs text-muted-foreground">
-                                                {student.batch}
+                                                {student.batch_year}
                                             </p>
                                         </div>
                                     </TableCell>
@@ -108,16 +104,11 @@ export function StudentList({ onViewStudent }: StudentListProps) {
                                             {paymentBadge.label}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell className="text-sm text-muted-foreground">
-                                        {student.lastActivity}
-                                    </TableCell>
                                     <TableCell className="text-right">
                                         <Button
                                             variant="ghost"
                                             size="sm"
-                                            onClick={() =>
-                                                onViewStudent(student)
-                                            }
+                                            onClick={() => onViewStudent(student)}
                                         >
                                             <Eye className="h-4 w-4" />
                                         </Button>
@@ -131,39 +122,39 @@ export function StudentList({ onViewStudent }: StudentListProps) {
 
             {/* Mobile Card View */}
             <div className="space-y-3 md:hidden">
-                {studentData.map((student) => {
-                    const paymentBadge = getPaymentBadge(student.paymentStatus);
+                {students.map((student) => {
+                    const paymentBadge = getPaymentBadge(
+                        student.admission_status || 'pending'
+                    );
                     return (
                         <Card key={student.id} className="p-4">
                             <div className="flex items-start gap-3">
                                 <Avatar className="h-10 w-10">
                                     <AvatarFallback className="bg-primary/10 text-sm text-primary">
-                                        {student.initials}
+                                        {getInitials(student.full_name)}
                                     </AvatarFallback>
                                 </Avatar>
                                 <div className="min-w-0 flex-1">
                                     <div className="flex items-start justify-between gap-2">
                                         <div className="min-w-0 flex-1">
                                             <p className="truncate font-medium">
-                                                {student.name}
+                                                {student.full_name}
                                             </p>
                                             <p className="text-xs text-muted-foreground">
-                                                {student.studentId}
+                                                {student.student_id}
                                             </p>
                                         </div>
                                         <Button
                                             variant="ghost"
                                             size="sm"
-                                            onClick={() =>
-                                                onViewStudent(student)
-                                            }
+                                            onClick={() => onViewStudent(student)}
                                         >
                                             <Eye className="h-4 w-4" />
                                         </Button>
                                     </div>
                                     <div className="mt-2 flex items-center gap-2">
                                         <span className="text-xs text-muted-foreground">
-                                            {student.batch}
+                                            {student.batch_year}
                                         </span>
                                         <Badge
                                             variant="outline"

@@ -1,13 +1,11 @@
 'use client';
 
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Calendar, User, Plus } from 'lucide-react';
-import type { StudentDetail } from '@/lib/mock-data';
+import { Plus } from 'lucide-react';
+import { Student } from '@/types/schema.types';
 
 interface TabClassesProps {
-    student: StudentDetail;
+    student: Student;
 }
 
 export function TabClasses({ student }: TabClassesProps) {
@@ -23,38 +21,13 @@ export function TabClasses({ student }: TabClassesProps) {
                 <h3 className="mb-3 text-sm font-semibold tracking-wide text-muted-foreground uppercase">
                     Enrolled Classes
                 </h3>
-                <div className="space-y-3">
-                    {student.enrolledClasses.map((cls) => (
-                        <Card key={cls.id}>
-                            <CardContent className="p-4">
-                                <div className="flex items-start justify-between">
-                                    <div className="space-y-2">
-                                        <div>
-                                            <h4 className="font-semibold">
-                                                {cls.name}
-                                            </h4>
-                                            <Badge
-                                                variant="outline"
-                                                className="mt-1"
-                                            >
-                                                {cls.grade}
-                                            </Badge>
-                                        </div>
-                                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                            <div className="flex items-center gap-1">
-                                                <User className="h-3 w-3" />
-                                                <span>{cls.teacher}</span>
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <Calendar className="h-3 w-3" />
-                                                <span>{cls.schedule}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
+                <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
+                    <p className="text-sm text-muted-foreground">
+                        No classes enrolled yet
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                        Enroll this student in classes to track their progress
+                    </p>
                 </div>
             </div>
 

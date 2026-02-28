@@ -3,23 +3,16 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
 import { AlertCircle } from 'lucide-react';
-import type { StudentDetail } from '@/lib/mock-data';
+import { Student } from '@/types/schema.types';
 
 interface TabPaymentsProps {
-    student: StudentDetail;
+    student: Student;
 }
 
 export function TabPayments({ student }: TabPaymentsProps) {
-    const hasAdmissionPending = student.admissionStatus === 'PENDING';
+    const hasAdmissionPending = student.admission_status === 'pending';
+    const admissionFee = Number(student.admission_fee) || 0;
 
     return (
         <div className="space-y-4">
@@ -33,7 +26,7 @@ export function TabPayments({ student }: TabPaymentsProps) {
                                 Admission Fee Pending
                             </p>
                             <p className="text-sm text-muted-foreground">
-                                Rs. {student.admissionFee.toLocaleString()} is
+                                Rs. {admissionFee.toLocaleString()} is
                                 pending
                             </p>
                         </div>
@@ -44,62 +37,18 @@ export function TabPayments({ student }: TabPaymentsProps) {
                 </Card>
             )}
 
-            {/* Arrears Info */}
-            {student.arrears > 0 && (
-                <div className="rounded-lg border border-orange-200 bg-orange-50 p-3">
-                    <p className="text-sm font-medium text-orange-900">
-                        Outstanding Arrears: Rs.{' '}
-                        {student.arrears.toLocaleString()}
-                    </p>
-                </div>
-            )}
-
             {/* Payment History */}
             <div>
                 <h3 className="mb-3 text-sm font-semibold tracking-wide text-muted-foreground uppercase">
                     Payment History
                 </h3>
-                <div className="rounded-md border">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead className="w-20">Month</TableHead>
-                                <TableHead>Class</TableHead>
-                                <TableHead className="text-right">
-                                    Amount
-                                </TableHead>
-                                <TableHead className="w-24">Status</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {student.paymentHistory.map((payment) => (
-                                <TableRow key={payment.id}>
-                                    <TableCell>
-                                        <Badge variant="outline">
-                                            {payment.month}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell className="font-medium">
-                                        {payment.class}
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        Rs. {payment.amount.toLocaleString()}
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge
-                                            variant={
-                                                payment.status === 'paid'
-                                                    ? 'success'
-                                                    : 'secondary'
-                                            }
-                                        >
-                                            {payment.status}
-                                        </Badge>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
+                    <p className="text-sm text-muted-foreground">
+                        No payment history available yet
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                        Payment records will appear here once fees are collected
+                    </p>
                 </div>
             </div>
         </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
     Sheet,
@@ -16,19 +16,21 @@ import { StudentList } from '@/components/features/students/student-list';
 import { StudentDialog } from '@/components/features/students/student-dialog';
 import { StudentSheet } from '@/components/features/students/student-sheet';
 import { Plus, BarChart3, Upload, Download } from 'lucide-react';
-import type { Student, StudentDetail } from '@/lib/mock-data';
-import { MOCK_SELECTED_STUDENT } from '@/lib/mock-data';
+import { Student } from '@/types/schema.types';
+import { getStudents } from '@/lib/db/select';
 
 export default function StudentsPage() {
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
-    const [selectedStudent, setSelectedStudent] =
-        useState<StudentDetail | null>(null);
+    const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+    const [students, setStudents] = useState<Student[]>([]);
 
-    const handleViewStudent = () => {
-        // TODO: Fetch full student details from API
-        // For now, use mock data
-        setSelectedStudent(MOCK_SELECTED_STUDENT);
+    useEffect(() => {
+        getStudents().then(setStudents);
+    }, []);
+
+    const handleViewStudent = (student: Student) => {
+        setSelectedStudent(student);
         setIsSheetOpen(true);
     };
 
@@ -133,7 +135,7 @@ export default function StudentsPage() {
             <StudentFilters />
 
             {/* Main Student List */}
-            <StudentList onViewStudent={handleViewStudent} />
+            <StudentList students={students} onViewStudent={handleViewStudent} />
 
             {/* Add Student Dialog */}
             <StudentDialog
