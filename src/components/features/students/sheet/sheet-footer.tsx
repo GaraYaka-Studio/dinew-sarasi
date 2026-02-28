@@ -19,9 +19,15 @@ interface SheetFooterProps {
     student: Student;
     onClose: () => void;
     onStudentAdded?: () => void;
+    onEditStudent?: () => void;
 }
 
-export function SheetFooter({ student, onClose, onStudentAdded }: SheetFooterProps) {
+export function SheetFooter({
+    student,
+    onClose,
+    onStudentAdded,
+    onEditStudent,
+}: SheetFooterProps) {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
     const handleDeactivate = () => {
@@ -36,8 +42,8 @@ export function SheetFooter({ student, onClose, onStudentAdded }: SheetFooterPro
     };
 
     const handleEdit = () => {
-        // TODO: Implement edit profile logic
-        console.log('Edit profile:', student.id);
+        onClose(); // Close the sheet first
+        if (onEditStudent) onEditStudent();
     };
 
     return (
@@ -59,13 +65,16 @@ export function SheetFooter({ student, onClose, onStudentAdded }: SheetFooterPro
                     <AlertDialogHeader>
                         <AlertDialogTitle>Deactivate Student?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Are you sure you want to deactivate <strong>{student.full_name}</strong>?
-                            This action cannot be undone.
+                            Are you sure you want to deactivate{' '}
+                            <strong>{student.full_name}</strong>? This action cannot be undone.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                        <AlertDialogAction
+                            onClick={confirmDelete}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
                             Deactivate
                         </AlertDialogAction>
                     </AlertDialogFooter>
