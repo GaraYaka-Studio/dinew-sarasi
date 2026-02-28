@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useEffectEvent, useActionState } from 'react';
+import { toast } from 'sonner';
 import {
     Dialog,
     DialogContent,
@@ -14,10 +15,13 @@ import { StepAcademic } from './wizard/step-academic';
 import { StepPayment } from './wizard/step-payment';
 import { StepSuccess } from './wizard/step-success';
 import { cn } from '@/lib/utils';
+import { addStudent } from '@/lib/db/insert';
+import { getStudents } from '@/lib/db/select';
 
 interface StudentDialogProps {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
+    onStudentAdded?: () => void;
 }
 
 interface FormData {
@@ -30,6 +34,7 @@ interface FormData {
     school: string;
     dob: string;
     address: string;
+    gender: string;
     // Step 2: Academic
     grade: string;
     batch: string;
@@ -42,7 +47,7 @@ interface FormData {
 
 const TOTAL_STEPS = 4;
 
-export function StudentDialog({ isOpen, onOpenChange }: StudentDialogProps) {
+export function StudentDialog({ isOpen, onOpenChange, onStudentAdded }: StudentDialogProps) {
     const [currentStep, setCurrentStep] = useState(1);
     const [formData, setFormData] = useState<FormData>({
         name: '',
@@ -53,6 +58,7 @@ export function StudentDialog({ isOpen, onOpenChange }: StudentDialogProps) {
         school: '',
         dob: '',
         address: '',
+        gender: '',
         grade: '',
         batch: '',
         photoMode: 'skip',
@@ -62,6 +68,31 @@ export function StudentDialog({ isOpen, onOpenChange }: StudentDialogProps) {
 
     const [generatedStudentId, setGeneratedStudentId] = useState('');
     const scrollRef = useRef<HTMLDivElement>(null);
+
+    // Bind addStudent with form data
+    const personalInfo = {
+        fullName: formData.name,
+        phone: formData.mobile,
+        guardianName: formData.guardianName,
+        guardianPhone: formData.guardianPhone,
+        relationship: formData.relationship,
+        school: formData.school,
+        dob: formData.dob,
+        address: formData.address,
+        gender: formData.gender,
+    };
+
+    const academicInfo = {
+        grade: formData.grade,
+        batch: formData.batch,
+    };
+
+    const addStudentBound = addStudent.bind(null, personalInfo, academicInfo);
+    const [state, formAction, pending] = useActionState(addStudentBound, {
+        success: false,
+        status: 0,
+        error: null,
+    });
 
     // Scroll to top when step changes
     useEffect(() => {
@@ -85,7 +116,8 @@ export function StudentDialog({ isOpen, onOpenChange }: StudentDialogProps) {
                     formData.relationship &&
                     formData.school &&
                     formData.dob &&
-                    formData.address
+                    formData.address &&
+                    formData.gender
                 );
             case 2:
                 return !!(formData.grade && formData.batch);
@@ -96,22 +128,7 @@ export function StudentDialog({ isOpen, onOpenChange }: StudentDialogProps) {
         }
     };
 
-    const handleNext = () => {
-        if (currentStep === 3) {
-            // Submit form and move to success
-            const newStudentId = `SRS-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 999) + 1).padStart(3, '0')}`;
-            setGeneratedStudentId(newStudentId);
-            setCurrentStep(4);
-        } else if (validateStep(currentStep)) {
-            setCurrentStep((prev) => Math.min(prev + 1, TOTAL_STEPS));
-        }
-    };
-
-    const handleBack = () => {
-        setCurrentStep((prev) => Math.max(prev - 1, 1));
-    };
-
-    const handleReset = () => {
+    const clearForm = useEffectEvent(() => {
         setCurrentStep(1);
         setFormData({
             name: '',
@@ -122,6 +139,7 @@ export function StudentDialog({ isOpen, onOpenChange }: StudentDialogProps) {
             school: '',
             dob: '',
             address: '',
+            gender: '',
             grade: '',
             batch: '',
             photoMode: 'skip',
@@ -129,10 +147,32 @@ export function StudentDialog({ isOpen, onOpenChange }: StudentDialogProps) {
             paymentMode: 'later',
         });
         setGeneratedStudentId('');
+    });
+
+    const closeDialog = useEffectEvent(() => {
+        onOpenChange(false);
+        setTimeout(() => clearForm(), 300);
+    });
+
+    const handleNext = () => {
+        if (currentStep === 3) {
+            // Submit form - trigger the action
+            const form = document.createElement('form');
+            form.action = 'javascript:void(0)'; // Will be handled by formAction
+            const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
+            // The form submission is handled by useActionState
+            // We need to manually trigger the bound action
+        } else if (validateStep(currentStep)) {
+            setCurrentStep((prev) => Math.min(prev + 1, TOTAL_STEPS));
+        }
+    };
+
+    const handleBack = () => {
+        setCurrentStep((prev) => Math.max(prev - 1, 1));
     };
 
     const handleAddAnother = () => {
-        handleReset();
+        clearForm();
     };
 
     const handlePrintId = () => {
@@ -140,15 +180,22 @@ export function StudentDialog({ isOpen, onOpenChange }: StudentDialogProps) {
         console.log('Print ID for:', generatedStudentId);
     };
 
-    const handleClose = () => {
-        onOpenChange(false);
-        // Reset after dialog closes
-        setTimeout(() => {
-            handleReset();
-        }, 300);
-    };
+    // Handle success/error state
+    useEffect(() => {
+        if (state.error) {
+            toast.error(state.error);
+        } else if (state.success && currentStep !== 4) {
+            const newStudentId = `SRS-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 999) + 1).padStart(3, '0')}`;
+            setGeneratedStudentId(newStudentId);
+            setCurrentStep(4);
+            // Refresh student list
+            getStudents().then((students) => {
+                if (onStudentAdded) onStudentAdded();
+            });
+        }
+    }, [state.success, state.error]);
 
-    const isNextDisabled = !validateStep(currentStep);
+    const isNextDisabled = !validateStep(currentStep) || pending;
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -256,7 +303,7 @@ export function StudentDialog({ isOpen, onOpenChange }: StudentDialogProps) {
 
                 {/* Body: Scrollable Content */}
                 <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto">
-                    <div className="p-6">
+                    <form id="add-student-form" action={formAction} className="p-6">
                         {currentStep === 1 && (
                             <StepPersonal
                                 formData={formData}
@@ -275,7 +322,9 @@ export function StudentDialog({ isOpen, onOpenChange }: StudentDialogProps) {
                                 onUpdate={updateFormData}
                             />
                         )}
-                        {currentStep === 4 && (
+                    </form>
+                    {currentStep === 4 && (
+                        <div className="p-6">
                             <StepSuccess
                                 studentData={{
                                     name: formData.name,
@@ -283,10 +332,10 @@ export function StudentDialog({ isOpen, onOpenChange }: StudentDialogProps) {
                                 }}
                                 onPrintId={handlePrintId}
                                 onAddAnother={handleAddAnother}
-                                onClose={handleClose}
+                                onClose={closeDialog}
                             />
-                        )}
-                    </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Footer: Navigation */}
@@ -295,8 +344,9 @@ export function StudentDialog({ isOpen, onOpenChange }: StudentDialogProps) {
                         <div className="flex items-center justify-between">
                             <Button
                                 variant="ghost"
-                                onClick={handleClose}
+                                onClick={closeDialog}
                                 className="text-muted-foreground"
+                                disabled={pending}
                             >
                                 Cancel
                             </Button>
@@ -306,20 +356,26 @@ export function StudentDialog({ isOpen, onOpenChange }: StudentDialogProps) {
                                     <Button
                                         variant="outline"
                                         onClick={handleBack}
+                                        disabled={pending}
                                     >
                                         <ChevronLeft className="mr-2 h-4 w-4" />
                                         Back
                                     </Button>
                                 )}
-                                <Button
-                                    onClick={handleNext}
-                                    disabled={isNextDisabled}
-                                >
-                                    {currentStep === 3 ? 'Finish' : 'Next'}
-                                    {currentStep < 3 && (
+                                {currentStep === 3 ? (
+                                    <Button
+                                        type="submit"
+                                        form="add-student-form"
+                                        disabled={isNextDisabled}
+                                    >
+                                        {pending ? 'Saving...' : 'Finish'}
+                                    </Button>
+                                ) : (
+                                    <Button onClick={handleNext} disabled={isNextDisabled}>
+                                        Next
                                         <ChevronRight className="ml-2 h-4 w-4" />
-                                    )}
-                                </Button>
+                                    </Button>
+                                )}
                             </div>
                         </div>
                     </div>

@@ -20,6 +20,7 @@ interface StepPersonalProps {
         school: string;
         dob: string;
         address: string;
+        gender: string;
     };
     onUpdate: (field: string, value: string) => void;
 }
@@ -66,6 +67,21 @@ export function StepPersonal({ formData, onUpdate }: StepPersonalProps) {
                             className="h-11"
                             required
                         />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="gender">Gender *</Label>
+                        <Select
+                            value={formData.gender}
+                            onValueChange={(value) => onUpdate('gender', value)}
+                        >
+                            <SelectTrigger id="gender" className="h-11">
+                                <SelectValue placeholder="Select..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="male">Male</SelectItem>
+                                <SelectItem value="female">Female</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
                     <div className="space-y-2 sm:col-span-2">
                         <Label htmlFor="school">School *</Label>

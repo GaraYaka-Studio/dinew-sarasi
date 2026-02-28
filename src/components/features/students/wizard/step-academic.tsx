@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
     Select,
@@ -9,9 +9,11 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Camera, Upload, User } from 'lucide-react';
+import { calculateBatchYear } from '@/lib/utils';
 
 interface StepAcademicProps {
     formData: {
@@ -25,6 +27,14 @@ interface StepAcademicProps {
 
 export function StepAcademic({ formData, onUpdate }: StepAcademicProps) {
     const [photoTab, setPhotoTab] = useState<'webcam' | 'upload'>('webcam');
+
+    // Auto-update batch when grade changes
+    useEffect(() => {
+        if (formData.grade) {
+            const batch = calculateBatchYear(formData.grade);
+            onUpdate('batch', batch.display);
+        }
+    }, [formData.grade]);
 
     return (
         <div className="space-y-6">
@@ -69,30 +79,17 @@ export function StepAcademic({ formData, onUpdate }: StepAcademicProps) {
                         </Select>
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="batch">Batch *</Label>
-                        <Select
+                        <Label htmlFor="batch">Batch (Auto-calculated) *</Label>
+                        <Input
+                            id="batch"
                             value={formData.batch}
-                            onValueChange={(value) => onUpdate('batch', value)}
-                        >
-                            <SelectTrigger id="batch" className="h-11">
-                                <SelectValue placeholder="Select batch..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="2025 A/L">
-                                    2025 A/L
-                                </SelectItem>
-                                <SelectItem value="2026 A/L">
-                                    2026 A/L
-                                </SelectItem>
-                                <SelectItem value="2027 O/L">
-                                    2027 O/L
-                                </SelectItem>
-                                <SelectItem value="2028 O/L">
-                                    2028 O/L
-                                </SelectItem>
-                                <SelectItem value="General">General</SelectItem>
-                            </SelectContent>
-                        </Select>
+                            onChange={(e) => onUpdate('batch', e.target.value)}
+                            className="h-11"
+                            placeholder="Auto-calculated from grade"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                            Automatically calculated based on grade. Can be edited if needed.
+                        </p>
                     </div>
                 </div>
             </div>
@@ -151,17 +148,6 @@ export function StepAcademic({ formData, onUpdate }: StepAcademicProps) {
                         </div>
                     </TabsContent>
                 </Tabs>
-
-                <div className="mt-4 text-center">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onUpdate('photoMode', 'skip')}
-                    >
-                        <User className="mr-2 h-4 w-4" />
-                        Skip & Use Default Avatar
-                    </Button>
-                </div>
             </div>
         </div>
     );

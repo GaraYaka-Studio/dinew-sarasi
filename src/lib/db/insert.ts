@@ -2,7 +2,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from '@/db';
-import { subjects, teacherPayments, teachers } from '@/db/schema';
+import { students, subjects, teacherPayments, teachers } from '@/db/schema';
 
 export async function addTeacher(
     subjects: string[],
@@ -95,6 +95,69 @@ export async function addSubject(
             grades: grades,
             code: code,
             category: section,
+        });
+
+        return { success: true, status: 201, error: null };
+    } catch (error) {
+        return { success: false, status: 500, error: error as string };
+    }
+}
+
+export async function addStudent(
+    personalInfo: {
+        fullName: string;
+        phone: string;
+        guardianName: string;
+        guardianPhone: string;
+        relationship: string;
+        school: string;
+        dob: string;
+        address: string;
+        gender: string;
+    },
+    academicInfo: { grade: string; batch: string },
+    _prevState: any,
+    formData: FormData
+) {
+    // Validation
+    if (!personalInfo.fullName || !personalInfo.phone) {
+        return { success: false, status: 422, error: 'Name and phone are required' };
+    }
+
+    if (!personalInfo.guardianName || !personalInfo.guardianPhone) {
+        return { success: false, status: 422, error: 'Guardian information is required' };
+    }
+
+    if (!academicInfo.grade || !academicInfo.batch) {
+        return { success: false, status: 422, error: 'Grade and batch are required' };
+    }
+
+    try {
+        // Generate student ID and QR code
+        const year = new Date().getFullYear();
+        const randomNum = String(Math.floor(Math.random() * 999) + 1).padStart(3, '0');
+        const qrCode = `QR-SRS-${year}-${randomNum}`;
+
+        // Extract batch year from display string (e.g., "2026 O/L" → 2026, "Scholarship" → 0)
+        const batchYearValue = parseInt(academicInfo.batch) || 0;
+
+        await db.insert(students).values({
+            full_name: personalInfo.fullName,
+            initials: personalInfo.fullName.split(' ').map(n => n[0]).join(''),
+            phone: personalInfo.phone,
+            dob: personalInfo.dob,
+            gender: personalInfo.gender,
+            address: personalInfo.address,
+            school: personalInfo.school,
+            guardian_name: personalInfo.guardianName,
+            guardian_phone: personalInfo.guardianPhone,
+            guardian_relationship: personalInfo.relationship,
+            is_emergency_contact: true,
+            batch_year: batchYearValue,
+            current_grade: academicInfo.grade,
+            admission_status: 'pending',
+            qr_code: qrCode,
+            status: 'active',
         });
 
         return { success: true, status: 201, error: null };

@@ -34,6 +34,10 @@ export default function StudentsPage() {
         setIsSheetOpen(true);
     };
 
+    const handleStudentAdded = () => {
+        getStudents().then(setStudents);
+    };
+
     return (
         <div className="space-y-6">
             {/* Header: Stats + Actions */}
@@ -141,6 +145,7 @@ export default function StudentsPage() {
             <StudentDialog
                 isOpen={isAddDialogOpen}
                 onOpenChange={setIsAddDialogOpen}
+                onStudentAdded={handleStudentAdded}
             />
 
             {/* View/Edit Student Sheet */}
