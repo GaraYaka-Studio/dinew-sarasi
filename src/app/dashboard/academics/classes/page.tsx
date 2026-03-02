@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Filter, Upload, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,7 +19,9 @@ import { ClassTable } from '@/components/features/academics/classes/class-table'
 import { ClassListMobile } from '@/components/features/academics/classes/class-list-mobile';
 import { ClassDialog } from '@/components/features/academics/classes/class-dialog';
 import { ClassSheet } from '@/components/features/academics/classes/class-sheet';
-import { CLASS_DATA, ClassItem } from '@/lib/mock-data-classes';
+import { ClassItem } from '@/lib/mock-data-classes';
+import { getClassesWithDetails, getClassStudentCount } from '@/lib/db/select';
+import { transformToClassItem } from '@/lib/db/transformers';
 
 export default function ClassesPage() {
     const [activeFilter, setActiveFilter] = useState<ClassFilterState>({
@@ -27,11 +29,41 @@ export default function ClassesPage() {
         value: 'All Classes',
     });
     const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     // Popup State
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [selectedClass, setSelectedClass] = useState<ClassItem | null>(null);
+    const [classes, setClasses] = useState<ClassItem[]>([]);
+
+    // Load classes from database
+    useEffect(() => {
+        loadClasses();
+    }, []);
+
+    const loadClasses = async () => {
+        setIsLoading(true);
+        try {
+            const dbClasses = await getClassesWithDetails();
+            const items = await Promise.all(
+                dbClasses.map(async (cls) => {
+                    // Get student count for each class
+                    const count = await getClassStudentCount(cls.id);
+                    return transformToClassItem({ ...cls, studentCount: count });
+                })
+            );
+            setClasses(items);
+        } catch (error) {
+            console.error('Failed to load classes:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleClassAdded = () => {
+        loadClasses();
+    };
 
     const handleViewClass = (data: ClassItem) => {
         setSelectedClass(data);
@@ -39,7 +71,7 @@ export default function ClassesPage() {
     };
 
     // Filter logic
-    const filteredClasses = CLASS_DATA.filter((item) => {
+    const filteredClasses = classes.filter((item) => {
         if (activeFilter.type === 'all') return true;
 
         if (activeFilter.type === 'category') {
@@ -202,6 +234,7 @@ export default function ClassesPage() {
             <ClassDialog
                 isOpen={isAddDialogOpen}
                 onOpenChange={setIsAddDialogOpen}
+                onClassAdded={handleClassAdded}
             />
 
             <ClassSheet

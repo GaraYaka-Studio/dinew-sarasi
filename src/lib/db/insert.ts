@@ -2,7 +2,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from '@/db';
-import { students, subjects, teacherPayments, teachers } from '@/db/schema';
+import { classes, students, subjects, teacherPayments, teachers } from '@/db/schema';
 
 export async function addTeacher(
     subjects: string[],
@@ -158,6 +158,78 @@ export async function addStudent(
             admission_status: 'pending',
             qr_code: qrCode,
             status: 'active',
+        });
+
+        return { success: true, status: 201, error: null };
+    } catch (error) {
+        return { success: false, status: 500, error: error as string };
+    }
+}
+
+export async function addClass(
+    classData: {
+        name: string;
+        grade: string;
+        medium: string;
+        type: string;
+        subjectId: string;
+        teacherId: string;
+        day: string | null;
+        startTime: string | null;
+        endTime: string | null;
+        hallName: string | null;
+        monthlyFee: string;
+    },
+    _prevState: any,
+    formData: FormData
+) {
+    // Validation
+    if (!classData.name || !classData.grade) {
+        return {
+            success: false,
+            status: 422,
+            error: 'Class name and grade are required',
+        };
+    }
+
+    if (!classData.subjectId) {
+        return {
+            success: false,
+            status: 422,
+            error: 'Subject is required',
+        };
+    }
+
+    if (!classData.teacherId) {
+        return {
+            success: false,
+            status: 422,
+            error: 'Teacher is required',
+        };
+    }
+
+    if (!classData.monthlyFee) {
+        return {
+            success: false,
+            status: 422,
+            error: 'Monthly fee is required',
+        };
+    }
+
+    try {
+        await db.insert(classes).values({
+            name: classData.name,
+            grade: classData.grade,
+            medium: classData.medium as any,
+            type: classData.type as any,
+            subject_id: classData.subjectId,
+            teacher_id: classData.teacherId,
+            day: classData.day as any,
+            start_time: classData.startTime,
+            end_time: classData.endTime,
+            hall_name: classData.hallName,
+            monthly_fee: classData.monthlyFee,
+            is_active: true,
         });
 
         return { success: true, status: 201, error: null };

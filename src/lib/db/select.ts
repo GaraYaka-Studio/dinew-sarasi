@@ -1,9 +1,9 @@
 'use server';
 
 import { db } from '@/db';
-import { classes, students, subjects, teacherPayments, teachers } from '@/db/schema';
+import { classes, enrollments, students, subjects, teacherPayments, teachers } from '@/db/schema';
 import { Student, Subject, Teacher } from '@/types/schema.types';
-import { eq, isNull } from 'drizzle-orm';
+import { eq, isNull, and, sql } from 'drizzle-orm';
 
 export async function getStudents() {
     return await db.select().from(students).where(isNull(students.deleted_at));
@@ -40,4 +40,48 @@ export async function getSubjectTeachers(subject: Subject) {
         where: (teachers, { sql }) =>
             sql`${subject.name} = ANY(${teachers.subjects})`,
     });
+}
+
+export async function getClassesWithDetails() {
+    const result = await db
+        .select({
+            // Class fields
+            id: classes.id,
+            name: classes.name,
+            grade: classes.grade,
+            medium: classes.medium,
+            type: classes.type,
+            day: classes.day,
+            startTime: classes.start_time,
+            endTime: classes.end_time,
+            monthlyFee: classes.monthly_fee,
+            isActive: classes.is_active,
+            // Related fields
+            subjectId: subjects.id,
+            subjectName: subjects.name,
+            subjectCategory: subjects.category,
+            teacherId: teachers.id,
+            teacherName: teachers.name,
+            teacherPhone: teachers.phone,
+        })
+        .from(classes)
+        .leftJoin(subjects, eq(classes.subject_id, subjects.id))
+        .leftJoin(teachers, eq(classes.teacher_id, teachers.id))
+        .where(isNull(classes.deleted_at));
+
+    return result;
+}
+
+export async function getClassStudentCount(classId: string) {
+    const result = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(enrollments)
+        .where(
+            and(
+                eq(enrollments.class_id, classId),
+                eq(enrollments.is_active, true),
+                isNull(enrollments.deleted_at)
+            )
+        );
+    return result[0]?.count || 0;
 }
