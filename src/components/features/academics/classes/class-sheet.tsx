@@ -96,6 +96,7 @@ export function ClassSheet({
                     <div className="shrink-0 border-t bg-muted/5 p-6">
                         <ClassSheetFooter
                             classItem={classItem}
+                            classData={classData}
                             onClose={() => onOpenChange(false)}
                             onClassUpdated={onClassUpdated}
                             onEditClass={() => setIsEditDialogOpen(true)}

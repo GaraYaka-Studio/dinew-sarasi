@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
     AlertDialog,
@@ -13,9 +14,13 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { ClassItem } from '@/lib/mock-data-classes';
+import { ClassWithDetails } from '@/lib/db/transformers';
+import { deleteClass } from '@/lib/db/delete';
+import { Class } from '@/types/schema.types';
 
 interface ClassSheetFooterProps {
     classItem: ClassItem;
+    classData: ClassWithDetails | null;
     onClose: () => void;
     onClassUpdated?: () => void;
     onEditClass?: () => void;
@@ -23,6 +28,7 @@ interface ClassSheetFooterProps {
 
 export function ClassSheetFooter({
     classItem,
+    classData,
     onClose,
     onClassUpdated,
     onEditClass,
@@ -33,11 +39,38 @@ export function ClassSheetFooter({
         setIsArchiveDialogOpen(true);
     };
 
-    const confirmArchive = () => {
-        // TODO: Implement soft delete
-        setIsArchiveDialogOpen(false);
-        onClose();
-        if (onClassUpdated) onClassUpdated();
+    const confirmArchive = async () => {
+        if (classData) {
+            // Create minimal Class object for delete function
+            const classObj: Class = {
+                id: classData.id,
+                name: classData.name,
+                grade: classData.grade,
+                medium: classData.medium || 'sinhala',
+                type: classData.type || 'theory',
+                subject_id: classData.subjectId,
+                teacher_id: classData.teacherId,
+                academic_year_id: null,
+                day: classData.day,
+                start_time: classData.startTime,
+                end_time: classData.endTime,
+                hall_name: classData.hallName,
+                monthly_fee: classData.monthlyFee || '0',
+                is_active: classData.isActive ?? false,
+                deleted_at: null,
+            };
+
+            try {
+                await deleteClass(classObj);
+                toast.success('Class archived successfully');
+                setIsArchiveDialogOpen(false);
+                onClose();
+                if (onClassUpdated) onClassUpdated();
+            } catch (error) {
+                console.error('Failed to archive class:', error);
+                toast.error('Failed to archive class');
+            }
+        }
     };
 
     const handleEdit = () => {
