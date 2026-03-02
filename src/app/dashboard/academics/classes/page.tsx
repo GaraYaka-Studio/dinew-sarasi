@@ -21,7 +21,7 @@ import { ClassDialog } from '@/components/features/academics/classes/class-dialo
 import { ClassSheet } from '@/components/features/academics/classes/class-sheet';
 import { ClassItem } from '@/lib/mock-data-classes';
 import { getClassesWithDetails, getClassStudentCount } from '@/lib/db/select';
-import { transformToClassItem } from '@/lib/db/transformers';
+import { transformToClassItem, ClassWithDetails } from '@/lib/db/transformers';
 
 export default function ClassesPage() {
     const [activeFilter, setActiveFilter] = useState<ClassFilterState>({
@@ -35,7 +35,9 @@ export default function ClassesPage() {
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [selectedClass, setSelectedClass] = useState<ClassItem | null>(null);
+    const [selectedClassData, setSelectedClassData] = useState<ClassWithDetails | null>(null);
     const [classes, setClasses] = useState<ClassItem[]>([]);
+    const [classesDataMap, setClassesDataMap] = useState<Map<string, ClassWithDetails>>(new Map());
 
     // Load classes from database
     useEffect(() => {
@@ -54,6 +56,14 @@ export default function ClassesPage() {
                 })
             );
             setClasses(items);
+
+            // Store raw database data for editing
+            const dataMap = new Map<string, ClassWithDetails>();
+            for (const cls of dbClasses) {
+                const count = await getClassStudentCount(cls.id);
+                dataMap.set(cls.id, { ...cls, studentCount: count });
+            }
+            setClassesDataMap(dataMap);
         } catch (error) {
             console.error('Failed to load classes:', error);
         } finally {
@@ -67,6 +77,7 @@ export default function ClassesPage() {
 
     const handleViewClass = (data: ClassItem) => {
         setSelectedClass(data);
+        setSelectedClassData(classesDataMap.get(data.id) || null);
         setIsSheetOpen(true);
     };
 
@@ -239,8 +250,10 @@ export default function ClassesPage() {
 
             <ClassSheet
                 classItem={selectedClass}
+                classData={selectedClassData}
                 isOpen={isSheetOpen}
                 onOpenChange={setIsSheetOpen}
+                onClassUpdated={handleClassAdded}
             />
         </div>
     );

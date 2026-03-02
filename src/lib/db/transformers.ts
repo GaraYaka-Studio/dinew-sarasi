@@ -10,6 +10,7 @@ export type ClassWithDetails = {
     day: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday' | null;
     startTime: string | null;
     endTime: string | null;
+    hallName: string | null;
     monthlyFee: string | null;
     isActive: boolean | null;
     subjectId: string | null;

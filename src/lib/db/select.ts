@@ -54,6 +54,7 @@ export async function getClassesWithDetails() {
             day: classes.day,
             startTime: classes.start_time,
             endTime: classes.end_time,
+            hallName: classes.hall_name,
             monthlyFee: classes.monthly_fee,
             isActive: classes.is_active,
             // Related fields
