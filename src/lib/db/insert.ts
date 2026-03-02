@@ -2,7 +2,8 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from '@/db';
-import { classes, students, subjects, teacherPayments, teachers } from '@/db/schema';
+import { classes, paymentItems, payments, studentFees, students, subjects, teacherPayments, teachers } from '@/db/schema';
+import { eq, and } from 'drizzle-orm';
 
 export async function addTeacher(
     subjects: string[],
@@ -146,7 +147,7 @@ export async function addStudent(
             initials: personalInfo.fullName.split(' ').map(n => n[0]).join(''),
             phone: personalInfo.phone,
             dob: personalInfo.dob,
-            gender: personalInfo.gender,
+            gender: personalInfo.gender as 'male' | 'female',
             address: personalInfo.address,
             school: personalInfo.school,
             guardian_name: personalInfo.guardianName,
@@ -234,6 +235,139 @@ export async function addClass(
 
         return { success: true, status: 201, error: null };
     } catch (error) {
+        return { success: false, status: 500, error: error as string };
+    }
+}
+
+/**
+ * Payment item for recording a payment
+ */
+export interface PaymentCartItem {
+    type: 'monthly' | 'admission';
+    classId?: string;
+    monthIndex?: number;
+    year?: number;
+    amount: number;
+}
+
+/**
+ * Record a payment with items and update fee records
+ * Creates payment record, payment items, and updates student_fees table
+ */
+export async function recordPayment(
+    studentId: string,
+    cartItems: PaymentCartItem[],
+    totalAmount: number,
+    method: 'cash' | 'card' | 'bank_transfer',
+    recordedBy: string | null,
+    _prevState: any,
+    formData: FormData
+) {
+    // Validation
+    if (!studentId) {
+        return { success: false, status: 422, error: 'Student is required' };
+    }
+    if (cartItems.length === 0) {
+        return { success: false, status: 422, error: 'Cart is empty' };
+    }
+    if (totalAmount <= 0) {
+        return { success: false, status: 422, error: 'Invalid amount' };
+    }
+
+    try {
+        // 1. Create payment record (auto-generates receipt_number via serial)
+        const paymentResult = await db
+            .insert(payments)
+            .values({
+                student_id: studentId,
+                total_amount: totalAmount.toString(),
+                method: method,
+                recorded_by: recordedBy,
+            })
+            .returning({ id: payments.id, receiptNumber: payments.receipt_number });
+
+        const payment = paymentResult[0];
+
+        // 2. Create payment items and update fee records
+        for (const item of cartItems) {
+            // Insert payment item
+            await db.insert(paymentItems).values({
+                payment_id: payment.id,
+                type: item.type === 'admission' ? 'admission' : 'monthly',
+                class_id: item.classId || null,
+                month_index: item.monthIndex,
+                year: item.year,
+                amount: item.amount.toString(),
+            });
+
+            // Update or create fee record for monthly fees
+            if (item.type === 'monthly' && item.classId && item.monthIndex !== undefined) {
+                const currentYear = item.year || new Date().getFullYear();
+
+                const existingFee = await db
+                    .select()
+                    .from(studentFees)
+                    .where(
+                        and(
+                            eq(studentFees.student_id, studentId),
+                            eq(studentFees.class_id, item.classId),
+                            eq(studentFees.year, currentYear),
+                            eq(studentFees.month_index, item.monthIndex)
+                        )
+                    );
+
+                const currentPaid = existingFee[0]
+                    ? Number(existingFee[0].paid_amount)
+                    : 0;
+                const newPaidAmount = currentPaid + item.amount;
+                const feeAmount = existingFee[0]
+                    ? Number(existingFee[0].fee_amount)
+                    : item.amount;
+
+                const newStatus = newPaidAmount >= feeAmount ? 'paid' :
+                                  newPaidAmount > 0 ? 'partial' : 'pending';
+
+                if (existingFee[0]) {
+                    // Update existing fee record
+                    await db
+                        .update(studentFees)
+                        .set({
+                            paid_amount: newPaidAmount.toString(),
+                            status: newStatus,
+                            updated_at: new Date(),
+                        })
+                        .where(eq(studentFees.id, existingFee[0].id));
+                } else {
+                    // Insert new fee record
+                    await db.insert(studentFees).values({
+                        student_id: studentId,
+                        class_id: item.classId,
+                        year: currentYear,
+                        month_index: item.monthIndex,
+                        fee_amount: item.amount.toString(),
+                        paid_amount: item.amount.toString(),
+                        status: newStatus,
+                    });
+                }
+            }
+
+            // Update admission status if admission fee paid
+            if (item.type === 'admission') {
+                await db
+                    .update(students)
+                    .set({ admission_status: 'paid' })
+                    .where(eq(students.id, studentId));
+            }
+        }
+
+        return {
+            success: true,
+            status: 201,
+            error: null,
+            receiptNumber: payment.receiptNumber,
+        };
+    } catch (error) {
+        console.error('Payment recording failed:', error);
         return { success: false, status: 500, error: error as string };
     }
 }

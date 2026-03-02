@@ -20,10 +20,12 @@ import {
     SheetDescription,
 } from '@/components/ui/sheet';
 import {
-    MOCK_FEE_STRUCTURE,
     ClassFeeStructure,
     StudentDetail,
 } from '@/lib/mock-data';
+import { searchStudents, getStudentFeeStructure } from '@/lib/db/select';
+import { recordPayment, PaymentCartItem } from '@/lib/db/insert';
+import { transformToStudentDetail, transformToFeeStructure, StudentSearchResult } from '@/lib/db/transformers';
 
 export default function FeesCollectionPage() {
     // State
@@ -31,32 +33,76 @@ export default function FeesCollectionPage() {
     const [feeClasses, setFeeClasses] = useState<ClassFeeStructure[]>([]);
     const [cart, setCart] = useState<CartItem[]>([]);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
+    const [searchResults, setSearchResults] = useState<StudentSearchResult[]>([]);
+    const [selectedStudent, setSelectedStudent] = useState<StudentSearchResult | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
 
     // Derived
     const totalAmount = cart.reduce((acc, item) => acc + item.amount, 0);
 
-    // Handlers
-    const handleSearch = () => {
-        // Simulate API Fetch
-        const mockData = MOCK_FEE_STRUCTURE;
-        setStudent(mockData.student);
-        setFeeClasses(JSON.parse(JSON.stringify(mockData.feeClasses))); // Deep copy to allow visual state changes
+    // Handle student search
+    const handleSearch = async (query: string) => {
+        if (query.length < 2) {
+            setSearchResults([]);
+            return;
+        }
 
-        // Admission Trap Logic
-        if (mockData.student.admissionStatus === 'PENDING') {
-            const admissionFee: CartItem = {
-                id: 'admission-fee',
-                label: 'Admission Fee',
-                subLabel: 'One-time registration fee',
-                amount: 1000, // Should come from config
-                type: 'admission',
-            };
-            setCart([admissionFee]);
-            toast.warning(
-                'Admission Pending: Fee added to bill automatically.'
-            );
-        } else {
-            setCart([]);
+        setIsLoading(true);
+        try {
+            const results = await searchStudents(query);
+            setSearchResults(results);
+
+            // Auto-select first result if exact match (e.g., QR scan or exact student_id)
+            if (results.length === 1) {
+                handleSelectStudent(results[0]);
+            }
+        } catch (error) {
+            console.error('Search failed:', error);
+            toast.error('Failed to search students');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Handle student selection
+    const handleSelectStudent = async (dbStudent: StudentSearchResult) => {
+        setIsLoading(true);
+        setSearchResults([]); // Clear search results
+
+        try {
+            // Fetch fee structure
+            const feeStructure = await getStudentFeeStructure(dbStudent.id);
+
+            // Transform to UI format
+            const transformedStudent = transformToStudentDetail({
+                ...dbStudent,
+                enrolledClasses: feeStructure,
+            });
+
+            setStudent(transformedStudent);
+            setFeeClasses(transformToFeeStructure(feeStructure));
+            setSelectedStudent(dbStudent); // Keep raw DB data for payment
+
+            // Admission trap logic - only show warning if it's a new student with pending admission
+            const isNewStudent = selectedStudent?.id !== dbStudent.id;
+            if (dbStudent.admissionStatus === 'pending' && isNewStudent) {
+                const admissionFee: CartItem = {
+                    id: 'admission-fee',
+                    label: 'Admission Fee',
+                    subLabel: 'One-time registration fee',
+                    amount: Number(dbStudent.admissionFee) || 1000,
+                    type: 'admission',
+                };
+                setCart([admissionFee]);
+                toast.warning('Admission Pending: Fee added to bill automatically.');
+            } else if (dbStudent.admissionStatus !== 'pending') {
+                setCart([]);
+            }
+        } catch (error) {
+            console.error('Failed to load student data:', error);
+            toast.error('Failed to load student fee structure');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -65,6 +111,8 @@ export default function FeesCollectionPage() {
         setFeeClasses([]);
         setCart([]);
         setIsSheetOpen(false);
+        setSelectedStudent(null);
+        setSearchResults([]);
     };
 
     const handleToggleMonth = (classId: string, monthIndex: number) => {
@@ -92,7 +140,7 @@ export default function FeesCollectionPage() {
                         id: itemId,
                         label: `${cls.className}`,
                         subLabel: `${targetMonth.month} ${targetMonth.year}`,
-                        amount: targetMonth.amount, // Or remaining due if partial (simplified for now)
+                        amount: targetMonth.amount - (targetMonth.paidAmount || 0), // Pay remaining amount
                         type: 'monthly_fee',
                         classId,
                         monthIndex,
@@ -120,18 +168,44 @@ export default function FeesCollectionPage() {
         }
     };
 
-    const handleCompletePayment = (cashReceived: number) => {
-        console.log('Processing Payment...', {
-            ...student,
-            cart,
-            cashReceived,
-        });
-        toast.success('Payment Recorded Successfully', {
-            description: `Receipt generated for ${student?.name}. Amount: ${totalAmount} LKR`,
-        });
+    const handleCompletePayment = async (cashReceived: number) => {
+        if (!selectedStudent) return;
 
-        // Reset or Print logic
-        handleClear();
+        setIsLoading(true);
+        try {
+            // Transform cart to payment items
+            const paymentItems: PaymentCartItem[] = cart.map((item) => ({
+                type: item.type === 'admission' ? 'admission' : 'monthly',
+                classId: item.classId,
+                monthIndex: item.monthIndex,
+                year: new Date().getFullYear(),
+                amount: item.amount,
+            }));
+
+            const result = await recordPayment(
+                selectedStudent.id,
+                paymentItems,
+                totalAmount,
+                'cash',
+                null, // TODO: Get from auth/session
+                null,
+                new FormData()
+            );
+
+            if (result.success) {
+                toast.success('Payment Recorded Successfully', {
+                    description: `Receipt #${result.receiptNumber}. Amount: ${totalAmount} LKR`,
+                });
+                handleClear();
+            } else {
+                toast.error(result.error || 'Payment failed');
+            }
+        } catch (error) {
+            console.error('Payment failed:', error);
+            toast.error('Failed to process payment');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handlePayAdmission = () => {
@@ -141,7 +215,7 @@ export default function FeesCollectionPage() {
             id: 'admission-fee',
             label: 'Admission Fee',
             subLabel: 'Manual add',
-            amount: 1000,
+            amount: Number(student?.admissionFee) || 1000,
             type: 'admission',
         };
         setCart((prev) => [...prev, admissionFee]);
@@ -152,11 +226,36 @@ export default function FeesCollectionPage() {
             {/* Left Panel: Context & Selection (65%) */}
             <div className="flex flex-1 flex-col overflow-hidden border-r bg-muted/10 md:w-[65%]">
                 {/* 1. Omni-Search Bar */}
-                <div className="z-10 border-b bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                <div className="relative z-10 border-b bg-background/95 p-4 backdrop-blur supports-backdrop-filter:bg-background/60">
                     <StudentSearch
                         onSearch={handleSearch}
                         onClear={handleClear}
                     />
+
+                    {/* Search Results Dropdown */}
+                    {searchResults.length > 1 && (
+                        <div className="absolute top-full left-0 right-0 z-50 mt-1 max-h-64 overflow-y-auto rounded-md border bg-background shadow-lg">
+                            {searchResults.map((s) => (
+                                <button
+                                    key={s.id}
+                                    className="w-full px-4 py-3 text-left hover:bg-muted/50 transition-colors"
+                                    onClick={() => handleSelectStudent(s)}
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <div className="font-medium">{s.fullName}</div>
+                                            <div className="text-sm text-muted-foreground">
+                                                {s.phone} • Grade: {s.grade || 'N/A'}
+                                            </div>
+                                        </div>
+                                        <div className="text-xs text-muted-foreground">
+                                            SRS-{s.studentId}
+                                        </div>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {/* Scrollable Content */}
@@ -186,12 +285,16 @@ export default function FeesCollectionPage() {
                         <div className="flex h-full flex-col items-center justify-center space-y-4 text-muted-foreground opacity-70">
                             <User className="h-16 w-16" />
                             <p className="text-lg font-medium">
-                                Scan Student ID or Search to begin
+                                Search for a student to begin
                             </p>
                             <div className="text-sm">
-                                Type any 3 chars (e.g. &quot;kav&quot;) to
-                                simulate scan
+                                Type name, phone, or student ID (min 2 chars)
                             </div>
+                            {isLoading && (
+                                <div className="text-sm text-primary">
+                                    Searching...
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>

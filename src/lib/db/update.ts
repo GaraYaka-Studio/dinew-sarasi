@@ -46,7 +46,7 @@ export async function updateStudent(
                 initials: personalInfo.fullName.split(' ').map((n) => n[0]).join(''),
                 phone: personalInfo.phone,
                 dob: personalInfo.dob,
-                gender: personalInfo.gender,
+                gender: personalInfo.gender as 'male' | 'female',
                 address: personalInfo.address,
                 school: personalInfo.school,
                 guardian_name: personalInfo.guardianName,

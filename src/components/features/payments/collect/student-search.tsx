@@ -1,14 +1,28 @@
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface StudentSearchProps {
-    onSearch: () => void;
+    onSearch: (query: string) => void;
     onClear: () => void;
 }
 
 export function StudentSearch({ onSearch, onClear }: StudentSearchProps) {
     const inputRef = useRef<HTMLInputElement>(null);
+    const [debouncedQuery, setDebouncedQuery] = useState('');
+
+    // Debounced search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (debouncedQuery.length >= 2) {
+                onSearch(debouncedQuery);
+            } else if (debouncedQuery.length === 0) {
+                onClear();
+            }
+        }, 300); // 300ms debounce
+
+        return () => clearTimeout(timer);
+    }, [debouncedQuery, onSearch, onClear]);
 
     // Keyboard Shortcuts
     useEffect(() => {
@@ -21,6 +35,10 @@ export function StudentSearch({ onSearch, onClear }: StudentSearchProps) {
                 e.preventDefault();
                 inputRef.current?.blur();
                 onClear();
+                setDebouncedQuery(''); // Also clear input
+                if (inputRef.current) {
+                    inputRef.current.value = '';
+                }
             }
         };
 
@@ -39,10 +57,7 @@ export function StudentSearch({ onSearch, onClear }: StudentSearchProps) {
                 placeholder="Scan ID, Barcode or Search Name (F1)..."
                 autoFocus
                 onChange={(e) => {
-                    // Simulating instant search or scan
-                    if (e.target.value.length > 2) {
-                        onSearch();
-                    }
+                    setDebouncedQuery(e.target.value);
                 }}
             />
             <div className="absolute top-1/2 right-3 hidden -translate-y-1/2 text-xs text-muted-foreground sm:block">

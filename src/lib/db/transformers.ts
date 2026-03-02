@@ -1,5 +1,7 @@
 import { Class } from '@/types/schema.types';
 import { ClassItem } from '@/lib/mock-data-classes';
+import { StudentDetail, ClassFeeStructure, FeeMonth } from '@/lib/mock-data';
+import { Student } from '@/types/schema.types';
 
 export type ClassWithDetails = {
     id: string;
@@ -106,4 +108,118 @@ function formatTime(time: string): string {
     const displayMinutes = minutes.toString().padStart(2, '0');
 
     return `${displayHours}:${displayMinutes} ${period}`;
+}
+
+// =====================================================
+// Payment/Collect Transformers
+// =====================================================
+
+export interface StudentFeeStructureData {
+    classId: string;
+    className: string;
+    monthlyFee: number;
+    months: FeeMonth[];
+}
+
+export interface StudentSearchResult {
+    id: string;
+    studentId: number;
+    fullName: string;
+    initials: string | null;
+    phone: string;
+    grade: string | null;
+    batchYear: number | null;
+    status: 'active' | 'inactive' | 'graduated' | 'suspended' | null;
+    admissionStatus: 'pending' | 'paid' | 'free' | null;
+    admissionFee: string | null;
+    dob: string | null;  // Date from DB is returned as string
+    gender: 'male' | 'female';
+    address: string | null;
+    school: string | null;
+    guardianName: string | null;
+    guardianPhone: string | null;
+    guardianRelationship: string | null;
+    qrCode: string | null;
+    lastModifiedAt: Date | null;
+    createdAt: Date | null;
+}
+
+/**
+ * Transform database fee structure result to UI-expected format
+ */
+export function transformToFeeStructure(
+    dbResult: StudentFeeStructureData[]
+): ClassFeeStructure[] {
+    return dbResult.map((cls) => ({
+        classId: cls.classId,
+        className: cls.className,
+        monthlyFee: cls.monthlyFee,
+        months: cls.months,
+    }));
+}
+
+/**
+ * Transform student database result to mock-data StudentDetail format
+ */
+export function transformToStudentDetail(
+    dbStudent: StudentSearchResult & {
+        enrolledClasses?: StudentFeeStructureData[];
+    }
+): StudentDetail {
+    return {
+        // Base Info
+        id: dbStudent.id,
+        name: dbStudent.fullName,
+        studentId: `SRS-${dbStudent.studentId}`,
+        phone: dbStudent.phone,
+        grade: dbStudent.grade || 'N/A',
+        batch: dbStudent.batchYear
+            ? `${dbStudent.batchYear} A/L`
+            : 'General',
+        status: dbStudent.status === 'active' ? 'active' :
+                dbStudent.status === 'graduated' ? 'left' :
+                dbStudent.status === 'suspended' ? 'draft' :
+                'active',
+        paymentStatus: dbStudent.status === 'active' ? 'paid' : 'draft',
+        initials: dbStudent.initials || 'ST',
+        lastActivity: 'Active now',
+        admissionDate: dbStudent.createdAt?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
+
+        // Personal Details
+        dateOfBirth: dbStudent.dob || '',
+        gender: dbStudent.gender === 'male' ? 'Male' : 'Female',
+        address: dbStudent.address || '',
+        school: dbStudent.school || '',
+
+        // Guardian
+        guardian: {
+            name: dbStudent.guardianName || '',
+            relationship: (dbStudent.guardianRelationship || 'Father') as 'Father' | 'Mother' | 'Guardian',
+            phone: dbStudent.guardianPhone || '',
+            isEmergencyContact: true,
+        },
+
+        // Academic
+        olYear: dbStudent.batchYear ?? undefined,
+        alYear: dbStudent.batchYear ?? undefined,
+
+        // Financial
+        admissionStatus: (dbStudent.admissionStatus === 'free' ? 'PAID' : dbStudent.admissionStatus?.toUpperCase()) as 'PENDING' | 'PAID',
+        admissionFee: Number(dbStudent.admissionFee) || 1000,
+        arrears: 0, // Can be calculated from unpaid fees
+        paymentHistory: [], // Can be fetched separately if needed
+
+        // Attendance
+        attendanceRate: 0, // Can be calculated from attendance records
+        attendanceHistory: [],
+
+        // Enrolled Classes
+        enrolledClasses: dbStudent.enrolledClasses?.map((c) => ({
+            id: c.classId,
+            name: c.className,
+            grade: '',
+            teacher: '',
+            schedule: '',
+        })) || [],
+    };
 }
