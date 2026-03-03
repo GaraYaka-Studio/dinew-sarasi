@@ -2,8 +2,8 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from '@/db';
-import { classes, paymentItems, payments, studentFees, students, subjects, teacherPayments, teachers } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { classes, enrollments, paymentItems, payments, studentFees, students, subjects, teacherPayments, teachers } from '@/db/schema';
+import { eq, and, isNull } from 'drizzle-orm';
 
 export async function addTeacher(
     subjects: string[],
@@ -117,6 +117,7 @@ export async function addStudent(
         gender: string;
     },
     academicInfo: { grade: string; batch: string },
+    enrollmentData: { classIds: string[] } | null,
     _prevState: any,
     formData: FormData
 ) {
@@ -142,27 +143,101 @@ export async function addStudent(
         // Extract batch year from display string (e.g., "2026 O/L" → 2026, "Scholarship" → 0)
         const batchYearValue = parseInt(academicInfo.batch) || 0;
 
-        await db.insert(students).values({
-            full_name: personalInfo.fullName,
-            initials: personalInfo.fullName.split(' ').map(n => n[0]).join(''),
-            phone: personalInfo.phone,
-            dob: personalInfo.dob,
-            gender: personalInfo.gender as 'male' | 'female',
-            address: personalInfo.address,
-            school: personalInfo.school,
-            guardian_name: personalInfo.guardianName,
-            guardian_phone: personalInfo.guardianPhone,
-            guardian_relationship: personalInfo.relationship,
-            is_emergency_contact: true,
-            batch_year: batchYearValue,
-            current_grade: academicInfo.grade,
-            admission_status: 'pending',
-            qr_code: qrCode,
-            status: 'active',
+        // Insert student and return the created record
+        const [newStudent] = await db.insert(students)
+            .values({
+                full_name: personalInfo.fullName,
+                initials: personalInfo.fullName.split(' ').map(n => n[0]).join(''),
+                phone: personalInfo.phone,
+                dob: personalInfo.dob,
+                gender: personalInfo.gender as 'male' | 'female',
+                address: personalInfo.address,
+                school: personalInfo.school,
+                guardian_name: personalInfo.guardianName,
+                guardian_phone: personalInfo.guardianPhone,
+                guardian_relationship: personalInfo.relationship,
+                is_emergency_contact: true,
+                batch_year: batchYearValue,
+                current_grade: academicInfo.grade,
+                admission_status: 'pending',
+                qr_code: qrCode,
+                status: 'active',
+            })
+            .returning();
+
+        // Create enrollments if classes were selected
+        if (enrollmentData?.classIds && enrollmentData.classIds.length > 0) {
+            const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+            const enrollmentValues = enrollmentData.classIds.map(classId => ({
+                student_id: newStudent.id,
+                class_id: classId,
+                enrolled_at: today,
+                is_active: true,
+            }));
+
+            await db.insert(enrollments)
+                .values(enrollmentValues);
+        }
+
+        return { success: true, status: 201, error: null };
+    } catch (error) {
+        return { success: false, status: 500, error: error as string };
+    }
+}
+
+/**
+ * Enroll an existing student in a class
+ * Creates an enrollment record linking student to class
+ */
+export async function enrollStudent(
+    studentId: string,
+    _prevState: any,
+    formData: FormData
+) {
+    const classId = formData.get('classId')?.toString();
+
+    // Validation
+    if (!studentId) {
+        return { success: false, status: 422, error: 'Student ID is required' };
+    }
+
+    if (!classId) {
+        return { success: false, status: 422, error: 'Class is required' };
+    }
+
+    try {
+        // Check if enrollment already exists
+        const existing = await db
+            .select()
+            .from(enrollments)
+            .where(
+                and(
+                    eq(enrollments.student_id, studentId),
+                    eq(enrollments.class_id, classId),
+                    isNull(enrollments.deleted_at)
+                )
+            );
+
+        if (existing.length > 0) {
+            return {
+                success: false,
+                status: 409,
+                error: 'Student is already enrolled in this class'
+            };
+        }
+
+        // Create enrollment
+        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+        await db.insert(enrollments).values({
+            student_id: studentId,
+            class_id: classId,
+            enrolled_at: today,
+            is_active: true,
         });
 
         return { success: true, status: 201, error: null };
     } catch (error) {
+        console.error('Enrollment failed:', error);
         return { success: false, status: 500, error: error as string };
     }
 }

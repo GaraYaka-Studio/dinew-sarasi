@@ -88,6 +88,87 @@ export async function getClassStudentCount(classId: string) {
 }
 
 /**
+ * Get active classes for a specific grade
+ * Returns classes with subject, teacher, and schedule info
+ */
+export async function getClassesByGrade(grade: string) {
+    const result = await db
+        .select({
+            id: classes.id,
+            name: classes.name,
+            grade: classes.grade,
+            medium: classes.medium,
+            type: classes.type,
+            monthlyFee: classes.monthly_fee,
+            day: classes.day,
+            startTime: classes.start_time,
+            endTime: classes.end_time,
+            hallName: classes.hall_name,
+            // Related data
+            subjectId: subjects.id,
+            subjectName: subjects.name,
+            subjectCategory: subjects.category,
+            teacherId: teachers.id,
+            teacherName: teachers.name,
+        })
+        .from(classes)
+        .innerJoin(subjects, eq(classes.subject_id, subjects.id))
+        .leftJoin(teachers, eq(classes.teacher_id, teachers.id))
+        .where(
+            and(
+                eq(classes.grade, grade),
+                eq(classes.is_active, true),
+                isNull(classes.deleted_at)
+            )
+        );
+
+    return result;
+}
+
+/**
+ * Get classes that a student is enrolled in
+ * Returns enrollments with class, subject, and teacher details
+ */
+export async function getStudentEnrollments(studentId: string) {
+    const result = await db
+        .select({
+            enrollmentId: enrollments.id,
+            enrolledAt: enrollments.enrolled_at,
+            isActive: enrollments.is_active,
+            // Class details
+            classId: classes.id,
+            className: classes.name,
+            grade: classes.grade,
+            medium: classes.medium,
+            type: classes.type,
+            monthlyFee: classes.monthly_fee,
+            day: classes.day,
+            startTime: classes.start_time,
+            endTime: classes.end_time,
+            hallName: classes.hall_name,
+            // Related data
+            subjectId: subjects.id,
+            subjectName: subjects.name,
+            subjectCategory: subjects.category,
+            teacherId: teachers.id,
+            teacherName: teachers.name,
+        })
+        .from(enrollments)
+        .innerJoin(classes, eq(enrollments.class_id, classes.id))
+        .innerJoin(subjects, eq(classes.subject_id, subjects.id))
+        .leftJoin(teachers, eq(classes.teacher_id, teachers.id))
+        .where(
+            and(
+                eq(enrollments.student_id, studentId),
+                isNull(enrollments.deleted_at),
+                isNull(classes.deleted_at)
+            )
+        );
+
+    return result;
+}
+
+/**
  * Search students by name, phone, student_id, or qr_code
  * Returns up to 10 matching results
  */

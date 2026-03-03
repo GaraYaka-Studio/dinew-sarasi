@@ -68,6 +68,7 @@ export function StudentDialog({ isOpen, onOpenChange, onStudentAdded }: StudentD
 
     const [generatedStudentId, setGeneratedStudentId] = useState('');
     const scrollRef = useRef<HTMLDivElement>(null);
+    const isSubmittingFromStep3 = useRef(false);
 
     // Bind addStudent with form data
     const personalInfo = {
@@ -87,8 +88,39 @@ export function StudentDialog({ isOpen, onOpenChange, onStudentAdded }: StudentD
         batch: formData.batch,
     };
 
-    const addStudentBound = addStudent.bind(null, personalInfo, academicInfo);
-    const [state, formAction, pending] = useActionState(addStudentBound, {
+    // Prepare enrollment data for addStudent
+    // Capture form data in refs at submission time to avoid re-render issues
+    const personalInfoRef = useRef(personalInfo);
+    const academicInfoRef = useRef(academicInfo);
+    const selectedClassesRef = useRef<string[]>(formData.selectedClasses);
+
+    // Update refs when formData changes
+    useEffect(() => {
+        personalInfoRef.current = {
+            fullName: formData.name,
+            phone: formData.mobile,
+            guardianName: formData.guardianName,
+            guardianPhone: formData.guardianPhone,
+            relationship: formData.relationship,
+            school: formData.school,
+            dob: formData.dob,
+            address: formData.address,
+            gender: formData.gender,
+        };
+        academicInfoRef.current = {
+            grade: formData.grade,
+            batch: formData.batch,
+        };
+        selectedClassesRef.current = formData.selectedClasses;
+    }, [formData]);
+
+    const [state, formAction, pending] = useActionState(async (_prevState: unknown, formFormData: globalThis.FormData) => {
+        // Use ref values captured at submission time
+        const enrollmentData = selectedClassesRef.current.length > 0
+            ? { classIds: selectedClassesRef.current }
+            : null;
+        return addStudent(personalInfoRef.current, academicInfoRef.current, enrollmentData, _prevState, formFormData);
+    }, {
         success: false,
         status: 0,
         error: null,
@@ -147,6 +179,7 @@ export function StudentDialog({ isOpen, onOpenChange, onStudentAdded }: StudentD
             paymentMode: 'later',
         });
         setGeneratedStudentId('');
+        isSubmittingFromStep3.current = false;
     });
 
     const closeDialog = useEffectEvent(() => {
@@ -184,10 +217,12 @@ export function StudentDialog({ isOpen, onOpenChange, onStudentAdded }: StudentD
     useEffect(() => {
         if (state.error) {
             toast.error(state.error);
-        } else if (state.success && currentStep !== 4) {
+        } else if (state.success && isSubmittingFromStep3.current) {
+            // Only jump to success step if we actually submitted from step 3
             const newStudentId = `SRS-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 999) + 1).padStart(3, '0')}`;
             setGeneratedStudentId(newStudentId);
             setCurrentStep(4);
+            isSubmittingFromStep3.current = false;
             // Refresh student list
             getStudents().then((students) => {
                 if (onStudentAdded) onStudentAdded();
@@ -232,7 +267,7 @@ export function StudentDialog({ isOpen, onOpenChange, onStudentAdded }: StudentD
                                     'Personal',
                                     'Academic',
                                     'Payment',
-                                    'Review',
+                                    'Success',
                                 ].map((label, idx) => {
                                     const stepNum = idx + 1;
                                     const isActive = currentStep === stepNum;
@@ -367,6 +402,7 @@ export function StudentDialog({ isOpen, onOpenChange, onStudentAdded }: StudentD
                                         type="submit"
                                         form="add-student-form"
                                         disabled={isNextDisabled}
+                                        onClick={() => { isSubmittingFromStep3.current = true; }}
                                     >
                                         {pending ? 'Saving...' : 'Finish'}
                                     </Button>
