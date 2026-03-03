@@ -1,6 +1,20 @@
 'use client';
 
-import { useState, useEffect, useActionState } from 'react';
+import {
+    useState,
+    useEffect,
+    useActionState,
+    useEffectEvent,
+    useMemo,
+} from 'react';
+
+import { addClass } from '@/lib/db/insert';
+import { getSubjects, getTeachers } from '@/lib/db/select';
+
+import { Subject, Teacher } from '@/types/schema.types';
+
+import { DAYS, GRADES } from '@/lib/constants';
+
 import { toast } from 'sonner';
 import {
     Dialog,
@@ -21,9 +35,6 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Clock, User, Banknote, BookOpen } from 'lucide-react';
-import { addClass } from '@/lib/db/insert';
-import { getSubjects, getTeachers } from '@/lib/db/select';
-import { Subject, Teacher } from '@/types/schema.types';
 
 interface ClassDialogProps {
     isOpen: boolean;
@@ -31,28 +42,11 @@ interface ClassDialogProps {
     onClassAdded?: () => void;
 }
 
-const GRADES = [
-    'Grade 6',
-    'Grade 7',
-    'Grade 8',
-    'Grade 9',
-    'Grade 10',
-    'Grade 11',
-    'Grade 12',
-    'Grade 13',
-];
-
-const DAYS = [
-    { value: 'monday', label: 'Monday' },
-    { value: 'tuesday', label: 'Tuesday' },
-    { value: 'wednesday', label: 'Wednesday' },
-    { value: 'thursday', label: 'Thursday' },
-    { value: 'friday', label: 'Friday' },
-    { value: 'saturday', label: 'Saturday' },
-    { value: 'sunday', label: 'Sunday' },
-];
-
-export function ClassDialog({ isOpen, onOpenChange, onClassAdded }: ClassDialogProps) {
+export function ClassDialog({
+    isOpen,
+    onOpenChange,
+    onClassAdded,
+}: ClassDialogProps) {
     const [subjects, setSubjects] = useState<Subject[]>([]);
     const [teachers, setTeachers] = useState<Teacher[]>([]);
     const [isLoadingData, setIsLoadingData] = useState(false);
@@ -72,47 +66,51 @@ export function ClassDialog({ isOpen, onOpenChange, onClassAdded }: ClassDialogP
         monthlyFee: '',
     });
 
+    const clearForm = useEffectEvent(() => {
+        setFormData({
+            name: '',
+            grade: '',
+            medium: 'sinhala',
+            type: 'theory',
+            subjectId: '',
+            teacherId: '',
+            day: '',
+            startTime: '',
+            endTime: '',
+            hallName: '',
+            monthlyFee: '',
+        });
+    });
+
+    const loading = useEffectEvent(() => {
+        setIsLoadingData(true);
+    });
+
+    const notLoading = useEffectEvent(() => {
+        setIsLoadingData(false);
+    });
+
+    const completeAdd = useEffectEvent(() => {
+        onOpenChange(false);
+        onClassAdded?.();
+    });
+
     // Load subjects and teachers when dialog opens
     useEffect(() => {
         if (isOpen) {
-            setIsLoadingData(true);
-            Promise.all([getSubjects(), getTeachers()])
-                .then(([subs, teas]) => {
-                    setSubjects(subs);
-                    setTeachers(teas);
-                })
-                .catch((error) => {
-                    console.error('Failed to load data:', error);
-                    toast.error('Failed to load subjects and teachers');
-                })
-                .finally(() => {
-                    setIsLoadingData(false);
-                });
+            loading();
+            getSubjects().then(setSubjects);
+            getTeachers().then(setTeachers);
+            notLoading();
         }
     }, [isOpen]);
 
     // Reset form when dialog closes
     useEffect(() => {
-        if (!isOpen) {
-            setFormData({
-                name: '',
-                grade: '',
-                medium: 'sinhala',
-                type: 'theory',
-                subjectId: '',
-                teacherId: '',
-                day: '',
-                startTime: '',
-                endTime: '',
-                hallName: '',
-                monthlyFee: '',
-            });
-        }
+        if (!isOpen) clearForm();
     }, [isOpen]);
 
-    // Bind addClass with form data
-    const addClassBound = addClass.bind(null, formData);
-    const [state, formAction, pending] = useActionState(addClassBound, {
+    const [state, formAction, pending] = useActionState(addClass, {
         success: false,
         status: 0,
         error: null,
@@ -124,26 +122,19 @@ export function ClassDialog({ isOpen, onOpenChange, onClassAdded }: ClassDialogP
             toast.error(state.error);
         } else if (state.success) {
             toast.success('Class created successfully');
-            onOpenChange(false);
-            if (onClassAdded) onClassAdded();
+            completeAdd();
         }
-    }, [state.success, state.error]);
+    }, [state]);
 
     const updateField = (field: string, value: string) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
     };
 
     // Auto-generate class name from subject and grade
-    useEffect(() => {
-        if (formData.subjectId && formData.grade) {
-            const subject = subjects.find((s) => s.id === formData.subjectId);
-            if (subject) {
-                setFormData((prev) => ({
-                    ...prev,
-                    name: `${subject.name} - ${formData.grade}`,
-                }));
-            }
-        }
+    const classNameGen = useMemo(() => {
+        const subject = subjects.find((s) => s.id === formData.subjectId);
+        if (subject) return `${subject.name} - ${formData.grade}`;
+        return '';
     }, [formData.subjectId, formData.grade, subjects]);
 
     return (
@@ -172,22 +163,28 @@ export function ClassDialog({ isOpen, onOpenChange, onClassAdded }: ClassDialogP
                                 {/* Section 1: Subject Info */}
                                 <div className="space-y-4">
                                     <h3 className="flex items-center gap-2 text-sm font-medium tracking-wider text-muted-foreground uppercase">
-                                        <BookOpen className="h-4 w-4" /> Subject Details
+                                        <BookOpen className="h-4 w-4" /> Subject
+                                        Details
                                     </h3>
                                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                         <div className="space-y-2">
                                             <Label htmlFor="grade">Grade</Label>
                                             <Select
-                                                value={formData.grade}
-                                                onValueChange={(value) => updateField('grade', value)}
                                                 name="grade"
+                                                value={formData.grade}
+                                                onValueChange={(value) =>
+                                                    updateField('grade', value)
+                                                }
                                             >
                                                 <SelectTrigger id="grade">
                                                     <SelectValue placeholder="Select Grade" />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {GRADES.map((grade) => (
-                                                        <SelectItem key={grade} value={grade}>
+                                                        <SelectItem
+                                                            key={grade}
+                                                            value={grade}
+                                                        >
                                                             {grade}
                                                         </SelectItem>
                                                     ))}
@@ -195,18 +192,28 @@ export function ClassDialog({ isOpen, onOpenChange, onClassAdded }: ClassDialogP
                                             </Select>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="subject">Subject</Label>
+                                            <Label htmlFor="subject">
+                                                Subject
+                                            </Label>
                                             <Select
-                                                value={formData.subjectId}
-                                                onValueChange={(value) => updateField('subjectId', value)}
                                                 name="subject"
+                                                value={formData.subjectId}
+                                                onValueChange={(value) =>
+                                                    updateField(
+                                                        'subjectId',
+                                                        value
+                                                    )
+                                                }
                                             >
                                                 <SelectTrigger id="subject">
                                                     <SelectValue placeholder="Select Subject" />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {subjects.map((subject) => (
-                                                        <SelectItem key={subject.id} value={subject.id}>
+                                                        <SelectItem
+                                                            key={subject.id}
+                                                            value={subject.id}
+                                                        >
                                                             {subject.name}
                                                         </SelectItem>
                                                     ))}
@@ -217,36 +224,56 @@ export function ClassDialog({ isOpen, onOpenChange, onClassAdded }: ClassDialogP
 
                                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                         <div className="space-y-2">
-                                            <Label htmlFor="medium">Medium</Label>
+                                            <Label htmlFor="medium">
+                                                Medium
+                                            </Label>
                                             <Select
-                                                value={formData.medium}
-                                                onValueChange={(value) => updateField('medium', value)}
                                                 name="medium"
+                                                value={formData.medium}
+                                                onValueChange={(value) =>
+                                                    updateField('medium', value)
+                                                }
                                             >
                                                 <SelectTrigger id="medium">
                                                     <SelectValue placeholder="Select Medium" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="sinhala">Sinhala</SelectItem>
-                                                    <SelectItem value="english">English</SelectItem>
-                                                    <SelectItem value="tamil">Tamil</SelectItem>
+                                                    <SelectItem value="sinhala">
+                                                        Sinhala
+                                                    </SelectItem>
+                                                    <SelectItem value="english">
+                                                        English
+                                                    </SelectItem>
+                                                    <SelectItem value="tamil">
+                                                        Tamil
+                                                    </SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="type">Class Type</Label>
+                                            <Label htmlFor="type">
+                                                Class Type
+                                            </Label>
                                             <Select
-                                                value={formData.type}
-                                                onValueChange={(value) => updateField('type', value)}
                                                 name="type"
+                                                value={formData.type}
+                                                onValueChange={(value) =>
+                                                    updateField('type', value)
+                                                }
                                             >
                                                 <SelectTrigger id="type">
                                                     <SelectValue placeholder="Select Type" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="theory">Theory</SelectItem>
-                                                    <SelectItem value="revision">Revision</SelectItem>
-                                                    <SelectItem value="paper">Paper Class</SelectItem>
+                                                    <SelectItem value="theory">
+                                                        Theory
+                                                    </SelectItem>
+                                                    <SelectItem value="revision">
+                                                        Revision
+                                                    </SelectItem>
+                                                    <SelectItem value="paper">
+                                                        Paper Class
+                                                    </SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
@@ -257,10 +284,15 @@ export function ClassDialog({ isOpen, onOpenChange, onClassAdded }: ClassDialogP
                                         <Label htmlFor="name">Class Name</Label>
                                         <Input
                                             id="name"
-                                            value={formData.name}
-                                            onChange={(e) => updateField('name', e.target.value)}
-                                            placeholder="Auto-generated from subject and grade"
                                             name="name"
+                                            value={classNameGen}
+                                            onChange={(e) =>
+                                                updateField(
+                                                    'name',
+                                                    e.target.value
+                                                )
+                                            }
+                                            placeholder="Auto-generated from subject and grade"
                                         />
                                     </div>
                                 </div>
@@ -268,22 +300,33 @@ export function ClassDialog({ isOpen, onOpenChange, onClassAdded }: ClassDialogP
                                 {/* Section 2: Logistics */}
                                 <div className="space-y-4 border-t pt-2">
                                     <h3 className="mt-2 flex items-center gap-2 text-sm font-medium tracking-wider text-muted-foreground uppercase">
-                                        <User className="h-4 w-4" /> Teacher & Fees
+                                        <User className="h-4 w-4" /> Teacher &
+                                        Fees
                                     </h3>
                                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                         <div className="space-y-2">
-                                            <Label htmlFor="teacher">Teacher</Label>
+                                            <Label htmlFor="teacher">
+                                                Teacher
+                                            </Label>
                                             <Select
-                                                value={formData.teacherId}
-                                                onValueChange={(value) => updateField('teacherId', value)}
                                                 name="teacher"
+                                                value={formData.teacherId}
+                                                onValueChange={(value) =>
+                                                    updateField(
+                                                        'teacherId',
+                                                        value
+                                                    )
+                                                }
                                             >
                                                 <SelectTrigger id="teacher">
                                                     <SelectValue placeholder="Select Teacher" />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {teachers.map((teacher) => (
-                                                        <SelectItem key={teacher.id} value={teacher.id}>
+                                                        <SelectItem
+                                                            key={teacher.id}
+                                                            value={teacher.id}
+                                                        >
                                                             {teacher.name}
                                                         </SelectItem>
                                                     ))}
@@ -298,12 +341,17 @@ export function ClassDialog({ isOpen, onOpenChange, onClassAdded }: ClassDialogP
                                                 <Banknote className="absolute top-2.5 left-3 h-4 w-4 text-muted-foreground" />
                                                 <Input
                                                     id="fee"
+                                                    name="fee"
                                                     type="number"
                                                     placeholder="2500"
                                                     className="pl-9"
                                                     value={formData.monthlyFee}
-                                                    onChange={(e) => updateField('monthlyFee', e.target.value)}
-                                                    name="fee"
+                                                    onChange={(e) =>
+                                                        updateField(
+                                                            'monthlyFee',
+                                                            e.target.value
+                                                        )
+                                                    }
                                                 />
                                             </div>
                                         </div>
@@ -319,16 +367,21 @@ export function ClassDialog({ isOpen, onOpenChange, onClassAdded }: ClassDialogP
                                         <div className="space-y-2">
                                             <Label htmlFor="day">Day</Label>
                                             <Select
-                                                value={formData.day}
-                                                onValueChange={(value) => updateField('day', value)}
                                                 name="day"
+                                                value={formData.day}
+                                                onValueChange={(value) =>
+                                                    updateField('day', value)
+                                                }
                                             >
                                                 <SelectTrigger id="day">
                                                     <SelectValue placeholder="Select Day" />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {DAYS.map((day) => (
-                                                        <SelectItem key={day.value} value={day.value}>
+                                                        <SelectItem
+                                                            key={day.value}
+                                                            value={day.value}
+                                                        >
                                                             {day.label}
                                                         </SelectItem>
                                                     ))}
@@ -341,31 +394,50 @@ export function ClassDialog({ isOpen, onOpenChange, onClassAdded }: ClassDialogP
                                             </Label>
                                             <Input
                                                 id="start-time"
+                                                name="startTime"
                                                 type="time"
                                                 value={formData.startTime}
-                                                onChange={(e) => updateField('startTime', e.target.value)}
-                                                name="startTime"
+                                                onChange={(e) =>
+                                                    updateField(
+                                                        'startTime',
+                                                        e.target.value
+                                                    )
+                                                }
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="end-time">End Time</Label>
+                                            <Label htmlFor="end-time">
+                                                End Time
+                                            </Label>
                                             <Input
                                                 id="end-time"
+                                                name="endTime"
                                                 type="time"
                                                 value={formData.endTime}
-                                                onChange={(e) => updateField('endTime', e.target.value)}
-                                                name="endTime"
+                                                onChange={(e) =>
+                                                    updateField(
+                                                        'endTime',
+                                                        e.target.value
+                                                    )
+                                                }
                                             />
                                         </div>
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="hall">Hall Name (Optional)</Label>
+                                        <Label htmlFor="hall">
+                                            Hall Name (Optional)
+                                        </Label>
                                         <Input
                                             id="hall"
+                                            name="hallName"
                                             placeholder="e.g., Hall A, Room 101"
                                             value={formData.hallName}
-                                            onChange={(e) => updateField('hallName', e.target.value)}
-                                            name="hallName"
+                                            onChange={(e) =>
+                                                updateField(
+                                                    'hallName',
+                                                    e.target.value
+                                                )
+                                            }
                                         />
                                     </div>
                                 </div>

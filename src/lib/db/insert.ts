@@ -2,7 +2,18 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from '@/db';
-import { classes, enrollments, paymentItems, payments, studentFees, students, subjects, teacherPayments, teachers } from '@/db/schema';
+import {
+    classes,
+    enrollments,
+    paymentItems,
+    payments,
+    studentFees,
+    students,
+    subjects,
+    teacherPayments,
+    teachers,
+} from '@/db/schema';
+import { NewClass } from '@/types/schema.types';
 import { eq, and, isNull } from 'drizzle-orm';
 
 export async function addTeacher(
@@ -123,21 +134,36 @@ export async function addStudent(
 ) {
     // Validation
     if (!personalInfo.fullName || !personalInfo.phone) {
-        return { success: false, status: 422, error: 'Name and phone are required' };
+        return {
+            success: false,
+            status: 422,
+            error: 'Name and phone are required',
+        };
     }
 
     if (!personalInfo.guardianName || !personalInfo.guardianPhone) {
-        return { success: false, status: 422, error: 'Guardian information is required' };
+        return {
+            success: false,
+            status: 422,
+            error: 'Guardian information is required',
+        };
     }
 
     if (!academicInfo.grade || !academicInfo.batch) {
-        return { success: false, status: 422, error: 'Grade and batch are required' };
+        return {
+            success: false,
+            status: 422,
+            error: 'Grade and batch are required',
+        };
     }
 
     try {
         // Generate student ID and QR code
         const year = new Date().getFullYear();
-        const randomNum = String(Math.floor(Math.random() * 999) + 1).padStart(3, '0');
+        const randomNum = String(Math.floor(Math.random() * 999) + 1).padStart(
+            3,
+            '0'
+        );
         const qrCode = `QR-SRS-${year}-${randomNum}`;
 
         // Extract batch year from display string (e.g., "2026 O/L" → 2026, "Scholarship" → 0)
@@ -242,25 +268,21 @@ export async function enrollStudent(
     }
 }
 
-export async function addClass(
-    classData: {
-        name: string;
-        grade: string;
-        medium: string;
-        type: string;
-        subjectId: string;
-        teacherId: string;
-        day: string | null;
-        startTime: string | null;
-        endTime: string | null;
-        hallName: string | null;
-        monthlyFee: string;
-    },
-    _prevState: any,
-    formData: FormData
-) {
+export async function addClass(_prevState: any, formData: FormData) {
+    const name = formData.get('name')?.toString();
+    const grade = formData.get('grade')?.toString();
+    const medium = formData.get('medium') as any;
+    const type = formData.get('type') as any;
+    const subject_id = formData.get('subject')?.toString();
+    const teacher_id = formData.get('teacher')?.toString();
+    const monthly_fee = formData.get('fee')?.toString();
+    const day = formData.get('day') as any;
+    const start_time = formData.get('startTime')?.toString();
+    const end_time = formData.get('endTime')?.toString();
+    const hall_name = formData.get('hallName')?.toString();
+
     // Validation
-    if (!classData.name || !classData.grade) {
+    if (!name || !grade) {
         return {
             success: false,
             status: 422,
@@ -268,7 +290,7 @@ export async function addClass(
         };
     }
 
-    if (!classData.subjectId) {
+    if (!subject_id) {
         return {
             success: false,
             status: 422,
@@ -276,7 +298,7 @@ export async function addClass(
         };
     }
 
-    if (!classData.teacherId) {
+    if (!teacher_id) {
         return {
             success: false,
             status: 422,
@@ -284,7 +306,7 @@ export async function addClass(
         };
     }
 
-    if (!classData.monthlyFee) {
+    if (!monthly_fee) {
         return {
             success: false,
             status: 422,
@@ -292,21 +314,22 @@ export async function addClass(
         };
     }
 
+    const newClass: NewClass = {
+        name,
+        grade,
+        medium,
+        type,
+        subject_id,
+        teacher_id,
+        monthly_fee,
+        day,
+        start_time,
+        end_time,
+        hall_name,
+    };
+
     try {
-        await db.insert(classes).values({
-            name: classData.name,
-            grade: classData.grade,
-            medium: classData.medium as any,
-            type: classData.type as any,
-            subject_id: classData.subjectId,
-            teacher_id: classData.teacherId,
-            day: classData.day as any,
-            start_time: classData.startTime,
-            end_time: classData.endTime,
-            hall_name: classData.hallName,
-            monthly_fee: classData.monthlyFee,
-            is_active: true,
-        });
+        await db.insert(classes).values(newClass);
 
         return { success: true, status: 201, error: null };
     } catch (error) {
@@ -359,7 +382,10 @@ export async function recordPayment(
                 method: method,
                 recorded_by: recordedBy,
             })
-            .returning({ id: payments.id, receiptNumber: payments.receipt_number });
+            .returning({
+                id: payments.id,
+                receiptNumber: payments.receipt_number,
+            });
 
         const payment = paymentResult[0];
 
@@ -376,7 +402,11 @@ export async function recordPayment(
             });
 
             // Update or create fee record for monthly fees
-            if (item.type === 'monthly' && item.classId && item.monthIndex !== undefined) {
+            if (
+                item.type === 'monthly' &&
+                item.classId &&
+                item.monthIndex !== undefined
+            ) {
                 const currentYear = item.year || new Date().getFullYear();
 
                 const existingFee = await db
@@ -399,8 +429,12 @@ export async function recordPayment(
                     ? Number(existingFee[0].fee_amount)
                     : item.amount;
 
-                const newStatus = newPaidAmount >= feeAmount ? 'paid' :
-                                  newPaidAmount > 0 ? 'partial' : 'pending';
+                const newStatus =
+                    newPaidAmount >= feeAmount
+                        ? 'paid'
+                        : newPaidAmount > 0
+                            ? 'partial'
+                            : 'pending';
 
                 if (existingFee[0]) {
                     // Update existing fee record
