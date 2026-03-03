@@ -1,7 +1,24 @@
 'use client';
 
-import { useState, useEffect, useActionState } from 'react';
+import {
+    useState,
+    useEffect,
+    useActionState,
+    useEffectEvent,
+    useMemo,
+} from 'react';
+
+import { updateClass } from '@/lib/db/update';
+import { getSubjects, getTeachers } from '@/lib/db/select';
+
+import { Subject, Teacher } from '@/types/schema.types';
+import { ClassItem } from '@/lib/mock-data-classes';
+import { ClassWithDetails } from '@/lib/db/transformers';
+
+import { DAYS, GRADES } from '@/lib/constants';
+
 import { toast } from 'sonner';
+import { Clock, User, Banknote, BookOpen } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
@@ -20,12 +37,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Clock, User, Banknote, BookOpen } from 'lucide-react';
-import { updateClass } from '@/lib/db/update';
-import { getSubjects, getTeachers } from '@/lib/db/select';
-import { Subject, Teacher } from '@/types/schema.types';
-import { ClassItem } from '@/lib/mock-data-classes';
-import { ClassWithDetails } from '@/lib/db/transformers';
 
 interface EditClassDialogProps {
     isOpen: boolean;
@@ -34,27 +45,6 @@ interface EditClassDialogProps {
     classData: ClassWithDetails | null;
     onClassUpdated?: () => void;
 }
-
-const GRADES = [
-    'Grade 6',
-    'Grade 7',
-    'Grade 8',
-    'Grade 9',
-    'Grade 10',
-    'Grade 11',
-    'Grade 12',
-    'Grade 13',
-];
-
-const DAYS = [
-    { value: 'monday', label: 'Monday' },
-    { value: 'tuesday', label: 'Tuesday' },
-    { value: 'wednesday', label: 'Wednesday' },
-    { value: 'thursday', label: 'Thursday' },
-    { value: 'friday', label: 'Friday' },
-    { value: 'saturday', label: 'Saturday' },
-    { value: 'sunday', label: 'Sunday' },
-];
 
 export function EditClassDialog({
     isOpen,
@@ -82,59 +72,67 @@ export function EditClassDialog({
         monthlyFee: '',
     });
 
+    const populateForm = useEffectEvent(() => {
+        setFormData({
+            name: classData?.name ?? '',
+            grade: classData?.grade ?? '',
+            medium: classData?.medium ?? 'sinhala',
+            type: classData?.type ?? 'theory',
+            subjectId: classData?.subjectId ?? '',
+            teacherId: classData?.teacherId ?? '',
+            day: classData?.day ?? '',
+            startTime: classData?.startTime ?? '',
+            endTime: classData?.endTime ?? '',
+            hallName: classData?.hallName ?? '',
+            monthlyFee: classData?.monthlyFee ?? '',
+        });
+    });
+
+    const clearForm = useEffectEvent(() => {
+        setFormData({
+            name: '',
+            grade: '',
+            medium: 'sinhala',
+            type: 'theory',
+            subjectId: '',
+            teacherId: '',
+            day: '',
+            startTime: '',
+            endTime: '',
+            hallName: '',
+            monthlyFee: '',
+        });
+    });
+
+    const loading = useEffectEvent(() => {
+        setIsLoadingData(true);
+    });
+
+    const notLoading = useEffectEvent(() => {
+        setIsLoadingData(false);
+    });
+
+    const completeAdd = useEffectEvent(() => {
+        onOpenChange(false);
+        onClassUpdated?.();
+    });
+
     // Load subjects and teachers when dialog opens
     useEffect(() => {
         if (isOpen) {
-            setIsLoadingData(true);
-            Promise.all([getSubjects(), getTeachers()])
-                .then(([subs, teas]) => {
-                    setSubjects(subs);
-                    setTeachers(teas);
-                })
-                .catch((error) => {
-                    console.error('Failed to load data:', error);
-                    toast.error('Failed to load subjects and teachers');
-                })
-                .finally(() => {
-                    setIsLoadingData(false);
-                });
+            loading();
+            getSubjects().then(setSubjects);
+            getTeachers().then(setTeachers);
+            notLoading();
         }
     }, [isOpen]);
 
     // Pre-populate form from classData (raw database data)
     useEffect(() => {
-        if (classData && isOpen) {
-            setFormData({
-                name: classData.name || '',
-                grade: classData.grade || '',
-                medium: classData.medium || 'sinhala',
-                type: classData.type || 'theory',
-                subjectId: classData.subjectId || '',
-                teacherId: classData.teacherId || '',
-                day: classData.day || '',
-                startTime: classData.startTime || '',
-                endTime: classData.endTime || '',
-                hallName: classData.hallName || '',
-                monthlyFee: classData.monthlyFee || '',
-            });
-        }
+        if (classData && isOpen) populateForm();
 
         // Reset form when dialog closes
-        if (!isOpen) {
-            setFormData({
-                name: '',
-                grade: '',
-                medium: 'sinhala',
-                type: 'theory',
-                subjectId: '',
-                teacherId: '',
-                day: '',
-                startTime: '',
-                endTime: '',
-                hallName: '',
-                monthlyFee: '',
-            });
-        }
+        if (!isOpen) clearForm();
     }, [classData, isOpen]);
 
     // Bind updateClass with form data
@@ -145,7 +143,8 @@ export function EditClassDialog({
         })
         : null;
     const [state, formAction, pending] = useActionState(
-        updateClassBound || (() => ({ success: false, status: 0, error: null })),
+        updateClassBound ||
+        (() => ({ success: false, status: 0, error: null })),
         { success: false, status: 0, error: null }
     );
 
@@ -155,26 +154,18 @@ export function EditClassDialog({
             toast.error(state.error);
         } else if (state.success) {
             toast.success('Class updated successfully');
-            onOpenChange(false);
-            if (onClassUpdated) onClassUpdated();
+            completeAdd();
         }
-    }, [state.success, state.error]);
+    }, [state]);
 
     const updateField = (field: string, value: string) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
     };
 
-    // Auto-generate class name from subject and grade
-    useEffect(() => {
-        if (formData.subjectId && formData.grade) {
-            const subject = subjects.find((s) => s.id === formData.subjectId);
-            if (subject) {
-                setFormData((prev) => ({
-                    ...prev,
-                    name: `${subject.name} - ${formData.grade}`,
-                }));
-            }
-        }
+    const classNameGen = useMemo(() => {
+        const subject = subjects.find((s) => s.id === formData.subjectId);
+        if (subject) return `${subject.name} - ${formData.grade}`;
+        return '';
     }, [formData.subjectId, formData.grade, subjects]);
 
     if (!classItem) return null;
@@ -288,10 +279,15 @@ export function EditClassDialog({
                                         <Label htmlFor="edit-name">Class Name</Label>
                                         <Input
                                             id="edit-name"
-                                            value={formData.name}
-                                            onChange={(e) => updateField('name', e.target.value)}
-                                            placeholder="Auto-generated from subject and grade"
                                             name="name"
+                                            value={classNameGen}
+                                            onChange={(e) =>
+                                                updateField(
+                                                    'name',
+                                                    e.target.value
+                                                )
+                                            }
+                                            placeholder="Auto-generated from subject and grade"
                                         />
                                     </div>
                                 </div>
