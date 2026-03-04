@@ -27,7 +27,7 @@ export const attendanceRecords = pgTable("attendance_records", {
 	syncId: uuid("sync_id"),
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
 }, (table) => [
-	uniqueIndex("attendance_records_class_date_unique").using("btree", table.studentId, table.classId, table.date),
+	uniqueIndex("attendance_records_student_id_session_id_date_index").using("btree", table.studentId, table.sessionId, table.date),
 	index("idx_daily_attendance_report").using("btree", table.date, table.classId),
 	index("idx_session_attendance").on(table.sessionId),
 	foreignKey({
