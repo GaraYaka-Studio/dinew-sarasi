@@ -4,6 +4,7 @@
 import { db } from '@/db';
 import {
     classes,
+    classSessions,
     enrollments,
     paymentItems,
     payments,
@@ -477,6 +478,54 @@ export async function recordPayment(
         };
     } catch (error) {
         console.error('Payment recording failed:', error);
+        return { success: false, status: 500, error: error as string };
+    }
+}
+
+/**
+ * Create an extra class session (one-time class)
+ * Used for adding special revision classes, makeup classes, etc.
+ */
+export async function createSession(
+    createdBy: string | null,
+    _prevState: any,
+    formData: FormData
+) {
+    const classId = formData.get('classId')?.toString();
+    const date = formData.get('date')?.toString();
+    const startTime = formData.get('startTime')?.toString();
+    const endTime = formData.get('endTime')?.toString();
+    const hallName = formData.get('hallName')?.toString();
+    const notes = formData.get('notes')?.toString();
+
+    // Validation
+    if (!classId) {
+        return { success: false, status: 422, error: 'Class is required' };
+    }
+
+    if (!date) {
+        return { success: false, status: 422, error: 'Date is required' };
+    }
+
+    if (!startTime || !endTime) {
+        return { success: false, status: 422, error: 'Start and end times are required' };
+    }
+
+    try {
+        await db.insert(classSessions).values({
+            class_id: classId,
+            date: date,
+            start_time: startTime,
+            end_time: endTime,
+            status: 'extra',
+            hall_name: hallName || null,
+            notes: notes || null,
+            created_by: createdBy || null,
+        });
+
+        return { success: true, status: 201, error: null };
+    } catch (error) {
+        console.error('Session creation failed:', error);
         return { success: false, status: 500, error: error as string };
     }
 }
