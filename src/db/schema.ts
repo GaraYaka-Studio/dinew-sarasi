@@ -91,6 +91,12 @@ export const attendanceStatus = pgEnum('attendance_status', [
     'excused',
 ]);
 
+export const sessionStatus = pgEnum('session_status', [
+    'scheduled',
+    'cancelled',
+    'extra',
+]);
+
 export const profiles = pgTable('profiles', {
     id: uuid().defaultRandom().primaryKey(),
     email: text().unique().notNull(),
@@ -158,6 +164,25 @@ export const classes = pgTable('classes', {
     is_active: boolean().default(true),
     deleted_at: timestamp(),
 });
+
+export const classSessions = pgTable('class_sessions', {
+    id: uuid().defaultRandom().primaryKey(),
+    class_id: uuid().notNull().references(() => classes.id, { onDelete: 'cascade' }),
+    date: date().notNull(),
+    start_time: time().notNull(),
+    end_time: time().notNull(),
+    status: sessionStatus().default('scheduled'),
+    hall_name: varchar({ length: 50 }),
+    notes: text(),
+    created_by: uuid().references(() => profiles.id),
+    created_at: timestamp().defaultNow(),
+    updated_at: timestamp().defaultNow(),
+    deleted_at: timestamp(),
+}, (tb) => [
+    index('idx_session_class_date').on(tb.class_id, tb.date),
+    index('idx_session_date').on(tb.date),
+    index('idx_session_status').on(tb.status),
+]);
 
 export const students = pgTable('students', {
     id: uuid().defaultRandom().primaryKey(),
@@ -251,17 +276,19 @@ export const paymentItems = pgTable('payment_items', {
 
 export const attendanceRecords = pgTable('attendance_records', {
     id: uuid().defaultRandom().primaryKey(),
-    student_id: uuid().references(() => students.id),
-    class_id: uuid().references(() => classes.id),
-    date: date().defaultNow(),
+    student_id: uuid().notNull().references(() => students.id),
+    class_id: uuid().notNull().references(() => classes.id),
+    session_id: uuid().references(() => classSessions.id, { onDelete: 'restrict' }),
+    date: date().notNull(),
     scan_time: time().defaultNow(),
     status: attendanceStatus().default('present'),
     marked_by: uuid().references(() => profiles.id),
     sync_id: uuid(),
     created_at: timestamp().defaultNow(),
 }, (tb) => [
-    uniqueIndex().on(tb.student_id, tb.class_id, tb.date),
+    uniqueIndex('attendance_records_class_date_unique').on(tb.student_id, tb.class_id, tb.date),
     index('idx_daily_attendance_report').on(tb.date, tb.class_id),
+    index('idx_session_attendance').on(tb.session_id),
 ]);
 
 export const auditLogs = pgTable('audit_log', {
