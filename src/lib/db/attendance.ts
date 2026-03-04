@@ -2,8 +2,8 @@
 
 import { db } from '@/db';
 import { attendanceRecords, students, studentFees, enrollments, classSessions, classes } from '@/db/schema';
-import { eq, and, isNull, gte, lte, sql, desc } from 'drizzle-orm';
-import { timeToMinutes, getCurrentDate, getCurrentMinutes, getDateOffset, formatDate as formatDateUtil, SESSION_BUFFER_MINUTES } from '@/lib/utils/time';
+import { eq, and, isNull, gte, lte, sql, desc, asc } from 'drizzle-orm';
+import { timeToMinutes, getCurrentDate, getCurrentMinutes, getDateOffset, formatDate as formatDateUtil, getCurrentScanTime, SESSION_BUFFER_MINUTES } from '@/lib/utils/time';
 
 // Types
 export interface ClassWithSession {
@@ -17,6 +17,23 @@ export interface ClassWithSession {
     sessionStartTime: string | null;
     sessionEndTime: string | null;
     sessionStatus: string | null;
+}
+
+// Attendance Log Types
+export interface AttendanceLogStudent {
+    id: string;
+    name: string;
+    studentId: number;
+    scanTime: string;
+    avatarUrl: string | null;
+}
+
+export interface AttendanceLogSession {
+    id: string;
+    className: string;
+    time: string;
+    totalPresent: number;
+    students: AttendanceLogStudent[];
 }
 
 export interface StudentAttendanceData {
@@ -208,7 +225,7 @@ async function getPaymentStatus(studentId: string, classId: string): Promise<Pay
         arrears: arrears > 0 ? arrears : 0,
         feeAmount: Number(payment.feeAmount),
         paidAmount: Number(payment.paidAmount || 0),
-        status: payment.status,
+        status: payment.status ?? 'unknown',
     };
 }
 
@@ -323,7 +340,10 @@ async function insertAttendanceRecord(
             values.marked_by = markedBy;
         }
 
-        await db.insert(attendanceRecords).values(values);
+        await db.insert(attendanceRecords).values({
+            ...values,
+            scan_time: getCurrentScanTime(),
+        });
 
         return { success: true, status: 201, error: null, alreadyMarked: false };
     } catch (error: unknown) {
@@ -523,4 +543,115 @@ function createClassWithSession(cls: any, session: any | null): ClassWithSession
         sessionEndTime: null,
         sessionStatus: null,
     };
+}
+
+// ============================================================================
+// Attendance Log
+// ============================================================================
+
+/**
+ * Get attendance log grouped by session for a specific date
+ * Returns sessions with their attendance records and student details
+ */
+export async function getAttendanceLogByDate(date: string): Promise<AttendanceLogSession[]> {
+    // Get all sessions for the date with attendance records
+    const sessions = await db
+        .select({
+            sessionId: classSessions.id,
+            classId: classSessions.class_id,
+            className: classes.name,
+            startTime: classSessions.start_time,
+            attendanceId: attendanceRecords.id,
+            studentId: attendanceRecords.student_id,
+            studentName: students.full_name,
+            studentNumericId: students.student_id,
+            scanTime: attendanceRecords.scan_time,
+            photoUrl: students.photo_url,
+            status: attendanceRecords.status,
+        })
+        .from(classSessions)
+        .innerJoin(classes, eq(classSessions.class_id, classes.id))
+        .innerJoin(attendanceRecords, and(
+            eq(attendanceRecords.session_id, classSessions.id),
+            eq(attendanceRecords.date, date)
+        ))
+        .innerJoin(students, eq(attendanceRecords.student_id, students.id))
+        .where(
+            and(
+                eq(classSessions.date, date),
+                sql`${attendanceRecords.status} IN ('present', 'late')`,
+                isNull(classSessions.deleted_at)
+            )
+        )
+        .orderBy(asc(classSessions.start_time), asc(attendanceRecords.scan_time));
+
+    // Group by session
+    const sessionMap = new Map<string, AttendanceLogSession>();
+
+    for (const record of sessions) {
+        const key = record.sessionId;
+
+        if (!sessionMap.has(key)) {
+            // Format time (e.g., "08:00:00" -> "08:00 AM")
+            const timeParts = record.startTime.split(':');
+            const hour = parseInt(timeParts[0]);
+            const minute = timeParts[1];
+            const period = hour >= 12 ? 'PM' : 'AM';
+            const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+            const formattedTime = `${displayHour.toString().padStart(2, '0')}:${minute} ${period}`;
+
+            sessionMap.set(key, {
+                id: record.sessionId,
+                className: record.className,
+                time: formattedTime,
+                totalPresent: 0,
+                students: [],
+            });
+        }
+
+        const session = sessionMap.get(key)!;
+
+        // Format scan time (e.g., "08:05:30" -> "08:05 AM")
+        const scanTimeStr = record.scanTime ?? '00:00:00';
+        const scanTimeParts = scanTimeStr.split(':');
+        const scanHour = parseInt(scanTimeParts[0]);
+        const scanMinute = scanTimeParts[1];
+        const scanPeriod = scanHour >= 12 ? 'PM' : 'AM';
+        const displayScanHour = scanHour === 0 ? 12 : scanHour > 12 ? scanHour - 12 : scanHour;
+        const formattedScanTime = `${displayScanHour.toString().padStart(2, '0')}:${scanMinute} ${scanPeriod}`;
+
+        session.students.push({
+            id: record.attendanceId,
+            name: record.studentName,
+            studentId: record.studentNumericId,
+            scanTime: formattedScanTime,
+            avatarUrl: record.photoUrl,
+        });
+        session.totalPresent = session.students.length;
+    }
+
+    // Convert map to array
+    return Array.from(sessionMap.values());
+}
+
+/**
+ * Delete an attendance record by ID
+ */
+export async function deleteAttendanceRecord(attendanceId: string): Promise<{ success: boolean; error: string | null }> {
+    try {
+        await db
+            .delete(attendanceRecords)
+            .where(eq(attendanceRecords.id, attendanceId));
+
+        return { success: true, error: null };
+    } catch (error: unknown) {
+        const err = error as { code?: string; message?: string };
+        console.error('Failed to delete attendance record:', error);
+
+        if (err.code === '23503') {
+            return { success: false, error: 'Cannot delete record due to existing references.' };
+        }
+
+        return { success: false, error: err.message || 'Failed to delete attendance record.' };
+    }
 }

@@ -4,6 +4,7 @@
 import { eq } from 'drizzle-orm';
 import { db } from '@/db';
 import { classes, classSessions, students } from '@/db/schema';
+import { getCurrentSriLankaTimestamp } from '@/lib/utils/time';
 
 export async function updateStudent(
     studentId: string,
@@ -174,7 +175,7 @@ export async function updateSession(
 
     try {
         const updateData: any = {
-            updated_at: new Date(),
+            updated_at: getCurrentSriLankaTimestamp(),
         };
 
         if (startTime) updateData.start_time = startTime;
@@ -208,7 +209,7 @@ export async function cancelSession(
             .update(classSessions)
             .set({
                 status: 'cancelled',
-                updated_at: new Date(),
+                updated_at: getCurrentSriLankaTimestamp(),
             })
             .where(eq(classSessions.id, sessionId));
 
@@ -232,7 +233,7 @@ export async function deleteSession(
         await db
             .update(classSessions)
             .set({
-                deleted_at: new Date(),
+                deleted_at: getCurrentSriLankaTimestamp(),
             })
             .where(eq(classSessions.id, sessionId));
 

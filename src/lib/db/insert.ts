@@ -16,6 +16,7 @@ import {
 } from '@/db/schema';
 import { NewClass } from '@/types/schema.types';
 import { eq, and, isNull } from 'drizzle-orm';
+import { getCurrentSriLankaTimestamp } from '@/lib/utils/time';
 
 export async function addTeacher(
     subjects: string[],
@@ -382,6 +383,7 @@ export async function recordPayment(
                 total_amount: totalAmount.toString(),
                 method: method,
                 recorded_by: recordedBy,
+                payment_date: getCurrentSriLankaTimestamp(),
             })
             .returning({
                 id: payments.id,
@@ -444,7 +446,7 @@ export async function recordPayment(
                         .set({
                             paid_amount: newPaidAmount.toString(),
                             status: newStatus,
-                            updated_at: new Date(),
+                            updated_at: getCurrentSriLankaTimestamp(),
                         })
                         .where(eq(studentFees.id, existingFee[0].id));
                 } else {
@@ -521,6 +523,7 @@ export async function createSession(
             hall_name: hallName || null,
             notes: notes || null,
             created_by: createdBy || null,
+            created_at: getCurrentSriLankaTimestamp(),
         });
 
         return { success: true, status: 201, error: null };

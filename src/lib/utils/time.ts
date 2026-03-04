@@ -102,3 +102,35 @@ export function getDateOffset(days: number): string {
     date.setDate(date.getDate() + days);
     return formatDate(date);
 }
+
+/**
+ * Get current time in Sri Lanka timezone (UTC+5:30)
+ * Returns time in HH:MM:SS format for database time column
+ *
+ * @returns Current time string in HH:MM:SS format (Sri Lanka timezone)
+ */
+export function getCurrentScanTime(): string {
+    const now = new Date();
+    // Convert to Sri Lanka timezone (UTC+5:30)
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const sriLankaTime = new Date(utc + (3600000 * 5.5));
+
+    const hours = String(sriLankaTime.getHours()).padStart(2, '0');
+    const minutes = String(sriLankaTime.getMinutes()).padStart(2, '0');
+    const seconds = String(sriLankaTime.getSeconds()).padStart(2, '0');
+
+    return `${hours}:${minutes}:${seconds}`;
+}
+
+/**
+ * Get current timestamp in Sri Lanka timezone (UTC+5:30)
+ * Returns Date object set to Sri Lanka timezone for database timestamp columns
+ *
+ * @returns Date object in Sri Lanka timezone
+ */
+export function getCurrentSriLankaTimestamp(): Date {
+    const now = new Date();
+    // Convert to Sri Lanka timezone (UTC+5:30)
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    return new Date(utc + (3600000 * 5.5));
+}

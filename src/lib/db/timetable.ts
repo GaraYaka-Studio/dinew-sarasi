@@ -3,6 +3,7 @@
 import { db } from '@/db';
 import { classes, classSessions, subjects, teachers } from '@/db/schema';
 import { eq, and, isNull, inArray, gte, lte, sql, ne } from 'drizzle-orm';
+import { getCurrentSriLankaTimestamp } from '@/lib/utils/time';
 
 /**
  * Get session details with class, subject, and teacher information
@@ -119,6 +120,7 @@ export async function getSessionsForWeek(startDate: Date) {
         end_time: string;
         status: 'scheduled';
         hall_name: string | null;
+        created_at: Date;
     }> = [];
 
     for (const cls of activeClasses) {
@@ -142,6 +144,7 @@ export async function getSessionsForWeek(startDate: Date) {
                 end_time: cls.endTime || '10:00',
                 status: 'scheduled',
                 hall_name: cls.hallName || null,
+                created_at: getCurrentSriLankaTimestamp(),
             });
         }
     }
