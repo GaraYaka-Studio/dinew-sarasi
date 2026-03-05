@@ -413,7 +413,7 @@ export async function getSessionAttendanceCount(sessionId: string, date: string)
 
 /**
  * Get classes with their active sessions
- * Returns the current/next session for each class
+ * Returns the current/next session for each class (today only)
  */
 export async function getClassesWithSessionInfo(): Promise<ClassWithSession[]> {
     const todayDate = getCurrentDate();
@@ -422,12 +422,15 @@ export async function getClassesWithSessionInfo(): Promise<ClassWithSession[]> {
 
     const [allClasses, allSessions] = await Promise.all([
         fetchActiveClasses(),
-        fetchSessionsForDates(todayDate, getDateOffset(-1), getDateOffset(1))
+        fetchSessionsForDate(todayDate)
     ]);
 
-    return allClasses.map(cls =>
+    const classesWithSessions = allClasses.map(cls =>
         selectBestSessionForClass(cls, allSessions, todayDate, currentMinutes, timeBufferMinutes)
     );
+
+    // Only return classes that have sessions today
+    return classesWithSessions.filter(cls => cls.sessionId !== null);
 }
 
 async function fetchActiveClasses() {
@@ -444,7 +447,7 @@ async function fetchActiveClasses() {
         .orderBy(classes.grade, classes.name);
 }
 
-async function fetchSessionsForDates(todayDate: string, yesterdayDate: string, tomorrowDate: string) {
+async function fetchSessionsForDate(date: string) {
     return await db
         .select({
             classId: classSessions.class_id,
@@ -457,7 +460,7 @@ async function fetchSessionsForDates(todayDate: string, yesterdayDate: string, t
         .from(classSessions)
         .where(
             and(
-                sql`${classSessions.date} IN (${todayDate}, ${yesterdayDate}, ${tomorrowDate})`,
+                eq(classSessions.date, date),
                 sql`${classSessions.status} != 'cancelled'`,
                 isNull(classSessions.deleted_at)
             )
@@ -477,52 +480,36 @@ function selectBestSessionForClass(
         return createClassWithSession(cls, null);
     }
 
-    const todaySessions = sessionsForClass.filter(s => s.date === todayDate);
-    const yesterdaySessions = sessionsForClass.filter(s => s.date === getDateOffset(-1));
-    const tomorrowSessions = sessionsForClass.filter(s => s.date === getDateOffset(1));
-
-    const selectedSession = findBestSession(todaySessions, tomorrowSessions, yesterdaySessions, currentMinutes, timeBufferMinutes)
+    const selectedSession = findBestSession(sessionsForClass, currentMinutes, timeBufferMinutes)
         || sessionsForClass[0];
 
     return createClassWithSession(cls, selectedSession);
 }
 
 function findBestSession(
-    todaySessions: any[],
-    tomorrowSessions: any[],
-    yesterdaySessions: any[],
+    sessions: any[],
     currentMinutes: number,
     timeBufferMinutes: number
 ): any | null {
-    // Priority 1: Current session from today
-    const currentSession = todaySessions.find(s => {
+    // Priority 1: Current session (happening now)
+    const currentSession = sessions.find(s => {
         const start = timeToMinutes(s.startTime);
         const end = timeToMinutes(s.endTime, start);
         return start <= currentMinutes && end >= timeBufferMinutes;
     });
     if (currentSession) return currentSession;
 
-    // Priority 2: Next upcoming session from today
-    const nextToday = todaySessions
+    // Priority 2: Next upcoming session
+    const nextSession = sessions
         .filter(s => timeToMinutes(s.startTime) > currentMinutes)
         .sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime))[0];
-    if (nextToday) return nextToday;
+    if (nextSession) return nextSession;
 
-    // Priority 3: Most recent past session from today
-    const pastToday = todaySessions
+    // Priority 3: Most recent past session
+    const pastSession = sessions
         .filter(s => timeToMinutes(s.endTime, timeToMinutes(s.startTime)) < currentMinutes)
         .sort((a, b) => timeToMinutes(b.startTime) - timeToMinutes(a.startTime))[0];
-    if (pastToday) return pastToday;
-
-    // Priority 4: Tomorrow's first session
-    if (tomorrowSessions.length > 0) {
-        return tomorrowSessions.sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime))[0];
-    }
-
-    // Priority 5: Yesterday's most recent session
-    if (yesterdaySessions.length > 0) {
-        return yesterdaySessions.sort((a, b) => timeToMinutes(b.startTime) - timeToMinutes(a.startTime))[0];
-    }
+    if (pastSession) return pastSession;
 
     return null;
 }
