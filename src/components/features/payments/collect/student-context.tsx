@@ -1,18 +1,26 @@
+'use client';
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { StudentDetail } from '@/lib/mock-data';
-import { AlertTriangle, Clock, CreditCard } from 'lucide-react';
+import { AlertTriangle, Clock, CreditCard, BookOpen } from 'lucide-react';
 
 interface StudentContextProps {
     student: StudentDetail | null;
     onPayAdmission: () => void;
+    totalClasses?: number;
+    totalUnpaidMonths?: number;
+    totalDue?: number;
 }
 
 export function StudentContext({
     student,
     onPayAdmission,
+    totalClasses = 0,
+    totalUnpaidMonths = 0,
+    totalDue = 0,
 }: StudentContextProps) {
     if (!student) return null;
 
@@ -25,7 +33,7 @@ export function StudentContext({
                 <div className="flex items-center gap-4">
                     <Avatar className="h-16 w-16 border-2 border-background shadow-sm">
                         <AvatarImage src={student.avatar} alt={student.name} />
-                        <AvatarFallback className="text-lg font-bold">
+                        <AvatarFallback className="bg-primary/10 text-lg text-primary">
                             {student.initials || 'ST'}
                         </AvatarFallback>
                     </Avatar>
@@ -58,6 +66,32 @@ export function StudentContext({
                                 {student.lastActivity}
                             </span>
                         </div>
+
+                        {/* Summary Stats */}
+                        {totalClasses > 0 && (
+                            <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                                <span className="flex items-center gap-1">
+                                    <BookOpen className="h-3 w-3" />
+                                    {totalClasses} Class{totalClasses > 1 ? 'es' : ''}
+                                </span>
+                                {totalUnpaidMonths > 0 && (
+                                    <>
+                                        <span>•</span>
+                                        <span className="font-medium text-foreground">
+                                            {totalUnpaidMonths} Unpaid Month{totalUnpaidMonths > 1 ? 's' : ''}
+                                        </span>
+                                    </>
+                                )}
+                                {totalDue > 0 && (
+                                    <>
+                                        <span>•</span>
+                                        <span className="font-medium text-orange-600">
+                                            Due: LKR {totalDue.toLocaleString()}
+                                        </span>
+                                    </>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
 

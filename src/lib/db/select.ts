@@ -220,16 +220,14 @@ export async function searchStudents(query: string) {
 
 /**
  * Get fee structure for a student including all enrolled classes
- * and their payment status for each month
+ * and their payment status for each month of the current year
+ * Now includes eligibility information for payment (current and past months only)
  */
 export async function getStudentFeeStructure(studentId: string) {
-    // Get current year and determine month range (last 3 months + next 6 months)
+    // Get current year and month
     const now = new Date();
     const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth(); // 0-indexed
-
-    const startMonth = Math.max(0, currentMonth - 3);
-    const endMonth = Math.min(11, currentMonth + 6);
+    const currentMonth = now.getMonth(); // 0-indexed (0 = January, 5 = June)
 
     // Get student's enrolled classes with details
     const enrolledClasses = await db
@@ -255,7 +253,7 @@ export async function getStudentFeeStructure(studentId: string) {
             )
         );
 
-    // Get existing fee records for these classes
+    // Get existing fee records for these classes for the entire current year
     const classIds = enrolledClasses.map((c) => c.classId);
 
     const existingFees = classIds.length > 0 ? await db
@@ -271,10 +269,7 @@ export async function getStudentFeeStructure(studentId: string) {
         .where(
             and(
                 eq(studentFees.student_id, studentId),
-                // Only fetch fees for current year within our range
                 eq(studentFees.year, currentYear),
-                gte(studentFees.month_index, startMonth),
-                lte(studentFees.month_index, endMonth),
                 isNull(studentFees.deleted_at)
             )
         ) : [];
@@ -290,14 +285,61 @@ export async function getStudentFeeStructure(studentId: string) {
         );
 
         const months = [];
-        for (let i = startMonth; i <= endMonth; i++) {
+        let totalPaid = 0;
+        let totalUnpaid = 0;
+        let totalDue = 0;
+
+        // Calculate enrollment month from enrolled_at date
+        // enrolledAt format: YYYY-MM-DD
+        let firstEnrollmentMonth = 0; // Default to January (0)
+        if (cls.enrolledAt) {
+            const enrollmentDate = new Date(cls.enrolledAt + 'T00:00:00');
+            // Only set enrollment month if it's in the current year
+            if (enrollmentDate.getFullYear() === currentYear) {
+                firstEnrollmentMonth = enrollmentDate.getMonth();
+            }
+        }
+
+        // Show full year (0-11)
+        for (let i = 0; i <= 11; i++) {
             const existingFee = classFees.find((f) => f.monthIndex === i);
             const feeAmount = Number(cls.monthlyFee);
 
-            const status = existingFee
-                ? (existingFee.status === 'paid' ? 'paid' as const :
-                   existingFee.status === 'partial' ? 'partial' as const : 'unpaid' as const)
-                : 'unpaid' as const;
+            // Calculate eligibility
+            // Future months cannot be paid for
+            // Current month and past months are eligible for payment
+            const isFuture = i > currentMonth;
+            const isBeforeEnrollment = i < firstEnrollmentMonth;
+            const isFirstEnrollmentMonth = i === firstEnrollmentMonth;
+
+            // Not eligible if: future month OR before enrollment
+            // Eligible if: current/past month AND on or after enrollment month
+            const isEligibleForPayment = i <= currentMonth && !isBeforeEnrollment;
+
+            // Determine status - check for 'free' status from DB and map to 'skipped' in UI
+            let status: 'paid' | 'unpaid' | 'partial' | 'selected' | 'skipped' = 'unpaid';
+            if (existingFee) {
+                if (existingFee.status === 'paid') status = 'paid';
+                else if (existingFee.status === 'partial') status = 'partial';
+                else if (existingFee.status === 'free') status = 'skipped'; // Map 'free' to 'skipped'
+                else status = 'unpaid';
+            }
+
+            const paidAmount = existingFee ? Number(existingFee.paidAmount) : 0;
+
+            // Calculate totals (only for non-future, non-before-enrollment months)
+            if (!isFuture && !isBeforeEnrollment) {
+                if (status === 'paid') {
+                    totalPaid++;
+                } else if (status === 'unpaid') {
+                    totalUnpaid++;
+                    totalDue += feeAmount;
+                } else if (status === 'partial') {
+                    totalUnpaid++;
+                    totalDue += (feeAmount - paidAmount);
+                }
+                // Skipped months don't count toward totals
+            }
 
             months.push({
                 month: MONTH_LABELS[i],
@@ -305,7 +347,11 @@ export async function getStudentFeeStructure(studentId: string) {
                 monthIndex: i,
                 status,
                 amount: feeAmount,
-                paidAmount: existingFee ? Number(existingFee.paidAmount) : 0,
+                paidAmount: paidAmount,
+                isFuture,
+                isEligibleForPayment,
+                isBeforeEnrollment,
+                isFirstEnrollmentMonth,
             });
         }
 
@@ -314,6 +360,9 @@ export async function getStudentFeeStructure(studentId: string) {
             className: cls.className,
             monthlyFee: Number(cls.monthlyFee),
             months,
+            totalUnpaid,
+            totalPaid,
+            totalDue,
         };
     });
 }

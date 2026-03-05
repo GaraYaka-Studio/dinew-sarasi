@@ -119,6 +119,9 @@ export interface StudentFeeStructureData {
     className: string;
     monthlyFee: number;
     months: FeeMonth[];
+    totalUnpaid: number;
+    totalPaid: number;
+    totalDue: number;
 }
 
 export interface StudentSearchResult {
@@ -155,6 +158,9 @@ export function transformToFeeStructure(
         className: cls.className,
         monthlyFee: cls.monthlyFee,
         months: cls.months,
+        totalUnpaid: cls.totalUnpaid,
+        totalPaid: cls.totalPaid,
+        totalDue: cls.totalDue,
     }));
 }
 
@@ -166,6 +172,11 @@ export function transformToStudentDetail(
         enrolledClasses?: StudentFeeStructureData[];
     }
 ): StudentDetail {
+    // Calculate summary stats from enrolled classes
+    const totalClasses = dbStudent.enrolledClasses?.length || 0;
+    const totalUnpaid = dbStudent.enrolledClasses?.reduce((sum, cls) => sum + cls.totalUnpaid, 0) || 0;
+    const totalDue = dbStudent.enrolledClasses?.reduce((sum, cls) => sum + cls.totalDue, 0) || 0;
+
     return {
         // Base Info
         id: dbStudent.id,
@@ -177,9 +188,9 @@ export function transformToStudentDetail(
             ? `${dbStudent.batchYear} A/L`
             : 'General',
         status: dbStudent.status === 'active' ? 'active' :
-                dbStudent.status === 'graduated' ? 'left' :
-                dbStudent.status === 'suspended' ? 'draft' :
-                'active',
+            dbStudent.status === 'graduated' ? 'left' :
+            dbStudent.status === 'suspended' ? 'draft' :
+            'active',
         paymentStatus: dbStudent.status === 'active' ? 'paid' : 'draft',
         initials: dbStudent.initials || 'ST',
         lastActivity: 'Active now',
@@ -206,7 +217,7 @@ export function transformToStudentDetail(
         // Financial
         admissionStatus: (dbStudent.admissionStatus === 'free' ? 'PAID' : dbStudent.admissionStatus?.toUpperCase()) as 'PENDING' | 'PAID',
         admissionFee: Number(dbStudent.admissionFee) || 1000,
-        arrears: 0, // Can be calculated from unpaid fees
+        arrears: totalDue, // Use calculated total due
         paymentHistory: [], // Can be fetched separately if needed
 
         // Attendance

@@ -6,11 +6,16 @@ import { ShoppingCart, User } from 'lucide-react';
 
 import { StudentSearch } from '@/components/features/payments/collect/student-search';
 import { StudentContext } from '@/components/features/payments/collect/student-context';
+import { ClassSelector } from '@/components/features/payments/collect/class-selector';
 import { FeeGrid } from '@/components/features/payments/collect/fee-grid';
 import {
     PaymentTerminal,
     CartItem,
 } from '@/components/features/payments/collect/payment-terminal';
+import {
+    ReceiptView,
+    ReceiptItem
+} from '@/components/features/payments/collect/receipt-view';
 import { Button } from '@/components/ui/button';
 import {
     Sheet,
@@ -21,26 +26,56 @@ import {
 } from '@/components/ui/sheet';
 import {
     ClassFeeStructure,
-    StudentDetail,
 } from '@/lib/mock-data';
 import { searchStudents, getStudentFeeStructure } from '@/lib/db/select';
 import { recordPayment, PaymentCartItem } from '@/lib/db/insert';
 import { transformToStudentDetail, transformToFeeStructure, StudentSearchResult } from '@/lib/db/transformers';
 
+// ============================================================================
+// Types
+// ============================================================================
+
+type PageState = 'search' | 'select_class' | 'payment' | 'receipt';
+
+interface ReceiptData {
+    receiptNumber: string;
+    studentName: string;
+    studentId: string;
+    grade: string;
+    items: ReceiptItem[];
+    totalAmount: number;
+    cashReceived: number;
+    balance: number;
+    date: string;
+}
+
+// ============================================================================
+// Main Component
+// ============================================================================
+
 export default function FeesCollectionPage() {
     // State
-    const [student, setStudent] = useState<StudentDetail | null>(null);
+    const [pageState, setPageState] = useState<PageState>('search');
+    const [student, setStudent] = useState<any | null>(null);
     const [feeClasses, setFeeClasses] = useState<ClassFeeStructure[]>([]);
+    const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
     const [cart, setCart] = useState<CartItem[]>([]);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [searchResults, setSearchResults] = useState<StudentSearchResult[]>([]);
     const [selectedStudent, setSelectedStudent] = useState<StudentSearchResult | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
 
     // Derived
     const totalAmount = cart.reduce((acc, item) => acc + item.amount, 0);
+    const totalClasses = feeClasses.length || 0;
+    const totalUnpaidMonths = feeClasses.reduce((sum, cls) => sum + cls.totalUnpaid, 0);
+    const totalDue = feeClasses.reduce((sum, cls) => sum + cls.totalDue, 0);
 
-    // Handle student search
+    // ============================================================================
+    // Handlers
+    // ============================================================================
+
     const handleSearch = async (query: string) => {
         if (query.length < 2) {
             setSearchResults([]);
@@ -64,10 +99,9 @@ export default function FeesCollectionPage() {
         }
     };
 
-    // Handle student selection
     const handleSelectStudent = async (dbStudent: StudentSearchResult) => {
         setIsLoading(true);
-        setSearchResults([]); // Clear search results
+        setSearchResults([]);
 
         try {
             // Fetch fee structure
@@ -81,9 +115,10 @@ export default function FeesCollectionPage() {
 
             setStudent(transformedStudent);
             setFeeClasses(transformToFeeStructure(feeStructure));
-            setSelectedStudent(dbStudent); // Keep raw DB data for payment
+            setSelectedStudent(dbStudent);
+            setPageState('select_class');
 
-            // Admission trap logic - only show warning if it's a new student with pending admission
+            // Admission trap logic
             const isNewStudent = selectedStudent?.id !== dbStudent.id;
             if (dbStudent.admissionStatus === 'pending' && isNewStudent) {
                 const admissionFee: CartItem = {
@@ -109,52 +144,120 @@ export default function FeesCollectionPage() {
     const handleClear = () => {
         setStudent(null);
         setFeeClasses([]);
+        setSelectedClassId(null);
         setCart([]);
         setIsSheetOpen(false);
         setSelectedStudent(null);
         setSearchResults([]);
+        setPageState('search');
+        setReceiptData(null);
+    };
+
+    const handleSelectClass = (classId: string) => {
+        setSelectedClassId(classId);
+        setPageState('payment');
+    };
+
+    const handleBackToClassSelection = () => {
+        setSelectedClassId(null);
+        setPageState('select_class');
     };
 
     const handleToggleMonth = (classId: string, monthIndex: number) => {
-        setFeeClasses((currentClasses) => {
-            return currentClasses.map((cls) => {
-                if (cls.classId !== classId) return cls;
+        // Find the class and month first to do validation
+        const cls = feeClasses.find((c) => c.classId === classId);
+        if (!cls) return;
 
-                const updatedMonths = [...cls.months];
-                const targetMonth = cls.months[monthIndex];
+        const month = cls.months[monthIndex];
+        if (!month) return;
 
-                // Toggle Logic in Cart
-                const itemId = `${classId}-${monthIndex}`;
+        // Validation checks
+        if (month.isFuture) {
+            toast.error('Cannot pay for future months');
+            return;
+        }
+        if (month.isBeforeEnrollment) {
+            toast.error('Cannot pay for months before enrollment');
+            return;
+        }
 
-                if (targetMonth.status === 'selected') {
-                    // Deselect
-                    targetMonth.status = 'unpaid'; // Revert to unpaid (or partial if logic was deeper)
-                    setCart((prev) =>
-                        prev.filter((item) => item.id !== itemId)
-                    );
-                } else if (targetMonth.status !== 'paid') {
-                    // Select
-                    targetMonth.status = 'selected';
+        const itemId = `${classId}-${monthIndex}`;
 
-                    const newItem: CartItem = {
-                        id: itemId,
-                        label: `${cls.className}`,
-                        subLabel: `${targetMonth.month} ${targetMonth.year}`,
-                        amount: targetMonth.amount - (targetMonth.paidAmount || 0), // Pay remaining amount
-                        type: 'monthly_fee',
-                        classId,
-                        monthIndex,
+        // Handle deselection
+        if (month.status === 'selected') {
+            // Deselect - go back to unpaid
+            setFeeClasses((prev) =>
+                prev.map((c) => {
+                    if (c.classId !== classId) return c;
+                    return {
+                        ...c,
+                        months: c.months.map((m, idx) =>
+                            idx === monthIndex ? { ...m, status: 'unpaid' as const } : m
+                        ),
                     };
-                    setCart((prev) => [...prev, newItem]);
-                }
+                })
+            );
+            setCart((prev) => prev.filter((item) => item.id !== itemId));
+            return;
+        }
 
-                return { ...cls, months: updatedMonths };
-            });
-        });
+        // Handle adding to cart (from unpaid or skipped state)
+        if (month.status === 'unpaid' || month.status === 'skipped') {
+            // Add to cart first
+            const newItem: CartItem = {
+                id: itemId,
+                label: cls.className,
+                subLabel: `${month.month} ${month.year}`,
+                amount: month.amount - (month.paidAmount || 0),
+                type: 'monthly_fee',
+                classId,
+                monthIndex,
+            };
+            setCart((prev) => [...prev, newItem]);
+
+            // Then update the month status
+            setFeeClasses((prev) =>
+                prev.map((c) => {
+                    if (c.classId !== classId) return c;
+                    return {
+                        ...c,
+                        months: c.months.map((m, idx) =>
+                            idx === monthIndex ? { ...m, status: 'selected' as const } : m
+                        ),
+                    };
+                })
+            );
+            return;
+        }
+
+        // Handle partial payment
+        if (month.status === 'partial') {
+            const newItem: CartItem = {
+                id: itemId,
+                label: cls.className,
+                subLabel: `${month.month} ${month.year}`,
+                amount: month.amount - (month.paidAmount || 0),
+                type: 'monthly_fee',
+                classId,
+                monthIndex,
+            };
+            setCart((prev) => [...prev, newItem]);
+
+            setFeeClasses((prev) =>
+                prev.map((c) => {
+                    if (c.classId !== classId) return c;
+                    return {
+                        ...c,
+                        months: c.months.map((m, idx) =>
+                            idx === monthIndex ? { ...m, status: 'selected' as const } : m
+                        ),
+                    };
+                })
+            );
+        }
     };
 
     const handleRemoveCartItem = (id: string) => {
-        // If it's a monthly fee, we need to uncheck the grid
         const item = cart.find((i) => i.id === id);
         if (
             item &&
@@ -162,7 +265,7 @@ export default function FeesCollectionPage() {
             item.classId &&
             item.monthIndex !== undefined
         ) {
-            handleToggleMonth(item.classId, item.monthIndex); // Re-use toggle logic to deselect
+            handleToggleMonth(item.classId, item.monthIndex);
         } else {
             setCart((prev) => prev.filter((i) => i.id !== id));
         }
@@ -187,16 +290,29 @@ export default function FeesCollectionPage() {
                 paymentItems,
                 totalAmount,
                 'cash',
-                null, // TODO: Get from auth/session
+                null,
                 null,
                 new FormData()
             );
 
             if (result.success) {
-                toast.success('Payment Recorded Successfully', {
-                    description: `Receipt #${result.receiptNumber}. Amount: ${totalAmount} LKR`,
-                });
-                handleClear();
+                // Create receipt data
+                const receipt: ReceiptData = {
+                    receiptNumber: result.receiptNumber || '',
+                    studentName: student.name,
+                    studentId: student.studentId,
+                    grade: student.grade,
+                    items: cart.map(item => ({
+                        label: item.label,
+                        amount: item.amount,
+                    })),
+                    totalAmount,
+                    cashReceived,
+                    balance: cashReceived - totalAmount,
+                    date: new Date().toISOString(),
+                };
+                setReceiptData(receipt);
+                setPageState('receipt');
             } else {
                 toast.error(result.error || 'Payment failed');
             }
@@ -220,6 +336,32 @@ export default function FeesCollectionPage() {
         };
         setCart((prev) => [...prev, admissionFee]);
     };
+
+    const handleReceiptPrint = () => {
+        // TODO: Implement receipt printing
+        toast.info('Receipt printing feature coming soon');
+    };
+
+    const handleReceiptClose = () => {
+        handleClear();
+    };
+
+    // ============================================================================
+    // Render
+    // ============================================================================
+
+    // Receipt State
+    if (pageState === 'receipt' && receiptData) {
+        return (
+            <div className="flex h-[calc(100vh-140px)] overflow-hidden bg-background">
+                <ReceiptView
+                    {...receiptData}
+                    onClose={handleReceiptClose}
+                    onPrint={handleReceiptPrint}
+                />
+            </div>
+        );
+    }
 
     return (
         <div className="flex h-[calc(100vh-140px)] flex-col gap-0 overflow-hidden rounded-lg border bg-background shadow-sm md:flex-row md:gap-0">
@@ -267,19 +409,45 @@ export default function FeesCollectionPage() {
                                 <StudentContext
                                     student={student}
                                     onPayAdmission={handlePayAdmission}
+                                    totalClasses={totalClasses}
+                                    totalUnpaidMonths={totalUnpaidMonths}
+                                    totalDue={totalDue}
                                 />
                             </div>
 
-                            {/* 3. Fee Selection Grids */}
-                            <div className="animate-in delay-75 duration-500 fade-in-50 slide-in-from-bottom-5">
-                                <h3 className="mb-4 text-lg font-semibold tracking-tight text-foreground">
-                                    Select Fees
-                                </h3>
-                                <FeeGrid
-                                    feeClasses={feeClasses}
-                                    onToggleMonth={handleToggleMonth}
-                                />
-                            </div>
+                            {/* 3. Class Selector - stays visible when class is selected */}
+                            {(pageState === 'select_class' || pageState === 'payment') && (
+                                <div className="animate-in delay-75 duration-500 fade-in-50 slide-in-from-bottom-5">
+                                    <ClassSelector
+                                        classes={feeClasses}
+                                        selectedClassId={selectedClassId}
+                                        onSelectClass={handleSelectClass}
+                                    />
+                                </div>
+                            )}
+
+                            {/* 4. Fee Grid - shows when a class is selected */}
+                            {selectedClassId && (
+                                <div className="animate-in delay-75 duration-500 fade-in-50 slide-in-from-bottom-5">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h3 className="text-lg font-semibold tracking-tight text-foreground">
+                                            Fee Payment
+                                        </h3>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={handleBackToClassSelection}
+                                        >
+                                            ← Change Class
+                                        </Button>
+                                    </div>
+                                    <FeeGrid
+                                        feeClasses={feeClasses}
+                                        selectedClassId={selectedClassId}
+                                        onToggleMonth={handleToggleMonth}
+                                    />
+                                </div>
+                            )}
                         </>
                     ) : (
                         <div className="flex h-full flex-col items-center justify-center space-y-4 text-muted-foreground opacity-70">
@@ -312,7 +480,7 @@ export default function FeesCollectionPage() {
 
             {/* Mobile Bottom Bar & Sheet */}
             <div className="md:hidden">
-                {student && (
+                {student && selectedClassId && (
                     <div className="pb-safe fixed right-0 bottom-0 left-0 z-50 border-t bg-background p-4 shadow-2xl">
                         <div className="flex items-center gap-4">
                             <div className="flex-1">

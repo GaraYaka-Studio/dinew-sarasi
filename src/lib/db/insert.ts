@@ -350,9 +350,14 @@ export interface PaymentCartItem {
     amount: number;
 }
 
+// Month labels for error messages
+const MONTH_LABELS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
+                      'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+
 /**
  * Record a payment with items and update fee records
  * Creates payment record, payment items, and updates student_fees table
+ * Validates that future months cannot be paid for
  */
 export async function recordPayment(
     studentId: string,
@@ -372,6 +377,20 @@ export async function recordPayment(
     }
     if (totalAmount <= 0) {
         return { success: false, status: 422, error: 'Invalid amount' };
+    }
+
+    // Validate: Cannot pay for future months
+    const currentMonth = new Date().getMonth();
+    for (const item of cartItems) {
+        if (item.type === 'monthly' && item.monthIndex !== undefined) {
+            if (item.monthIndex > currentMonth) {
+                return {
+                    success: false,
+                    status: 400,
+                    error: `Cannot pay for future months. ${MONTH_LABELS[item.monthIndex]} ${item.year || new Date().getFullYear()} is in the future. You can only pay up to the current month.`
+                };
+            }
+        }
     }
 
     try {
