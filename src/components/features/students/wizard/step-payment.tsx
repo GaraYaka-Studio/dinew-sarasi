@@ -1,21 +1,21 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Search, Clock, DollarSign, Gift, Users, Calendar } from 'lucide-react';
+import { Clock, DollarSign, Gift, Calendar, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getClassesByGrade } from '@/lib/db/select';
 
 interface StepPaymentProps {
     formData: {
-        grade: string;          // Need grade to query classes
+        grade: string;
         selectedClasses: string[];
         paymentMode: 'later' | 'now' | 'free';
+        selectedMonths: Map<string, number[]>; // classId -> array of month indices
     };
-    onUpdate: (field: string, value: string | string[]) => void;
+    onUpdate: (field: string, value: string | Map<string, number[]>) => void;
 }
 
 interface ClassOption {
@@ -46,14 +46,18 @@ const typeColors: Record<string, string> = {
     paper: 'bg-teal-100 text-teal-700 hover:bg-teal-200',
 };
 
+const MONTH_LABELS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+
+// Get current month index (0-11)
+const getCurrentMonthIndex = () => new Date().getMonth();
+
 export function StepPayment({ formData, onUpdate }: StepPaymentProps) {
-    const [searchQuery, setSearchQuery] = useState('');
-    const [availableClasses, setAvailableClasses] = useState<ClassOption[]>([]);
+    const [selectedClassesData, setSelectedClassesData] = useState<ClassOption[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
-    // Load classes when grade changes
+    // Load selected classes data
     useEffect(() => {
-        if (formData.grade) {
+        if (formData.selectedClasses.length > 0 && formData.grade) {
             setIsLoading(true);
             getClassesByGrade(formData.grade)
                 .then((classes) => {
@@ -82,145 +86,194 @@ export function StepPayment({ formData, onUpdate }: StepPaymentProps) {
                             schedule: `${dayName}, ${time}`,
                         };
                     });
-                    setAvailableClasses(transformed);
+                    // Filter to only selected classes
+                    const selected = transformed.filter(c => formData.selectedClasses.includes(c.id));
+                    setSelectedClassesData(selected);
                 })
                 .catch((error) => {
                     console.error('Failed to load classes:', error);
-                    setAvailableClasses([]);
+                    setSelectedClassesData([]);
                 })
                 .finally(() => {
                     setIsLoading(false);
                 });
         } else {
-            setAvailableClasses([]);
+            setSelectedClassesData([]);
         }
-    }, [formData.grade]);
-
-    const toggleClass = (classId: string) => {
-        const current = formData.selectedClasses || [];
-        const updated = current.includes(classId)
-            ? current.filter((id) => id !== classId)
-            : [...current, classId];
-        onUpdate('selectedClasses', updated);
-    };
+    }, [formData.selectedClasses, formData.grade]);
 
     const selectPaymentMode = (mode: 'later' | 'now' | 'free') => {
         onUpdate('paymentMode', mode);
     };
 
-    const filteredClasses = availableClasses.filter(
-        (cls) =>
-            cls.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            cls.subjectName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            cls.teacherName?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    // Toggle month selection for a specific class
+    const toggleMonth = (classId: string, monthIndex: number) => {
+        const newMap = new Map(formData.selectedMonths);
+        const currentMonths = newMap.get(classId) || [];
+
+        if (currentMonths.includes(monthIndex)) {
+            // Remove month
+            newMap.set(classId, currentMonths.filter(m => m !== monthIndex));
+            if (newMap.get(classId)?.length === 0) {
+                newMap.delete(classId);
+            }
+        } else {
+            // Add month
+            newMap.set(classId, [...currentMonths, monthIndex]);
+        }
+
+        onUpdate('selectedMonths', newMap);
+    };
+
+    // Clear all month selections for a class
+    const clearAllMonths = (classId: string) => {
+        const newMap = new Map(formData.selectedMonths);
+        newMap.delete(classId);
+        onUpdate('selectedMonths', newMap);
+    };
+
+    // Calculate totals
+    const totals = useMemo(() => {
+        let admissionFee = 0;
+        let monthlyFees = 0;
+
+        if (formData.paymentMode === 'now') {
+            admissionFee = 1000; // Rs. 1,000 admission fee
+        }
+
+        formData.selectedMonths.forEach((months, classId) => {
+            const classData = selectedClassesData.find(c => c.id === classId);
+            if (classData) {
+                monthlyFees += months.length * classData.monthlyFee;
+            }
+        });
+
+        return {
+            admissionFee,
+            monthlyFees,
+            total: admissionFee + monthlyFees,
+        };
+    }, [formData.paymentMode, formData.selectedMonths, selectedClassesData]);
+
+    const currentMonth = getCurrentMonthIndex();
 
     return (
         <div className="space-y-6">
-            {/* Class Selection */}
+            {/* Selected Classes Summary */}
             <div>
                 <h3 className="mb-4 text-sm font-semibold tracking-wide text-muted-foreground uppercase">
-                    Select Classes to Enroll
+                    Selected Classes
                 </h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                    Showing available classes for <strong>{formData.grade || 'Selected Grade'}</strong>
-                </p>
 
-                <div className="relative mb-4">
-                    <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                        placeholder="Search classes by name, subject, or teacher..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="h-11 pl-10"
-                    />
-                </div>
-
-                {isLoading ? (
-                    <div className="flex items-center justify-center p-12 text-muted-foreground">
-                        Loading classes...
-                    </div>
-                ) : filteredClasses.length === 0 ? (
+                {!formData.grade || formData.selectedClasses.length === 0 ? (
                     <div className="flex flex-col items-center justify-center p-12 border border-dashed rounded-lg">
-                        <Users className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                        <Info className="h-12 w-12 text-muted-foreground/50 mb-4" />
                         <p className="text-center text-muted-foreground">
-                            {formData.grade
-                                ? `No classes available for ${formData.grade}`
-                                : 'Please select a grade first'}
+                            {!formData.grade
+                                ? 'Please complete the Academic step first'
+                                : 'No classes selected. Please go back and select classes to enroll.'}
                         </p>
                     </div>
+                ) : isLoading ? (
+                    <div className="flex items-center justify-center p-12 text-muted-foreground">
+                        Loading class details...
+                    </div>
                 ) : (
-                    <div className="space-y-2">
-                        {filteredClasses.map((cls) => (
-                            <div
-                                key={cls.id}
-                                className={cn(
-                                    'flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-muted/50',
-                                    formData.selectedClasses?.includes(cls.id) &&
-                                        'border-primary bg-primary/5'
-                                )}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <input
-                                        type="checkbox"
-                                        id={cls.id}
-                                        checked={
-                                            formData.selectedClasses?.includes(
-                                                cls.id
-                                            ) || false
-                                        }
-                                        onChange={() => toggleClass(cls.id)}
-                                        className="h-4 w-4 rounded border-gray-300"
-                                    />
-                                    <Label
-                                        htmlFor={cls.id}
-                                        className="cursor-pointer flex-1"
-                                    >
-                                        <div>
-                                            <div className="flex items-center gap-2">
-                                                <p className="font-medium">
-                                                    {cls.name}
-                                                </p>
-                                                <Badge
-                                                    variant="outline"
-                                                    className={cn('text-xs', typeColors[cls.type])}
-                                                >
+                    <div className="space-y-4">
+                        {selectedClassesData.map((cls) => (
+                            <Card key={cls.id} className="border-muted">
+                                <CardContent className="p-4">
+                                    <div className="flex items-start justify-between mb-3">
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <p className="font-medium">{cls.name}</p>
+                                                <Badge variant="outline" className={cn('text-xs', typeColors[cls.type])}>
                                                     {cls.type}
                                                 </Badge>
-                                                <Badge
-                                                    variant="outline"
-                                                    className={cn('text-xs capitalize', mediumColors[cls.medium])}
-                                                >
+                                                <Badge variant="outline" className={cn('text-xs capitalize', mediumColors[cls.medium])}>
                                                     {cls.medium}
                                                 </Badge>
                                             </div>
-                                            <div className="flex flex-wrap items-center gap-x-3 text-xs text-muted-foreground mt-1">
+                                            <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
                                                 <span className="flex items-center gap-1">
                                                     <Calendar className="h-3 w-3" />
                                                     {cls.schedule}
                                                 </span>
-                                                <span className="flex items-center gap-1">
-                                                    <Users className="h-3 w-3" />
-                                                    {cls.teacherName}
-                                                </span>
                                                 <span>•</span>
                                                 <span className="font-medium text-foreground">
-                                                    Rs. {cls.monthlyFee.toLocaleString()}
+                                                    Rs. {cls.monthlyFee.toLocaleString()}/month
                                                 </span>
                                             </div>
                                         </div>
-                                    </Label>
-                                </div>
-                            </div>
+                                    </div>
+
+                                    {/* Month Selection */}
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <Label className="text-xs text-muted-foreground">
+                                                Select month to pay (current month only):
+                                            </Label>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => clearAllMonths(cls.id)}
+                                                    className="text-xs text-muted-foreground hover:text-foreground underline"
+                                                >
+                                                    Clear
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-6 sm:grid-cols-12 gap-1">
+                                            {MONTH_LABELS.map((month, idx) => {
+                                                const isSelected = formData.selectedMonths.get(cls.id)?.includes(idx) || false;
+                                                const isPast = idx < currentMonth;
+                                                const isFuture = idx > currentMonth;
+                                                const isCurrentMonth = idx === currentMonth;
+
+                                                return (
+                                                    <button
+                                                        key={month}
+                                                        type="button"
+                                                        disabled={isPast || isFuture}
+                                                        onClick={() => !isPast && !isFuture && toggleMonth(cls.id, idx)}
+                                                        className={cn(
+                                                            'relative flex flex-col items-center justify-center p-2 rounded-md border text-xs transition-all',
+                                                            isPast && 'opacity-30 cursor-not-allowed bg-muted/50',
+                                                            isFuture && 'opacity-30 cursor-not-allowed bg-muted/50',
+                                                            !isPast && !isFuture && !isSelected && 'hover:bg-muted cursor-pointer',
+                                                            isSelected && 'bg-primary text-primary-foreground border-primary',
+                                                            isCurrentMonth && !isSelected && 'border-primary/50 hover:bg-primary/10',
+                                                            isCurrentMonth && 'font-bold'
+                                                        )}
+                                                        title={
+                                                            isPast
+                                                                ? 'Past month - cannot pay for new student'
+                                                                : isFuture
+                                                                    ? 'Future month - cannot pay'
+                                                                    : `Pay for ${month}`
+                                                        }
+                                                    >
+                                                        <span>{month}</span>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                            <Info className="h-3 w-3" />
+                                            <span>For new students, only current month can be selected for payment</span>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
                         ))}
                     </div>
                 )}
             </div>
 
-            {/* Payment Mode */}
+            {/* Admission Fee */}
             <div>
                 <h3 className="mb-4 text-sm font-semibold tracking-wide text-muted-foreground uppercase">
-                    Admission Payment
+                    Admission Fee
                 </h3>
                 <div className="grid gap-3 sm:grid-cols-3">
                     {/* Pay Later */}
@@ -241,7 +294,7 @@ export function StepPayment({ formData, onUpdate }: StepPaymentProps) {
                                 <div>
                                     <p className="font-semibold">Pay Later</p>
                                     <p className="text-xs text-muted-foreground">
-                                        Settle before 1st class
+                                        Collect later
                                     </p>
                                 </div>
                             </div>
@@ -289,15 +342,51 @@ export function StepPayment({ formData, onUpdate }: StepPaymentProps) {
                                     <Gift className="h-6 w-6 text-gray-600" />
                                 </div>
                                 <div>
-                                    <p className="font-semibold">Free Card</p>
+                                    <p className="font-semibold">Free</p>
                                     <p className="text-xs text-muted-foreground">
-                                        Special admission
+                                        Waive admission fee
                                     </p>
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
                 </div>
+            </div>
+
+            {/* Payment Summary */}
+            {(formData.paymentMode === 'now' || formData.selectedMonths.size > 0) && (
+                <Card className="border-primary/50 bg-primary/5">
+                    <CardContent className="p-4">
+                        <h4 className="font-semibold mb-3">Payment Summary</h4>
+                        <div className="space-y-2 text-sm">
+                            {formData.paymentMode === 'now' && (
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Admission Fee:</span>
+                                    <span className="font-medium">Rs. {totals.admissionFee.toLocaleString()}</span>
+                                </div>
+                            )}
+                            {formData.selectedMonths.size > 0 && (
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Monthly Fees:</span>
+                                    <span className="font-medium">Rs. {totals.monthlyFees.toLocaleString()}</span>
+                                </div>
+                            )}
+                            <div className="flex justify-between pt-2 border-t">
+                                <span className="font-semibold">Total:</span>
+                                <span className="font-bold text-lg">Rs. {totals.total.toLocaleString()}</span>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Note */}
+            <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
+                <Info className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-muted-foreground">
+                    You can skip payments now and collect fees later. Monthly fees are optional at registration -
+                    you can collect them anytime based on your class schedule.
+                </p>
             </div>
         </div>
     );

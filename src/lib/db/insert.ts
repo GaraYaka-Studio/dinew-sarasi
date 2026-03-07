@@ -15,8 +15,9 @@ import {
     teachers,
 } from '@/db/schema';
 import { NewClass } from '@/types/schema.types';
-import { eq, and, isNull } from 'drizzle-orm';
+import { eq, and, isNull, or } from 'drizzle-orm';
 import { getCurrentSriLankaTimestamp } from '@/lib/utils/time';
+import { revalidatePath } from 'next/cache';
 
 export async function addTeacher(
     subjects: string[],
@@ -117,6 +118,22 @@ export async function addSubject(
     }
 }
 
+/**
+ * Payment data interface for student registration
+ */
+interface PaymentData {
+    paymentMode: 'later' | 'now' | 'free';
+    selectedMonths: Map<string, number[]>; // classId -> array of month indices
+}
+
+/**
+ * Add a new student with optional class enrollments and payments
+ * - Checks for duplicate by name + phone combination
+ * - Creates enrollments for selected classes
+ * - Processes admission fee if payment mode is 'now'
+ * - Processes monthly fee payments if selected
+ * - Returns the created student's data for success screen
+ */
 export async function addStudent(
     personalInfo: {
         fullName: string;
@@ -131,10 +148,11 @@ export async function addStudent(
     },
     academicInfo: { grade: string; batch: string },
     enrollmentData: { classIds: string[] } | null,
+    paymentData: PaymentData | null,
     _prevState: any,
     formData: FormData
 ) {
-    // Validation
+    // Validation: Required fields
     if (!personalInfo.fullName || !personalInfo.phone) {
         return {
             success: false,
@@ -159,35 +177,87 @@ export async function addStudent(
         };
     }
 
-    try {
-        // Generate student ID and QR code
-        const year = new Date().getFullYear();
-        const randomNum = String(Math.floor(Math.random() * 999) + 1).padStart(
-            3,
-            '0'
-        );
-        const qrCode = `QR-SRS-${year}-${randomNum}`;
+    // Server-side validation: Phone format
+    const phoneRegex = /^07[0-9]{8}$/;
+    const cleanPhone = personalInfo.phone.replace(/[\s-]/g, '');
+    if (!phoneRegex.test(cleanPhone)) {
+        return {
+            success: false,
+            status: 422,
+            error: 'Invalid phone number format. Please use format: 07X-XXXXXXX',
+        };
+    }
 
+    // Server-side validation: Guardian phone format
+    const cleanGuardianPhone = personalInfo.guardianPhone.replace(/[\s-]/g, '');
+    if (!phoneRegex.test(cleanGuardianPhone)) {
+        return {
+            success: false,
+            status: 422,
+            error: 'Invalid guardian phone number format. Please use format: 07X-XXXXXXX',
+        };
+    }
+
+    // Check for duplicate student (same name + phone combination)
+    try {
+        const existingStudents = await db
+            .select()
+            .from(students)
+            .where(
+                and(
+                    eq(students.full_name, personalInfo.fullName.trim()),
+                    eq(students.phone, cleanPhone),
+                    isNull(students.deleted_at)
+                )
+            );
+
+        if (existingStudents.length > 0) {
+            return {
+                success: false,
+                status: 409,
+                error: `A student named "${personalInfo.fullName}" with phone number ${cleanPhone} already exists in the system.`,
+            };
+        }
+    } catch (error) {
+        console.error('Duplicate check failed:', error);
+        // Continue anyway - let the database handle it
+    }
+
+    try {
         // Extract batch year from display string (e.g., "2026 O/L" → 2026, "Scholarship" → 0)
         const batchYearValue = parseInt(academicInfo.batch) || 0;
+
+        // Generate QR code
+        const year = new Date().getFullYear();
+        const randomNum = String(Math.floor(Math.random() * 999) + 1).padStart(3, '0');
+        const qrCode = `QR-SRS-${year}-${randomNum}`;
+
+        // Determine admission status based on payment mode
+        let admissionStatus: 'pending' | 'paid' | 'free' = 'pending';
+        if (paymentData?.paymentMode === 'now') {
+            admissionStatus = 'paid';
+        } else if (paymentData?.paymentMode === 'free') {
+            admissionStatus = 'free';
+        }
 
         // Insert student and return the created record
         const [newStudent] = await db.insert(students)
             .values({
-                full_name: personalInfo.fullName,
+                full_name: personalInfo.fullName.trim(),
                 initials: personalInfo.fullName.split(' ').map(n => n[0]).join(''),
-                phone: personalInfo.phone,
+                phone: cleanPhone,
                 dob: personalInfo.dob,
                 gender: personalInfo.gender as 'male' | 'female',
-                address: personalInfo.address,
-                school: personalInfo.school,
-                guardian_name: personalInfo.guardianName,
-                guardian_phone: personalInfo.guardianPhone,
+                address: personalInfo.address?.trim(),
+                school: personalInfo.school?.trim(),
+                guardian_name: personalInfo.guardianName.trim(),
+                guardian_phone: cleanGuardianPhone,
                 guardian_relationship: personalInfo.relationship,
                 is_emergency_contact: true,
                 batch_year: batchYearValue,
                 current_grade: academicInfo.grade,
-                admission_status: 'pending',
+                admission_status: admissionStatus,
+                admission_fee: paymentData?.paymentMode === 'now' ? '1000' : null,
                 qr_code: qrCode,
                 status: 'active',
             })
@@ -203,13 +273,125 @@ export async function addStudent(
                 is_active: true,
             }));
 
-            await db.insert(enrollments)
-                .values(enrollmentValues);
+            await db.insert(enrollments).values(enrollmentValues);
+
+            // Process monthly fee payments if any were selected
+            if (paymentData?.selectedMonths && paymentData.selectedMonths.size > 0) {
+                const currentYear = new Date().getFullYear();
+                const currentMonth = new Date().getMonth();
+
+                // Collect all monthly payments
+                const monthlyPaymentItems: Array<{ classId: string; monthIndex: number; amount: number }> = [];
+
+                for (const [classId, months] of paymentData.selectedMonths.entries()) {
+                    // Get the class fee
+                    const classData = await db
+                        .select({ monthlyFee: classes.monthly_fee })
+                        .from(classes)
+                        .where(eq(classes.id, classId))
+                        .limit(1);
+
+                    if (classData.length > 0) {
+                        const feeAmount = Number(classData[0].monthlyFee);
+
+                        for (const monthIndex of months) {
+                            if (monthIndex <= currentMonth) {
+                                monthlyPaymentItems.push({
+                                    classId,
+                                    monthIndex,
+                                    amount: feeAmount,
+                                });
+
+                                // Create or update fee record
+                                const existingFee = await db
+                                    .select()
+                                    .from(studentFees)
+                                    .where(
+                                        and(
+                                            eq(studentFees.student_id, newStudent.id),
+                                            eq(studentFees.class_id, classId),
+                                            eq(studentFees.year, currentYear),
+                                            eq(studentFees.month_index, monthIndex)
+                                        )
+                                    );
+
+                                if (existingFee.length > 0) {
+                                    // Update existing
+                                    const newPaidAmount = Number(existingFee[0].paid_amount) + feeAmount;
+                                    await db
+                                        .update(studentFees)
+                                        .set({
+                                            paid_amount: newPaidAmount.toString(),
+                                            status: 'paid',
+                                            updated_at: getCurrentSriLankaTimestamp(),
+                                        })
+                                        .where(eq(studentFees.id, existingFee[0].id));
+                                } else {
+                                    // Insert new
+                                    await db.insert(studentFees).values({
+                                        student_id: newStudent.id,
+                                        class_id: classId,
+                                        year: currentYear,
+                                        month_index: monthIndex,
+                                        fee_amount: feeAmount.toString(),
+                                        paid_amount: feeAmount.toString(),
+                                        status: 'paid',
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // If there are monthly payments, create a payment record
+                if (monthlyPaymentItems.length > 0) {
+                    const totalMonthlyAmount = monthlyPaymentItems.reduce((sum, item) => sum + item.amount, 0);
+
+                    const [payment] = await db
+                        .insert(payments)
+                        .values({
+                            student_id: newStudent.id,
+                            total_amount: totalMonthlyAmount.toString(),
+                            method: 'cash', // Default to cash for registration
+                            payment_date: getCurrentSriLankaTimestamp(),
+                        })
+                        .returning({ id: payments.id, receiptNumber: payments.receipt_number });
+
+                    // Create payment items
+                    for (const item of monthlyPaymentItems) {
+                        await db.insert(paymentItems).values({
+                            payment_id: payment.id,
+                            type: 'monthly',
+                            class_id: item.classId,
+                            month_index: item.monthIndex,
+                            year: currentYear,
+                            amount: item.amount.toString(),
+                        });
+                    }
+                }
+            }
         }
 
-        return { success: true, status: 201, error: null };
+        // Revalidate the students page to refresh cache
+        revalidatePath('/dashboard/students');
+
+        return {
+            success: true,
+            status: 201,
+            error: null,
+            data: {
+                studentId: newStudent.id,
+                serialId: newStudent.student_id,
+                qrCode: newStudent.qr_code,
+            },
+        };
     } catch (error) {
-        return { success: false, status: 500, error: error as string };
+        console.error('Student creation failed:', error);
+        return {
+            success: false,
+            status: 500,
+            error: error instanceof Error ? error.message : 'Failed to create student. Please try again.',
+        };
     }
 }
 
@@ -262,6 +444,9 @@ export async function enrollStudent(
             enrolled_at: today,
             is_active: true,
         });
+
+        // Revalidate cache
+        revalidatePath('/dashboard/students');
 
         return { success: true, status: 201, error: null };
     } catch (error) {
@@ -490,6 +675,9 @@ export async function recordPayment(
                     .where(eq(students.id, studentId));
             }
         }
+
+        // Revalidate cache
+        revalidatePath('/dashboard/students');
 
         return {
             success: true,
