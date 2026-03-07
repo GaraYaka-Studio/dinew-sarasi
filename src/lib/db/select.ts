@@ -1,9 +1,9 @@
 'use server';
 
 import { db } from '@/db';
-import { classes, enrollments, studentFees, students, subjects, teacherPayments, teachers } from '@/db/schema';
+import { classes, enrollments, paymentItems, payments, studentFees, students, subjects, teacherPayments, teachers } from '@/db/schema';
 import { Student, Subject, Teacher } from '@/types/schema.types';
-import { eq, isNull, and, sql, or, ilike, like, gte, lte } from 'drizzle-orm';
+import { eq, isNull, and, sql, or, ilike, like, gte, lte, desc } from 'drizzle-orm';
 
 export async function getStudents() {
     return await db.select().from(students).where(isNull(students.deleted_at));
@@ -365,4 +365,42 @@ export async function getStudentFeeStructure(studentId: string) {
             totalDue,
         };
     });
+}
+
+/**
+ * Get all payments for a specific student with payment item details
+ * Returns payments ordered by payment date (newest first)
+ */
+export async function getStudentPayments(studentId: string) {
+    const result = await db
+        .select({
+            // Payment details
+            paymentId: payments.id,
+            receiptNumber: payments.receipt_number,
+            totalAmount: payments.total_amount,
+            method: payments.method,
+            paymentDate: payments.payment_date,
+            // Payment item details
+            itemId: paymentItems.id,
+            itemType: paymentItems.type,
+            itemClassId: paymentItems.class_id,
+            itemMonthIndex: paymentItems.month_index,
+            itemYear: paymentItems.year,
+            itemAmount: paymentItems.amount,
+            // Class details (for monthly fees)
+            className: classes.name,
+            classGrade: classes.grade,
+        })
+        .from(payments)
+        .leftJoin(paymentItems, eq(paymentItems.payment_id, payments.id))
+        .leftJoin(classes, eq(paymentItems.class_id, classes.id))
+        .where(
+            and(
+                eq(payments.student_id, studentId),
+                isNull(payments.deleted_at)
+            )
+        )
+        .orderBy(desc(payments.payment_date));
+
+    return result;
 }

@@ -275,6 +275,32 @@ export async function addStudent(
 
             await db.insert(enrollments).values(enrollmentValues);
 
+            // Process admission fee payment if payment mode is 'now'
+            if (paymentData?.paymentMode === 'now') {
+                const admissionFeeAmount = 1000;
+
+                // Create payment record for admission fee
+                const [admissionPayment] = await db
+                    .insert(payments)
+                    .values({
+                        student_id: newStudent.id,
+                        total_amount: admissionFeeAmount.toString(),
+                        method: 'cash',
+                        payment_date: getCurrentSriLankaTimestamp(),
+                    })
+                    .returning({ id: payments.id, receiptNumber: payments.receipt_number });
+
+                // Create payment item for admission fee
+                await db.insert(paymentItems).values({
+                    payment_id: admissionPayment.id,
+                    type: 'admission',
+                    class_id: null,
+                    month_index: null,
+                    year: null,
+                    amount: admissionFeeAmount.toString(),
+                });
+            }
+
             // Process monthly fee payments if any were selected
             if (paymentData?.selectedMonths && paymentData.selectedMonths.size > 0) {
                 const currentYear = new Date().getFullYear();
