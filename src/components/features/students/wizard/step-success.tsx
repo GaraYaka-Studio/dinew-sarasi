@@ -1,10 +1,8 @@
 'use client';
 
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { CheckCircle2, Printer, UserPlus, Receipt, X } from 'lucide-react';
-import { ReceiptView, ReceiptItem } from '@/components/features/payments/collect/receipt-view';
+import { CheckCircle2, Printer, UserPlus } from 'lucide-react';
 
 interface StepSuccessProps {
     studentData: {
@@ -13,109 +11,21 @@ interface StepSuccessProps {
         serialId: number;  // Serial number from database
         qrCode: string;    // QR code string
     };
-    paymentData?: {
-        paymentMode: 'later' | 'now' | 'free';
-        selectedMonths: Map<string, number[]>; // classId -> array of month indices
-        admissionFee: number;
-        monthlyFees: number;
-        total: number;
-        grade: string;
-        classNames?: Map<string, string>; // classId -> class name
-    };
     onPrintId: () => void;
     onAddAnother: () => void;
     onClose: () => void;
 }
 
-const MONTH_LABELS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-
 export function StepSuccess({
     studentData,
-    paymentData,
     onPrintId,
     onAddAnother,
     onClose,
 }: StepSuccessProps) {
-    const [showReceipt, setShowReceipt] = useState(false);
-
     // Format the display ID (e.g., SRS-2025-001)
     const displayId = studentData.serialId
         ? `SRS-${new Date().getFullYear()}-${String(studentData.serialId).padStart(3, '0')}`
         : 'Pending...';
-
-    // Check if payment was made
-    const hasPayment = paymentData && (paymentData.paymentMode === 'now' || paymentData.selectedMonths.size > 0);
-
-    // Generate receipt items
-    const getReceiptItems = (): ReceiptItem[] => {
-        if (!paymentData) return [];
-
-        const items: ReceiptItem[] = [];
-
-        // Admission fee
-        if (paymentData.paymentMode === 'now') {
-            items.push({
-                label: 'Admission Fee',
-                amount: paymentData.admissionFee,
-            });
-        }
-
-        // Monthly fees
-        paymentData.selectedMonths.forEach((months, classId) => {
-            const className = paymentData.classNames?.get(classId) || `Class (${classId.slice(-4)})`;
-            months.forEach(monthIndex => {
-                const classMonthlyFee = paymentData.monthlyFees / months.length || 0;
-                items.push({
-                    label: `${className} - ${MONTH_LABELS[monthIndex]} ${new Date().getFullYear()}`,
-                    amount: classMonthlyFee,
-                });
-            });
-        });
-
-        return items;
-    };
-
-    // Generate receipt number (timestamp-based for new registrations)
-    const receiptNumber = `RCP-${new Date().getTime().toString().slice(-6)}`;
-
-    const handlePrintReceipt = () => {
-        setShowReceipt(true);
-    };
-
-    // If showing receipt, render receipt view inline
-    if (showReceipt && hasPayment) {
-        return (
-            <div className="relative">
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-4 top-4 z-10"
-                    onClick={() => setShowReceipt(false)}
-                >
-                    <X className="h-4 w-4" />
-                </Button>
-                <div className="flex min-h-[500px] items-center justify-center p-4">
-                    <div className="w-full max-w-md">
-                        <ReceiptView
-                            receiptNumber={receiptNumber}
-                            studentName={studentData.name}
-                            studentId={displayId}
-                            grade={paymentData!.grade}
-                            items={getReceiptItems()}
-                            totalAmount={paymentData!.total}
-                            cashReceived={paymentData!.total}
-                            balance={0}
-                            date={new Date().toISOString()}
-                            onClose={() => setShowReceipt(false)}
-                            onPrint={() => {
-                                window.print();
-                            }}
-                        />
-                    </div>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <div className="flex min-h-[400px] flex-col items-center justify-center space-y-6 py-8">
@@ -177,16 +87,6 @@ export function StepSuccess({
                     <Printer className="mr-2 h-4 w-4" />
                     Print ID Card
                 </Button>
-                {hasPayment && (
-                    <Button
-                        onClick={handlePrintReceipt}
-                        variant="default"
-                        className="flex-1 bg-green-600 hover:bg-green-700"
-                    >
-                        <Receipt className="mr-2 h-4 w-4" />
-                        Print Receipt
-                    </Button>
-                )}
                 <Button
                     onClick={onAddAnother}
                     variant="outline"
