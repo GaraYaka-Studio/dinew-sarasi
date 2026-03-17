@@ -8,27 +8,28 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { FileDown, Printer } from 'lucide-react';
-import { Calendar } from 'lucide-react';
-import { type ReportType } from '@/lib/mock-data-reports';
+import { FileDown } from 'lucide-react';
+import { MonthPicker } from './month-picker';
+import type { ReportType } from '@/types/reports';
 
 interface ReportsHeaderProps {
     reportType: ReportType;
     onReportTypeChange: (type: ReportType) => void;
-    dateRange: { start: string; end: string };
-    onDateRangeChange: (range: { start: string; end: string }) => void;
-    onExportCSV: () => void;
-    onExportPDF: () => void;
+    selectedYear: number;
+    selectedMonth: number;
+    onMonthChange: (year: number, month: number) => void;
+    onExport: () => void;
+    isExporting?: boolean;
 }
 
 export function ReportsHeader({
     reportType,
     onReportTypeChange,
-    dateRange,
-    onDateRangeChange,
-    onExportCSV,
-    onExportPDF,
+    selectedYear,
+    selectedMonth,
+    onMonthChange,
+    onExport,
+    isExporting = false,
 }: ReportsHeaderProps) {
     const reportTypeOptions: { value: ReportType; label: string }[] = [
         { value: 'financial', label: 'Financial Statement' },
@@ -57,7 +58,7 @@ export function ReportsHeader({
                         onReportTypeChange(value as ReportType)
                     }
                 >
-                    <SelectTrigger className="w-full lg:w-[200px]">
+                    <SelectTrigger className="w-full lg:w-52">
                         <SelectValue placeholder="Select Report Type" />
                     </SelectTrigger>
                     <SelectContent>
@@ -69,42 +70,26 @@ export function ReportsHeader({
                     </SelectContent>
                 </Select>
 
-                {/* Date Range Picker */}
-                <div className="relative">
-                    <Calendar className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                        type="date"
-                        value={dateRange.start}
-                        onChange={(e) =>
-                            onDateRangeChange({
-                                ...dateRange,
-                                start: e.target.value,
-                            })
-                        }
-                        className="w-full pl-9 lg:w-[160px]"
-                    />
-                </div>
+                {/* Month Picker */}
+                <MonthPicker
+                    selectedYear={selectedYear}
+                    selectedMonth={selectedMonth}
+                    onChange={onMonthChange}
+                />
 
-                {/* Export Buttons */}
-                <div className="flex gap-2">
-                    <Button
-                        variant="outline"
-                        size="default"
-                        onClick={onExportCSV}
-                        className="w-full lg:w-auto"
-                    >
-                        <FileDown className="mr-2 h-4 w-4" />
-                        <span className="hidden lg:inline">CSV</span>
-                    </Button>
-                    <Button
-                        size="default"
-                        onClick={onExportPDF}
-                        className="w-full lg:w-auto"
-                    >
-                        <Printer className="mr-2 h-4 w-4" />
-                        <span className="hidden lg:inline">Print</span>
-                    </Button>
-                </div>
+                {/* Export Button */}
+                <Button
+                    variant="outline"
+                    size="default"
+                    onClick={onExport}
+                    disabled={isExporting}
+                    className="w-full lg:w-auto"
+                >
+                    <FileDown className="mr-2 h-4 w-4" />
+                    <span className="hidden lg:inline">
+                        {isExporting ? 'Exporting...' : 'Export'}
+                    </span>
+                </Button>
             </div>
         </div>
     );
