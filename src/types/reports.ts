@@ -1,6 +1,6 @@
 // Report Types
 export type ReportType = 'financial' | 'attendance' | 'activity';
-export type TabType = 'income' | 'expenses';
+export type FinancialTabType = 'student' | 'teacher';
 
 // ============================================================================
 // FINANCIAL STATEMENT TYPES
