@@ -6,7 +6,7 @@ import { eq } from 'drizzle-orm';
 export interface AuthUser {
 	id: string;
 	email: string;
-	fullName: string;
+	fullName?: string;
 	role: 'admin' | 'staff' | 'teacher';
 }
 
@@ -36,8 +36,8 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
 	return {
 		id: profile[0].id,
 		email: profile[0].email,
-		fullName: profile[0].fullName,
-		role: profile[0].role as 'admin' | 'staff' | 'teacher',
+		fullName: (profile[0] as any).full_name,
+		role: (profile[0] as any).role as 'admin' | 'staff' | 'teacher',
 	};
 }
 

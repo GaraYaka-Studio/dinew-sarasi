@@ -99,7 +99,7 @@ export interface ActivitySummary {
 // AUDIT LOG TYPES
 // ============================================================================
 
-export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'LOGIN' | 'EXPORT';
+export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'LOGIN' | 'LOGOUT' | 'EXPORT';
 export type AuditModule = 'Students' | 'Finance' | 'Classes' | 'Staff' | 'Settings' | 'System';
 
 export interface AuditLogRecord {

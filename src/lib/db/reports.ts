@@ -645,7 +645,7 @@ export async function getAuditLogs(filters: {
                 role: r.userRole ?? 'staff',
                 avatar: r.userAvatar,
             },
-            action: (r.action ?? 'UPDATE') as AuditAction,
+            action: (r.action?.toUpperCase() ?? 'UPDATE') as AuditAction,
             module: (details?.module ?? 'System') as AuditModule,
             context: details?.context ?? '',
             details: details?.details ?? '',
@@ -703,7 +703,7 @@ export async function getAuditLogsByMonth(
                 role: r.userRole ?? 'staff',
                 avatar: r.userAvatar,
             },
-            action: (r.action ?? 'UPDATE') as AuditAction,
+            action: (r.action?.toUpperCase() ?? 'UPDATE') as AuditAction,
             module: (details?.module ?? 'System') as AuditModule,
             context: details?.context ?? '',
             details: details?.details ?? '',
@@ -730,11 +730,12 @@ export async function getAuditSummary(): Promise<AuditSummary> {
         UPDATE: 0,
         DELETE: 0,
         LOGIN: 0,
+        LOGOUT: 0,
         EXPORT: 0,
     };
 
     results.forEach((r) => {
-        const action = (r.action ?? 'UPDATE') as AuditAction;
+        const action = (r.action?.toUpperCase() ?? 'UPDATE') as AuditAction;
         if (action in byAction) {
             byAction[action] = r.count;
         }

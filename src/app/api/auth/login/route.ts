@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { profiles } from '@/db/schema';
+import { profiles, auditLogs } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
 export async function POST(request: NextRequest) {
@@ -52,6 +52,20 @@ export async function POST(request: NextRequest) {
 				{ status: 403 }
 			);
 		}
+
+		// Log the login to audit log
+		await db.insert(auditLogs).values({
+			user_id: profile[0].id,
+			action: 'LOGIN',
+			details: {
+				module: 'Authentication',
+				context: 'User Login',
+				details: `User ${profile[0].email} logged in as ${profile[0].role}`,
+				email: profile[0].email,
+				role: profile[0].role,
+				timestamp: new Date().toISOString(),
+			},
+		} as any);
 
 		return NextResponse.json({
 			success: true,
