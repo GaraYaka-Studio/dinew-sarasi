@@ -3,12 +3,39 @@
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import {
-    type AuditLog,
-    formatTime,
-    formatDateHeader,
-    type AuditAction,
-} from '@/lib/mock-data-audit';
+import type { AuditLogRecord as AuditLog, AuditAction } from '@/types/reports';
+
+// Helper functions
+const formatTime = (timestamp: string): string => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+    });
+};
+
+const formatDateHeader = (dateStr: string): string => {
+    const date = new Date(dateStr);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const getDateKey = (ts: string) => ts.split('T')[0];
+
+    if (getDateKey(today.toISOString()) === dateStr) {
+        return `Today - ${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+    }
+    if (getDateKey(yesterday.toISOString()) === dateStr) {
+        return `Yesterday - ${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+    }
+    return date.toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+    });
+};
 
 const getActionBadge = (action: AuditAction) => {
     const variants = {

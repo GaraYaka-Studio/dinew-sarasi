@@ -11,6 +11,8 @@ import {
     enrollments,
     classSessions,
     attendanceRecords,
+    auditLogs,
+    profiles,
 } from '@/db/schema';
 import { eq, and, gte, lte, isNull, sql, desc, asc, or, inArray } from 'drizzle-orm';
 import { formatDate } from '@/lib/utils/time';
@@ -21,6 +23,10 @@ import type {
     AttendanceLogSessionWithDate,
     ActivitySession,
     ActivitySummary,
+    AuditLogRecord,
+    AuditAction,
+    AuditModule,
+    AuditSummary,
 } from '@/types/reports';
 
 // ============================================================================
@@ -578,5 +584,172 @@ export async function getActivitySummary(
         completed: result[0]?.completed ?? 0,
         cancelled: result[0]?.cancelled ?? 0,
         extra: result[0]?.extra ?? 0,
+    };
+}
+
+// ============================================================================
+// AUDIT LOG QUERIES
+// ============================================================================
+
+/**
+ * Get audit logs with filters
+ * Follows same pattern as getStudentPaymentsForMonth
+ */
+export async function getAuditLogs(filters: {
+    action?: AuditAction | 'ALL';
+    module?: AuditModule | 'ALL';
+    limit?: number;
+    offset?: number;
+}): Promise<AuditLogRecord[]> {
+    const { action, limit = 100, offset = 0 } = filters;
+
+    const conditions = [];
+    if (action && action !== 'ALL') {
+        conditions.push(eq(auditLogs.action, action));
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    const results = await db
+        .select({
+            id: auditLogs.id,
+            action: auditLogs.action,
+            details: auditLogs.details,
+            createdAt: auditLogs.created_at,
+            userId: auditLogs.user_id,
+            userName: profiles.full_name,
+            userRole: profiles.role,
+            userAvatar: profiles.avatar_url,
+        })
+        .from(auditLogs)
+        .innerJoin(profiles, eq(profiles.id, auditLogs.user_id))
+        .where(whereClause)
+        .orderBy(desc(auditLogs.created_at))
+        .limit(limit)
+        .offset(offset);
+
+    return results.map((r) => {
+        const details = r.details as {
+            module?: string;
+            context?: string;
+            details?: string;
+            ipAddress?: string;
+        } | null;
+
+        return {
+            id: r.id,
+            timestamp: (r.createdAt ?? new Date()).toISOString(),
+            user: {
+                id: r.userId ?? '',
+                name: r.userName ?? 'Unknown User',
+                role: r.userRole ?? 'staff',
+                avatar: r.userAvatar,
+            },
+            action: (r.action ?? 'UPDATE') as AuditAction,
+            module: (details?.module ?? 'System') as AuditModule,
+            context: details?.context ?? '',
+            details: details?.details ?? '',
+            ipAddress: details?.ipAddress,
+        };
+    });
+}
+
+/**
+ * Get audit logs for a specific month
+ * Follows same pattern as getAttendanceLogByMonth
+ */
+export async function getAuditLogsByMonth(
+    year: number,
+    month: number
+): Promise<AuditLogRecord[]> {
+    const startDate = new Date(year, month, 1);
+    const endDate = new Date(year, month + 1, 0, 23, 59, 59);
+
+    const results = await db
+        .select({
+            id: auditLogs.id,
+            action: auditLogs.action,
+            details: auditLogs.details,
+            createdAt: auditLogs.created_at,
+            userId: auditLogs.user_id,
+            userName: profiles.full_name,
+            userRole: profiles.role,
+            userAvatar: profiles.avatar_url,
+        })
+        .from(auditLogs)
+        .innerJoin(profiles, eq(profiles.id, auditLogs.user_id))
+        .where(
+            and(
+                gte(auditLogs.created_at, startDate),
+                lte(auditLogs.created_at, endDate)
+            )
+        )
+        .orderBy(desc(auditLogs.created_at));
+
+    return results.map((r) => {
+        const details = r.details as {
+            module?: string;
+            context?: string;
+            details?: string;
+            ipAddress?: string;
+        } | null;
+
+        return {
+            id: r.id,
+            timestamp: (r.createdAt ?? new Date()).toISOString(),
+            user: {
+                id: r.userId ?? '',
+                name: r.userName ?? 'Unknown User',
+                role: r.userRole ?? 'staff',
+                avatar: r.userAvatar,
+            },
+            action: (r.action ?? 'UPDATE') as AuditAction,
+            module: (details?.module ?? 'System') as AuditModule,
+            context: details?.context ?? '',
+            details: details?.details ?? '',
+            ipAddress: details?.ipAddress,
+        };
+    });
+}
+
+/**
+ * Get audit log summary
+ * Follows same pattern as getFinancialSummary
+ */
+export async function getAuditSummary(): Promise<AuditSummary> {
+    const results = await db
+        .select({
+            action: auditLogs.action,
+            count: sql<number>`COUNT(*)`,
+        })
+        .from(auditLogs)
+        .groupBy(auditLogs.action);
+
+    const byAction = {
+        CREATE: 0,
+        UPDATE: 0,
+        DELETE: 0,
+        LOGIN: 0,
+        EXPORT: 0,
+    };
+
+    results.forEach((r) => {
+        const action = (r.action ?? 'UPDATE') as AuditAction;
+        if (action in byAction) {
+            byAction[action] = r.count;
+        }
+    });
+
+    return {
+        totalLogs: results.reduce((sum, r) => sum + r.count, 0),
+        byAction,
+        byModule: {
+            Students: 0,
+            Finance: 0,
+            Classes: 0,
+            Staff: 0,
+            Settings: 0,
+            System: 0,
+        },
     };
 }

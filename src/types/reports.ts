@@ -94,3 +94,32 @@ export interface ActivitySummary {
     cancelled: number;
     extra: number;
 }
+
+// ============================================================================
+// AUDIT LOG TYPES
+// ============================================================================
+
+export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'LOGIN' | 'EXPORT';
+export type AuditModule = 'Students' | 'Finance' | 'Classes' | 'Staff' | 'Settings' | 'System';
+
+export interface AuditLogRecord {
+    id: string;
+    timestamp: string; // ISO format from created_at
+    user: {
+        id: string;
+        name: string;
+        avatar: string | null;
+        role: string;
+    };
+    action: AuditAction;
+    module: AuditModule;
+    context: string;
+    details: string;
+    ipAddress?: string;
+}
+
+export interface AuditSummary {
+    totalLogs: number;
+    byAction: Record<AuditAction, number>;
+    byModule: Record<AuditModule, number>;
+}
