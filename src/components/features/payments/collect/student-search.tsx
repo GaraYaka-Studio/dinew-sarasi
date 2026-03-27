@@ -60,7 +60,7 @@ export function StudentSearch({ onSearch, onClear }: StudentSearchProps) {
                     setDebouncedQuery(e.target.value);
                 }}
             />
-            <div className="absolute top-1/2 right-3 hidden -translate-y-1/2 text-xs text-muted-foreground sm:block">
+            <div className="absolute top-1/2 right-3 -translate-y-1/2 text-xs text-muted-foreground">
                 Press{' '}
                 <kbd className="rounded border bg-muted px-1 font-mono text-[10px]">
                     F1
