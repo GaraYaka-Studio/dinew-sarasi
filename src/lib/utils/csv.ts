@@ -5,7 +5,7 @@
 /**
  * Generate CSV from array of objects
  */
-export function generateCSV<T extends Record<string, any>>(
+export function generateCSV<T extends Record<string, unknown>>(
     data: T[],
     columns: { key: keyof T; label: string }[]
 ): string {
@@ -25,7 +25,7 @@ export function generateCSV<T extends Record<string, any>>(
     return [headers, ...rows].join('\n');
 }
 
-function formatCSVValue(value: any): string {
+function formatCSVValue(value: unknown): string {
     if (value === null || value === undefined) {
         return '';
     }
