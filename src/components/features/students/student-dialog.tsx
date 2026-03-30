@@ -272,7 +272,7 @@ export function StudentDialog({ isOpen, onOpenChange, onStudentAdded }: StudentD
             hasSubmitted.current = false;
         } else if (state.success && isSubmittingFromStep2.current) {
             // Extract student data from response
-            const data = (state as any).data as { studentId?: string; qrCode?: string; serialId?: number } | undefined;
+            const data = (state.success === true ? state.data : undefined) as { studentId?: string; qrCode?: string; serialId?: number } | undefined;
             if (data) {
                 setCreatedStudentId(data.studentId || '');
                 setCreatedQrCode(data.qrCode || '');

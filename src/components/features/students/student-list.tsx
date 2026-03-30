@@ -45,27 +45,37 @@ const getPaymentBadge = (status: string) => {
     return variants[status] || variants.pending;
 };
 
+interface SortButtonProps {
+    field: SortField;
+    children: React.ReactNode;
+    onSort?: (field: SortField) => void;
+    isActive: boolean;
+    sortIcon: React.ReactNode;
+}
+
+function SortButton({ field, children, onSort, isActive, sortIcon }: SortButtonProps) {
+    if (!onSort) return <TableHead>{children}</TableHead>;
+
+    return (
+        <TableHead>
+            <Button
+                variant="ghost"
+                size="sm"
+                className="-ml-3 h-8 font-medium hover:bg-muted/50"
+                onClick={() => onSort(field)}
+            >
+                {children}
+                {sortIcon}
+            </Button>
+        </TableHead>
+    );
+}
+
 export function StudentList({ students, onViewStudent, onSort, sortField, sortOrder }: StudentListProps) {
 
-    const SortButton = ({ field, children }: { field: SortField; children: React.ReactNode }) => {
-        if (!onSort) return <TableHead>{children}</TableHead>;
-
+    const getSortIcon = (field: SortField) => {
         const isActive = sortField === field;
-        const sortIcon = isActive ? (sortOrder === 'asc' ? <ChevronUp className="ml-1 h-3 w-3" /> : <ChevronDown className="ml-1 h-3 w-3" />) : <ChevronsUpDown className="ml-1 h-3 w-3 opacity-50" />;
-
-        return (
-            <TableHead>
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    className="-ml-3 h-8 font-medium hover:bg-muted/50"
-                    onClick={() => onSort(field)}
-                >
-                    {children}
-                    {sortIcon}
-                </Button>
-            </TableHead>
-        );
+        return isActive ? (sortOrder === 'asc' ? <ChevronUp className="ml-1 h-3 w-3" /> : <ChevronDown className="ml-1 h-3 w-3" />) : <ChevronsUpDown className="ml-1 h-3 w-3 opacity-50" />;
     };
     return (
         <>
@@ -74,9 +84,9 @@ export function StudentList({ students, onViewStudent, onSort, sortField, sortOr
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <SortButton field="name">Student</SortButton>
+                            <SortButton field="name" onSort={onSort} isActive={sortField === 'name'} sortIcon={getSortIcon('name')}>Student</SortButton>
                             <TableHead>Contact</TableHead>
-                            <SortButton field="grade">Academic</SortButton>
+                            <SortButton field="grade" onSort={onSort} isActive={sortField === 'grade'} sortIcon={getSortIcon('grade')}>Academic</SortButton>
                             <TableHead>Status</TableHead>
                             <TableHead className="text-right">
                                 Actions
