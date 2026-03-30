@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useEffectEvent, useActionState } from 'react';
+import { useState, useRef, useEffect, useActionState } from 'react';
 import { toast } from 'sonner';
 import {
     Dialog,
@@ -52,48 +52,29 @@ export function EditStudentDialog({
     student,
     onStudentUpdated,
 }: EditStudentDialogProps) {
-    const [currentStep, setCurrentStep] = useState(1);
-    const [formData, setFormData] = useState<FormData>({
-        name: '',
-        mobile: '',
-        guardianName: '',
-        guardianPhone: '',
-        relationship: '',
-        school: '',
-        dob: '',
-        address: '',
-        gender: '',
-        grade: '',
-        batch: '',
+    // Helper to get initial form data from student
+    const getInitialFormData = (student: Student | null): FormData => ({
+        name: student?.full_name || '',
+        mobile: student?.phone || '',
+        guardianName: student?.guardian_name || '',
+        guardianPhone: student?.guardian_phone || '',
+        relationship: student?.guardian_relationship || '',
+        school: student?.school || '',
+        dob: student?.dob?.toString().split('T')[0] || '',
+        address: student?.address || '',
+        gender: student?.gender || '',
+        grade: student?.current_grade || '',
+        batch: student?.batch_year ? student.batch_year.toString() : '',
         photoMode: 'skip',
         selectedClasses: [],
         paymentMode: 'later',
     });
 
-    const scrollRef = useRef<HTMLDivElement>(null);
+    // Use lazy initialization - Dialog will remount when student changes via key prop
+    const [currentStep, setCurrentStep] = useState(1);
+    const [formData, setFormData] = useState<FormData>(() => getInitialFormData(student));
 
-    // Pre-populate form when student changes
-    useEffect(() => {
-        if (student) {
-            setFormData({
-                name: student.full_name || '',
-                mobile: student.phone || '',
-                guardianName: student.guardian_name || '',
-                guardianPhone: student.guardian_phone || '',
-                relationship: student.guardian_relationship || '',
-                school: student.school || '',
-                dob: student.dob?.toString().split('T')[0] || '',
-                address: student.address || '',
-                gender: student.gender || '',
-                grade: student.current_grade || '',
-                batch: student.batch_year ? student.batch_year.toString() : '',
-                photoMode: 'skip',
-                selectedClasses: [],
-                paymentMode: 'later',
-            });
-            setCurrentStep(1);
-        }
-    }, [student]);
+    const scrollRef = useRef<HTMLDivElement>(null);
 
     // Bind updateStudent with form data
     const personalInfo = {
@@ -153,10 +134,6 @@ export function EditStudentDialog({
         }
     };
 
-    const closeDialog = useEffectEvent(() => {
-        onOpenChange(false);
-    });
-
     const handleNext = () => {
         if (validateStep(currentStep)) {
             setCurrentStep((prev) => Math.min(prev + 1, TOTAL_STEPS));
@@ -173,17 +150,17 @@ export function EditStudentDialog({
             toast.error(state.error);
         } else if (state.success) {
             toast.success('Student updated successfully');
-            closeDialog();
+            onOpenChange(false);
             if (onStudentUpdated) onStudentUpdated();
         }
-    }, [state.success, state.error]);
+    }, [state.success, state.error, onOpenChange, onStudentUpdated]);
 
     const isNextDisabled = !validateStep(currentStep) || pending;
 
     if (!student) return null;
 
     return (
-        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+        <Dialog key={student?.id} open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="flex h-[95vh] max-h-[900px] w-full max-w-3xl flex-col p-0 sm:h-auto">
                 {/* Visually Hidden Title for Screen Readers */}
                 <DialogTitle className="sr-only">
@@ -277,8 +254,9 @@ export function EditStudentDialog({
                 <div className="shrink-0 border-t p-4 sm:p-6">
                     <div className="flex items-center justify-between">
                         <Button
+                            type="button"
                             variant="ghost"
-                            onClick={closeDialog}
+                            onClick={() => onOpenChange(false)}
                             className="text-muted-foreground"
                             disabled={pending}
                         >

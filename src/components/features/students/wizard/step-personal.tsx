@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import {
     Select,
@@ -42,31 +42,23 @@ export function StepPersonal({ formData, onUpdate }: StepPersonalProps) {
         return date.toISOString().split('T')[0];
     }, []);
 
-    // Phone validation
-    const [phoneError, setPhoneError] = useState<string>('');
-    const [guardianPhoneError, setGuardianPhoneError] = useState<string>('');
-
-    const validatePhone = (phone: string, isGuardian = false) => {
-        const setError = isGuardian ? setGuardianPhoneError : setPhoneError;
-        if (!phone) {
-            setError('');
-            return;
-        }
-        // Remove spaces and dashes for validation
-        const cleanPhone = phone.replace(/[\s-]/g, '');
+    // Phone validation - use useMemo for derived state
+    const phoneError = useMemo(() => {
+        if (!formData.mobile) return '';
+        const cleanPhone = formData.mobile.replace(/[\s-]/g, '');
         if (!SRILANKA_PHONE_REGEX.test(cleanPhone)) {
-            setError('Please enter a valid phone number (07X-XXXXXXX)');
-        } else {
-            setError('');
+            return 'Please enter a valid phone number (07X-XXXXXXX)';
         }
-    };
-
-    useEffect(() => {
-        validatePhone(formData.mobile, false);
+        return '';
     }, [formData.mobile]);
 
-    useEffect(() => {
-        validatePhone(formData.guardianPhone, true);
+    const guardianPhoneError = useMemo(() => {
+        if (!formData.guardianPhone) return '';
+        const cleanPhone = formData.guardianPhone.replace(/[\s-]/g, '');
+        if (!SRILANKA_PHONE_REGEX.test(cleanPhone)) {
+            return 'Please enter a valid phone number (07X-XXXXXXX)';
+        }
+        return '';
     }, [formData.guardianPhone]);
 
     return (

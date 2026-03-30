@@ -53,57 +53,75 @@ export function StepAcademic({ formData, onUpdate }: StepAcademicProps) {
 
     // Track previous grade for batch update only
     const prevGradeForBatchRef = useRef<string | null>(null);
+    const isLoadingRef = useRef(false);
 
-    // Load classes and update batch when grade changes
+    // Load classes when grade changes
     useEffect(() => {
+        // Skip if already loading
+        if (isLoadingRef.current) return;
+
         // Update batch when grade actually changes
         if (formData.grade && formData.grade !== prevGradeForBatchRef.current) {
             prevGradeForBatchRef.current = formData.grade;
             const batch = calculateBatchYear(formData.grade);
-            onUpdate('batch', batch.display);
+            // Defer update to avoid synchronous setState
+            const timeoutId = setTimeout(() => {
+                onUpdate('batch', batch.display);
+            }, 0);
+
+            return () => clearTimeout(timeoutId);
         }
 
         // Load classes for the selected grade
         if (formData.grade) {
-            setIsLoading(true);
-            getClassesByGrade(formData.grade)
-                .then((classes) => {
-                    const transformed = classes.map((cls) => {
-                        const dayName = cls.day
-                            ? cls.day.charAt(0).toUpperCase() + cls.day.slice(1)
-                            : 'TBD';
+            isLoadingRef.current = true;
+            // Defer loading to avoid synchronous setState
+            const timeoutId = setTimeout(() => {
+                setIsLoading(true);
+                getClassesByGrade(formData.grade)
+                    .then((classes) => {
+                        const transformed = classes.map((cls) => {
+                            const dayName = cls.day
+                                ? cls.day.charAt(0).toUpperCase() + cls.day.slice(1)
+                                : 'TBD';
 
-                        const time = cls.startTime && cls.endTime
-                            ? `${formatTime(cls.startTime)} - ${formatTime(cls.endTime)}`
-                            : 'TBD';
+                            const time = cls.startTime && cls.endTime
+                                ? `${formatTime(cls.startTime)} - ${formatTime(cls.endTime)}`
+                                : 'TBD';
 
-                        return {
-                            id: cls.id,
-                            name: cls.name,
-                            grade: cls.grade,
-                            medium: cls.medium || 'sinhala',
-                            type: cls.type || 'theory',
-                            monthlyFee: Number(cls.monthlyFee),
-                            day: cls.day,
-                            startTime: cls.startTime,
-                            endTime: cls.endTime,
-                            hallName: cls.hallName,
-                            subjectName: cls.subjectName,
-                            teacherName: cls.teacherName || 'Not Assigned',
-                            schedule: `${dayName}, ${time}`,
-                        };
+                            return {
+                                id: cls.id,
+                                name: cls.name,
+                                grade: cls.grade,
+                                medium: cls.medium || 'sinhala',
+                                type: cls.type || 'theory',
+                                monthlyFee: Number(cls.monthlyFee),
+                                day: cls.day,
+                                startTime: cls.startTime,
+                                endTime: cls.endTime,
+                                hallName: cls.hallName,
+                                subjectName: cls.subjectName,
+                                teacherName: cls.teacherName || 'Not Assigned',
+                                schedule: `${dayName}, ${time}`,
+                            };
+                        });
+                        setAvailableClasses(transformed);
+                    })
+                    .catch((error) => {
+                        console.error('Failed to load classes:', error);
+                        setAvailableClasses([]);
+                    })
+                    .finally(() => {
+                        setIsLoading(false);
+                        isLoadingRef.current = false;
                     });
-                    setAvailableClasses(transformed);
-                })
-                .catch((error) => {
-                    console.error('Failed to load classes:', error);
-                    setAvailableClasses([]);
-                })
-                .finally(() => {
-                    setIsLoading(false);
-                });
+            }, 0);
+
+            return () => clearTimeout(timeoutId);
         } else {
-            setAvailableClasses([]);
+            // Defer setState in else branch
+            const timeoutId = setTimeout(() => setAvailableClasses([]), 0);
+            return () => clearTimeout(timeoutId);
         }
     }, [formData.grade, onUpdate]);
 

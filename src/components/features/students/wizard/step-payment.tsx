@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
@@ -54,51 +54,64 @@ const getCurrentMonthIndex = () => new Date().getMonth();
 export function StepPayment({ formData, onUpdate }: StepPaymentProps) {
     const [selectedClassesData, setSelectedClassesData] = useState<ClassOption[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const isLoadingRef = useRef(false);
 
     // Load selected classes data
     useEffect(() => {
+        // Skip if already loading
+        if (isLoadingRef.current) return;
+
         if (formData.selectedClasses.length > 0 && formData.grade) {
-            setIsLoading(true);
-            getClassesByGrade(formData.grade)
-                .then((classes) => {
-                    const transformed = classes.map((cls) => {
-                        const dayName = cls.day
-                            ? cls.day.charAt(0).toUpperCase() + cls.day.slice(1)
-                            : 'TBD';
+            isLoadingRef.current = true;
+            // Defer loading to avoid synchronous setState
+            const timeoutId = setTimeout(() => {
+                setIsLoading(true);
+                getClassesByGrade(formData.grade)
+                    .then((classes) => {
+                        const transformed = classes.map((cls) => {
+                            const dayName = cls.day
+                                ? cls.day.charAt(0).toUpperCase() + cls.day.slice(1)
+                                : 'TBD';
 
-                        const time = cls.startTime && cls.endTime
-                            ? `${formatTime(cls.startTime)} - ${formatTime(cls.endTime)}`
-                            : 'TBD';
+                            const time = cls.startTime && cls.endTime
+                                ? `${formatTime(cls.startTime)} - ${formatTime(cls.endTime)}`
+                                : 'TBD';
 
-                        return {
-                            id: cls.id,
-                            name: cls.name,
-                            grade: cls.grade,
-                            medium: cls.medium || 'sinhala',
-                            type: cls.type || 'theory',
-                            monthlyFee: Number(cls.monthlyFee),
-                            day: cls.day,
-                            startTime: cls.startTime,
-                            endTime: cls.endTime,
-                            hallName: cls.hallName,
-                            subjectName: cls.subjectName,
-                            teacherName: cls.teacherName || 'Not Assigned',
-                            schedule: `${dayName}, ${time}`,
-                        };
+                            return {
+                                id: cls.id,
+                                name: cls.name,
+                                grade: cls.grade,
+                                medium: cls.medium || 'sinhala',
+                                type: cls.type || 'theory',
+                                monthlyFee: Number(cls.monthlyFee),
+                                day: cls.day,
+                                startTime: cls.startTime,
+                                endTime: cls.endTime,
+                                hallName: cls.hallName,
+                                subjectName: cls.subjectName,
+                                teacherName: cls.teacherName || 'Not Assigned',
+                                schedule: `${dayName}, ${time}`,
+                            };
+                        });
+                        // Filter to only selected classes
+                        const selected = transformed.filter(c => formData.selectedClasses.includes(c.id));
+                        setSelectedClassesData(selected);
+                    })
+                    .catch((error) => {
+                        console.error('Failed to load classes:', error);
+                        setSelectedClassesData([]);
+                    })
+                    .finally(() => {
+                        setIsLoading(false);
+                        isLoadingRef.current = false;
                     });
-                    // Filter to only selected classes
-                    const selected = transformed.filter(c => formData.selectedClasses.includes(c.id));
-                    setSelectedClassesData(selected);
-                })
-                .catch((error) => {
-                    console.error('Failed to load classes:', error);
-                    setSelectedClassesData([]);
-                })
-                .finally(() => {
-                    setIsLoading(false);
-                });
+            }, 0);
+
+            return () => clearTimeout(timeoutId);
         } else {
-            setSelectedClassesData([]);
+            // Defer setState in else branch
+            const timeoutId = setTimeout(() => setSelectedClassesData([]), 0);
+            return () => clearTimeout(timeoutId);
         }
     }, [formData.selectedClasses, formData.grade]);
 

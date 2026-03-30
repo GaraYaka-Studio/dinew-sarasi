@@ -76,43 +76,55 @@ export function EnrollClassDialog({
     // Load classes when dialog opens
     useEffect(() => {
         if (isOpen && student.current_grade) {
-            setIsLoading(true);
-            getClassesByGrade(student.current_grade)
-                .then((classes) => {
-                    const transformed = classes.map((cls) => {
-                        const dayName = cls.day
-                            ? cls.day.charAt(0).toUpperCase() + cls.day.slice(1)
-                            : 'TBD';
+            let isMounted = true;
+            // Defer loading to avoid synchronous setState in effect
+            const timeoutId = setTimeout(() => {
+                setIsLoading(true);
+                getClassesByGrade(student.current_grade)
+                    .then((classes) => {
+                        if (isMounted) {
+                            const transformed = classes.map((cls) => {
+                                const dayName = cls.day
+                                    ? cls.day.charAt(0).toUpperCase() + cls.day.slice(1)
+                                    : 'TBD';
 
-                        const time = cls.startTime && cls.endTime
-                            ? `${formatTime(cls.startTime)} - ${formatTime(cls.endTime)}`
-                            : 'TBD';
+                                const time = cls.startTime && cls.endTime
+                                    ? `${formatTime(cls.startTime)} - ${formatTime(cls.endTime)}`
+                                    : 'TBD';
 
-                        return {
-                            id: cls.id,
-                            name: cls.name,
-                            grade: cls.grade,
-                            medium: cls.medium || 'sinhala',
-                            type: cls.type || 'theory',
-                            monthlyFee: Number(cls.monthlyFee),
-                            day: cls.day,
-                            startTime: cls.startTime,
-                            endTime: cls.endTime,
-                            hallName: cls.hallName,
-                            subjectName: cls.subjectName,
-                            teacherName: cls.teacherName || 'Not Assigned',
-                            schedule: `${dayName}, ${time}`,
-                        };
+                                return {
+                                    id: cls.id,
+                                    name: cls.name,
+                                    grade: cls.grade,
+                                    medium: cls.medium || 'sinhala',
+                                    type: cls.type || 'theory',
+                                    monthlyFee: Number(cls.monthlyFee),
+                                    day: cls.day,
+                                    startTime: cls.startTime,
+                                    endTime: cls.endTime,
+                                    hallName: cls.hallName,
+                                    subjectName: cls.subjectName,
+                                    teacherName: cls.teacherName || 'Not Assigned',
+                                    schedule: `${dayName}, ${time}`,
+                                };
+                            });
+                            setAvailableClasses(transformed);
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('Failed to load classes:', error);
+                        setAvailableClasses([]);
+                    })
+                    .finally(() => {
+                        if (isMounted) setIsLoading(false);
                     });
-                    setAvailableClasses(transformed);
-                })
-                .catch((error) => {
-                    console.error('Failed to load classes:', error);
-                    setAvailableClasses([]);
-                })
-                .finally(() => {
-                    setIsLoading(false);
-                });
+            }, 0);
+
+            // Cleanup function
+            return () => {
+                isMounted = false;
+                clearTimeout(timeoutId);
+            };
         }
     }, [isOpen, student.current_grade]);
 
@@ -121,8 +133,9 @@ export function EnrollClassDialog({
         if (state.success) {
             onEnrolled?.();
             onOpenChange(false);
-            // Reset form state
-            setSelectedClassId(null);
+            // Defer state reset to avoid setting it synchronously in effect
+            const timeoutId = setTimeout(() => setSelectedClassId(null), 0);
+            return () => clearTimeout(timeoutId);
         }
     }, [state.success, onEnrolled, onOpenChange]);
 
@@ -186,7 +199,7 @@ export function EnrollClassDialog({
                             </div>
                         ) : (
                             <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                                {filteredClasses.map((cls: any) => (
+                                {filteredClasses.map((cls: ClassOption) => (
                                     <div
                                         key={cls.id}
                                         className={cn(

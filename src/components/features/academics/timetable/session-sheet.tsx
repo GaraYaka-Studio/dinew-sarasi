@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useRef, useLayoutEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
@@ -33,17 +33,11 @@ export function SessionSheet({
     onSessionUpdated,
 }: SessionSheetProps) {
     const router = useRouter();
-    const [isCancelled, setIsCancelled] = useState(session?.status === 'cancelled');
+    // Use lazy initialization and key prop on Sheet to reset when session changes
+    const [isCancelled, setIsCancelled] = useState(session?.status === 'cancelled' ?? false);
     const [isEditing, setIsEditing] = useState(false);
     const [editStartTime, setEditStartTime] = useState('');
     const [editEndTime, setEditEndTime] = useState('');
-
-    // Sync isCancelled state with session.status
-    useEffect(() => {
-        if (session) {
-            setIsCancelled(session.status === 'cancelled');
-        }
-    }, [session]);
 
     if (!session) return null;
 
@@ -128,7 +122,7 @@ export function SessionSheet({
     const canDelete = session.status === 'extra';
 
     return (
-        <Sheet open={isOpen} onOpenChange={onOpenChange}>
+        <Sheet key={session.id} open={isOpen} onOpenChange={onOpenChange}>
             <SheetContent className="sm:max-w-[400px]">
                 <SheetHeader className="mb-6">
                     <SheetTitle>{session.subject}</SheetTitle>
