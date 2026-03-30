@@ -23,11 +23,15 @@ export function TabProfile({ student }: TabProfileProps) {
                     </div>
                     <div>
                         <p className="text-xs text-muted-foreground">Grade</p>
-                        <p className="font-medium">{student.current_grade || '-'}</p>
+                        <p className="font-medium">
+                            {student.current_grade || '-'}
+                        </p>
                     </div>
                     <div>
                         <p className="text-xs text-muted-foreground">Batch</p>
-                        <p className="font-medium">{student.batch_year || '-'}</p>
+                        <p className="font-medium">
+                            {student.batch_year || '-'}
+                        </p>
                     </div>
                 </div>
             </div>
@@ -46,7 +50,9 @@ export function TabProfile({ student }: TabProfileProps) {
                     </div>
                     <div>
                         <p className="text-xs text-muted-foreground">Gender</p>
-                        <p className="font-medium capitalize">{student.gender}</p>
+                        <p className="font-medium capitalize">
+                            {student.gender}
+                        </p>
                     </div>
                     <div className="col-span-2">
                         <p className="text-xs text-muted-foreground">Address</p>

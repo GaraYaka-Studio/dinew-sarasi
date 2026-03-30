@@ -7,14 +7,14 @@
 
 ## Summary
 
-| Tool | Status | Issues |
-|------|--------|--------|
-| ESLint | ❌ FAILING | 6 errors, 30+ warnings |
-| Prettier | ✅ OK | Configured correctly |
-| Husky Pre-commit | ⚠️ BROKEN | Hook exists but no script |
-| Vitest (Unit Tests) | ✅ PASSING | 1/1 tests pass |
-| Playwright (E2E Tests) | ❌ FAILING | Missing env vars in CI |
-| GitHub Actions | ❌ BLOCKED | ESLint errors + missing secrets |
+| Tool                   | Status     | Issues                          |
+| ---------------------- | ---------- | ------------------------------- |
+| ESLint                 | ❌ FAILING | 6 errors, 30+ warnings          |
+| Prettier               | ✅ OK      | Configured correctly            |
+| Husky Pre-commit       | ⚠️ BROKEN  | Hook exists but no script       |
+| Vitest (Unit Tests)    | ✅ PASSING | 1/1 tests pass                  |
+| Playwright (E2E Tests) | ❌ FAILING | Missing env vars in CI          |
+| GitHub Actions         | ❌ BLOCKED | ESLint errors + missing secrets |
 
 ---
 
@@ -28,13 +28,14 @@
 
 ```typescript
 const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,  // ← Crashes here (undefined!)
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_URL!, // ← Crashes here (undefined!)
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     // ...
 );
 ```
 
 **Problem**:
+
 1. `.env.example` only contains `DATABASE_URL` - missing Supabase variables
 2. GitHub Actions doesn't have `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` secrets
 3. Middleware uses `!` (non-null assertion) which throws when env vars are undefined
@@ -43,6 +44,7 @@ const supabase = createServerClient(
 ### ESLint Failure in CI
 
 **Same 6 errors** as local (blocking CI):
+
 - `scripts/create-super-admin.ts:60` - `any` type
 - `src/app/api/auth/login/route.ts:68` - `any` type
 - `src/app/api/auth/logout/route.ts:26` - `any` type
@@ -55,25 +57,28 @@ const supabase = createServerClient(
 ## 1. ESLint - ❌ FAILING
 
 ### Configuration
+
 **File**: [eslint.config.mjs](eslint.config.mjs)
+
 - Uses `eslint-config-next` with TypeScript and Core Web Vitals
 - Prettier integration enabled
 - **Status**: Config is correct, but code has errors
 
 ### Critical Errors (Must Fix)
 
-| File | Line | Issue | Severity |
-|------|------|-------|----------|
-| [scripts/create-super-admin.ts](scripts/create-super-admin.ts#L60) | 60 | `any` type used | 🔴 Error |
-| [src/app/api/auth/login/route.ts](src/app/api/auth/login/route.ts#L68) | 68 | `any` type used | 🔴 Error |
-| [src/app/api/auth/logout/route.ts](src/app/api/auth/logout/route.ts#L26) | 26 | `any` type used | 🔴 Error |
-| [src/app/dashboard/attendance/scan/page.tsx](src/app/dashboard/attendance/scan/page.tsx#L121) | 121 | Variable accessed before declaration | 🔴 Error |
-| [src/app/dashboard/attendance/scan/page.tsx](src/app/dashboard/attendance/scan/page.tsx#L213) | 213 | Variable accessed before declaration | 🔴 Error |
-| [src/app/dashboard/attendance/scan/page.tsx](src/app/dashboard/attendance/scan/page.tsx#L43) | 43 | `any` type used | 🔴 Error |
+| File                                                                                          | Line | Issue                                | Severity |
+| --------------------------------------------------------------------------------------------- | ---- | ------------------------------------ | -------- |
+| [scripts/create-super-admin.ts](scripts/create-super-admin.ts#L60)                            | 60   | `any` type used                      | 🔴 Error |
+| [src/app/api/auth/login/route.ts](src/app/api/auth/login/route.ts#L68)                        | 68   | `any` type used                      | 🔴 Error |
+| [src/app/api/auth/logout/route.ts](src/app/api/auth/logout/route.ts#L26)                      | 26   | `any` type used                      | 🔴 Error |
+| [src/app/dashboard/attendance/scan/page.tsx](src/app/dashboard/attendance/scan/page.tsx#L121) | 121  | Variable accessed before declaration | 🔴 Error |
+| [src/app/dashboard/attendance/scan/page.tsx](src/app/dashboard/attendance/scan/page.tsx#L213) | 213  | Variable accessed before declaration | 🔴 Error |
+| [src/app/dashboard/attendance/scan/page.tsx](src/app/dashboard/attendance/scan/page.tsx#L43)  | 43   | `any` type used                      | 🔴 Error |
 
 ### Warnings (30+)
 
 **Unused Variables:**
+
 - `src/app/api/qr/scan/route.ts:4` - `isNull` imported but not used
 - `src/app/dashboard/academics/classes/page.tsx:32` - `isLoading` declared but not used
 - `src/app/dashboard/academics/timetable/page.tsx:3,10,64` - Multiple unused imports/variables
@@ -81,6 +86,7 @@ const supabase = createServerClient(
 - `src/app/dashboard/attendance/scan/page.tsx:14` - `StudentAttendanceData` not used
 
 **React Hooks Dependencies:**
+
 - `src/app/dashboard/academics/timetable/page.tsx:77` - Missing `loadSessions` in useEffect deps
 - `src/app/dashboard/attendance/log/page.tsx:53` - Missing `loadAttendance` in useEffect deps
 - `src/app/dashboard/attendance/scan/page.tsx:123` - Missing `loadAttendanceCount` in useEffect deps
@@ -91,14 +97,16 @@ const supabase = createServerClient(
 ## 2. Prettier - ✅ OK
 
 ### Configuration
+
 **File**: [.prettierrc](.prettierrc)
+
 ```json
 {
-  "tabWidth": 4,
-  "singleQuote": true,
-  "trailingComma": "es5",
-  "plugins": ["prettier-plugin-tailwindcss"],
-  "tailwindStylesheet": "./src/app/globals.css"
+    "tabWidth": 4,
+    "singleQuote": true,
+    "trailingComma": "es5",
+    "plugins": ["prettier-plugin-tailwindcss"],
+    "tailwindStylesheet": "./src/app/globals.css"
 }
 ```
 
@@ -111,6 +119,7 @@ const supabase = createServerClient(
 ### Current State
 
 **Hook Location**: `.husky/_/pre-commit`
+
 ```bash
 #!/usr/bin/env sh
 . "$(dirname "$0")/h"
@@ -137,11 +146,13 @@ npm run style:check
 ### Unit Tests (Vitest) - ✅ PASSING
 
 **Config**: [vitest.config.mts](vitest.config.mts)
+
 - Environment: jsdom
 - Plugin: @vitejs/plugin-react
 - Excludes: node_modules, e2e
 
 **Results**:
+
 ```
 ✓ tests/unit/Home.test.tsx (1 test)
 Test Files: 1 passed (1)
@@ -154,11 +165,13 @@ Duration: 4.33s
 ### E2E Tests (Playwright) - ❌ FAILING (CI Only)
 
 **Config**: [playwright.config.ts](playwright.config.ts)
+
 - Browsers: Chromium, Firefox, WebKit
 - Reporter: HTML
 - WebServer: `npm run dev` on port 3000
 
 **Test File**: [tests/e2e/Home.test.ts](tests/e2e/Home.test.ts)
+
 - Tests page title
 - Tests heading visibility
 
@@ -177,6 +190,7 @@ DATABASE_URL="postgres://root:postgres_5432@localhost:5432/local"
 ```
 
 **Missing Variables** (required for CI):
+
 ```bash
 NEXT_PUBLIC_SUPABASE_URL="your-supabase-url"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="your-supabase-anon-key"
@@ -190,15 +204,16 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY="your-supabase-anon-key"
 
 ```yaml
 on:
-  pull_request:
-    branches:
-      - main
-      - developer
+    pull_request:
+        branches:
+            - main
+            - developer
 ```
 
 **Jobs**: `unit` and `e2e`
 
 **Blockers**:
+
 1. ESLint errors cause `npm run style` to fail
 2. E2E tests fail because Supabase env vars not set in CI
 3. No explicit secrets setup documented
@@ -211,11 +226,11 @@ on:
 
 Found **13 console.log statements** that should be removed:
 
-| File | Lines |
-|------|-------|
-| [src/components/features/students/sheet/sheet-header.tsx](src/components/features/students/sheet/sheet-header.tsx#L24) | 24 |
-| [src/components/features/students/student-dialog.tsx](src/components/features/students/student-dialog.tsx) | Multiple |
-| [src/components/features/students/sheet/tab-payments.tsx](src/components/features/students/sheet/tab-payments.tsx#L186) | 186 |
+| File                                                                                                                    | Lines    |
+| ----------------------------------------------------------------------------------------------------------------------- | -------- |
+| [src/components/features/students/sheet/sheet-header.tsx](src/components/features/students/sheet/sheet-header.tsx#L24)  | 24       |
+| [src/components/features/students/student-dialog.tsx](src/components/features/students/student-dialog.tsx)              | Multiple |
+| [src/components/features/students/sheet/tab-payments.tsx](src/components/features/students/sheet/tab-payments.tsx#L186) | 186      |
 
 ---
 
@@ -224,30 +239,31 @@ Found **13 console.log statements** that should be removed:
 ### 🔴 Critical (Must Fix - CI Blocking)
 
 1. **Fix ESLint Errors** - These block CI/CD
-   ```typescript
-   // Replace `any` with proper types in:
-   - scripts/create-super-admin.ts:60
-   - src/app/api/auth/login/route.ts:68
-   - src/app/api/auth/logout/route.ts:26
-   - src/app/dashboard/attendance/scan/page.tsx:43
-   ```
+
+    ```typescript
+    // Replace `any` with proper types in:
+    - scripts/create-super-admin.ts:60
+    - src/app/api/auth/login/route.ts:68
+    - src/app/api/auth/logout/route.ts:26
+    - src/app/dashboard/attendance/scan/page.tsx:43
+    ```
 
 2. **Fix Variable Declaration Order** in [attendance/scan/page.tsx](src/app/dashboard/attendance/scan/page.tsx)
-   - Move `loadAttendanceCount` before line 121
-   - Move `handleMarkAttendanceInternal` before line 213
-   - Or use `useCallback` to declare them first
+    - Move `loadAttendanceCount` before line 121
+    - Move `handleMarkAttendanceInternal` before line 213
+    - Or use `useCallback` to declare them first
 
 3. **Fix Environment Variables for CI**
-   - Update `.env.example` with Supabase variables
-   - Add GitHub Actions secrets for `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - OR: Mock Supabase in E2E tests (better approach)
+    - Update `.env.example` with Supabase variables
+    - Add GitHub Actions secrets for `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+    - OR: Mock Supabase in E2E tests (better approach)
 
 4. **Create Pre-commit Script**
-   ```bash
-   # Create file at repo root named "pre-commit":
-   #!/usr/bin/env sh
-   npm run style:check
-   ```
+    ```bash
+    # Create file at repo root named "pre-commit":
+    #!/usr/bin/env sh
+    npm run style:check
+    ```
 
 ### 🟡 High Priority
 
@@ -285,8 +301,8 @@ npm run test:e2e
 
 1. Go to GitHub repo → Settings → Secrets and variables → Actions
 2. Add secrets:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+    - `NEXT_PUBLIC_SUPABASE_URL`
+    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
 ### Option B: Mock Supabase for Testing (Recommended)
 
@@ -319,8 +335,8 @@ Add to `playwright.config.ts`:
 export default defineConfig({
     // ...
     env: {
-        SKIP_AUTH: 'true'
-    }
+        SKIP_AUTH: 'true',
+    },
 });
 ```
 
@@ -333,6 +349,7 @@ And update middleware to check `process.env.SKIP_AUTH`.
 **DO NOT MERGE** until ESLint errors are fixed AND CI is configured. The `any` types and variable declaration issues are blocking CI/CD and represent potential runtime bugs. The E2E tests will continue failing until Supabase credentials or a mocking strategy is added.
 
 **Minimum viable fix:**
+
 1. Fix the 6 ESLint errors (~15 minutes)
 2. Create the pre-commit script (~2 minutes)
 3. Add GitHub secrets OR mock Supabase for CI (~10 minutes)

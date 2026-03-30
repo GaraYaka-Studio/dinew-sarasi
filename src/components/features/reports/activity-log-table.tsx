@@ -37,7 +37,9 @@ export function ActivityLogTable({ data }: ActivityLogTableProps) {
                             <TableHead>Class</TableHead>
                             <TableHead>Teacher</TableHead>
                             <TableHead>Status</TableHead>
-                            <TableHead className="text-right">Attendance</TableHead>
+                            <TableHead className="text-right">
+                                Attendance
+                            </TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -69,7 +71,9 @@ export function ActivityLogTable({ data }: ActivityLogTableProps) {
                                 </TableCell>
                                 <TableCell className="text-right">
                                     <AttendanceBadge
-                                        attendanceCount={session.attendanceCount}
+                                        attendanceCount={
+                                            session.attendanceCount
+                                        }
                                         totalEnrolled={session.totalEnrolled}
                                     />
                                 </TableCell>
@@ -159,9 +163,10 @@ function AttendanceBadge({
     attendanceCount: number;
     totalEnrolled: number;
 }) {
-    const percentage = totalEnrolled > 0
-        ? Math.round((attendanceCount / totalEnrolled) * 100)
-        : 0;
+    const percentage =
+        totalEnrolled > 0
+            ? Math.round((attendanceCount / totalEnrolled) * 100)
+            : 0;
 
     const getBadgeVariant = () => {
         if (percentage >= 80) {

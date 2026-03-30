@@ -1,7 +1,12 @@
 'use client';
 
 import { Card } from '@/components/ui/card';
-import type { ReportType, FinancialSummary, AttendanceSummary, ActivitySummary } from '@/types/reports';
+import type {
+    ReportType,
+    FinancialSummary,
+    AttendanceSummary,
+    ActivitySummary,
+} from '@/types/reports';
 
 interface ReportsSummaryCardsProps {
     reportType: ReportType;

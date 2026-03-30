@@ -7,7 +7,11 @@ import { DateTabs } from '@/components/features/academics/timetable/date-tabs';
 import { ScheduleList } from '@/components/features/academics/timetable/schedule-list';
 import { SessionDialog } from '@/components/features/academics/timetable/session-dialog';
 import { SessionSheet } from '@/components/features/academics/timetable/session-sheet';
-import { getSessionsForWeek, getActiveClassesForSession, checkConflicts } from '@/lib/db/timetable';
+import {
+    getSessionsForWeek,
+    getActiveClassesForSession,
+    checkConflicts,
+} from '@/lib/db/timetable';
 import { ScheduleSession } from '@/lib/mock-data';
 import { toast } from 'sonner';
 
@@ -50,8 +54,12 @@ function toScheduleSession(session: DbSession): ScheduleSession {
         endTime: formatTime(session.endTime),
         subject: session.subjectName,
         grade: session.grade,
-        medium: session.medium.charAt(0).toUpperCase() + session.medium.slice(1) as 'Sinhala' | 'English' | 'Tamil',
-        type: session.type.charAt(0).toUpperCase() + session.type.slice(1) as 'Theory' | 'Revision' | 'Paper',
+        medium: (session.medium.charAt(0).toUpperCase() +
+            session.medium.slice(1)) as 'Sinhala' | 'English' | 'Tamil',
+        type: (session.type.charAt(0).toUpperCase() + session.type.slice(1)) as
+            | 'Theory'
+            | 'Revision'
+            | 'Paper',
         teacher: {
             name: session.teacherName || 'Not Assigned',
         },
@@ -68,7 +76,8 @@ export default function TimetablePage() {
     const [isLoading, setIsLoading] = useState(true);
 
     // Sheet State
-    const [selectedSession, setSelectedSession] = useState<ScheduleSession | null>(null);
+    const [selectedSession, setSelectedSession] =
+        useState<ScheduleSession | null>(null);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
 
     // Load sessions when currentDate changes
@@ -120,7 +129,9 @@ export default function TimetablePage() {
             <div className="flex-1">
                 {isLoading ? (
                     <div className="flex h-full items-center justify-center">
-                        <p className="text-muted-foreground">Loading timetable...</p>
+                        <p className="text-muted-foreground">
+                            Loading timetable...
+                        </p>
                     </div>
                 ) : (
                     <ScheduleList

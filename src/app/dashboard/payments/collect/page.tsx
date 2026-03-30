@@ -14,7 +14,7 @@ import {
 } from '@/components/features/payments/collect/payment-terminal';
 import {
     ReceiptView,
-    ReceiptItem
+    ReceiptItem,
 } from '@/components/features/payments/collect/receipt-view';
 import { Button } from '@/components/ui/button';
 import {
@@ -24,12 +24,14 @@ import {
     SheetTitle,
     SheetDescription,
 } from '@/components/ui/sheet';
-import {
-    ClassFeeStructure,
-} from '@/lib/mock-data';
+import { ClassFeeStructure } from '@/lib/mock-data';
 import { searchStudents, getStudentFeeStructure } from '@/lib/db/select';
 import { recordPayment, PaymentCartItem } from '@/lib/db/insert';
-import { transformToStudentDetail, transformToFeeStructure, StudentSearchResult } from '@/lib/db/transformers';
+import {
+    transformToStudentDetail,
+    transformToFeeStructure,
+    StudentSearchResult,
+} from '@/lib/db/transformers';
 
 // ============================================================================
 // Types
@@ -61,15 +63,21 @@ export default function FeesCollectionPage() {
     const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
     const [cart, setCart] = useState<CartItem[]>([]);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
-    const [searchResults, setSearchResults] = useState<StudentSearchResult[]>([]);
-    const [selectedStudent, setSelectedStudent] = useState<StudentSearchResult | null>(null);
+    const [searchResults, setSearchResults] = useState<StudentSearchResult[]>(
+        []
+    );
+    const [selectedStudent, setSelectedStudent] =
+        useState<StudentSearchResult | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
 
     // Derived
     const totalAmount = cart.reduce((acc, item) => acc + item.amount, 0);
     const totalClasses = feeClasses.length || 0;
-    const totalUnpaidMonths = feeClasses.reduce((sum, cls) => sum + cls.totalUnpaid, 0);
+    const totalUnpaidMonths = feeClasses.reduce(
+        (sum, cls) => sum + cls.totalUnpaid,
+        0
+    );
     const totalDue = feeClasses.reduce((sum, cls) => sum + cls.totalDue, 0);
 
     // ============================================================================
@@ -129,7 +137,9 @@ export default function FeesCollectionPage() {
                     type: 'admission',
                 };
                 setCart([admissionFee]);
-                toast.warning('Admission Pending: Fee added to bill automatically.');
+                toast.warning(
+                    'Admission Pending: Fee added to bill automatically.'
+                );
             } else if (dbStudent.admissionStatus !== 'pending') {
                 setCart([]);
             }
@@ -192,7 +202,9 @@ export default function FeesCollectionPage() {
                     return {
                         ...c,
                         months: c.months.map((m, idx) =>
-                            idx === monthIndex ? { ...m, status: 'unpaid' as const } : m
+                            idx === monthIndex
+                                ? { ...m, status: 'unpaid' as const }
+                                : m
                         ),
                     };
                 })
@@ -222,7 +234,9 @@ export default function FeesCollectionPage() {
                     return {
                         ...c,
                         months: c.months.map((m, idx) =>
-                            idx === monthIndex ? { ...m, status: 'selected' as const } : m
+                            idx === monthIndex
+                                ? { ...m, status: 'selected' as const }
+                                : m
                         ),
                     };
                 })
@@ -249,7 +263,9 @@ export default function FeesCollectionPage() {
                     return {
                         ...c,
                         months: c.months.map((m, idx) =>
-                            idx === monthIndex ? { ...m, status: 'selected' as const } : m
+                            idx === monthIndex
+                                ? { ...m, status: 'selected' as const }
+                                : m
                         ),
                     };
                 })
@@ -302,7 +318,7 @@ export default function FeesCollectionPage() {
                     studentName: student.name,
                     studentId: student.studentId,
                     grade: student.grade,
-                    items: cart.map(item => ({
+                    items: cart.map((item) => ({
                         label: item.label,
                         amount: item.amount,
                     })),
@@ -376,18 +392,21 @@ export default function FeesCollectionPage() {
 
                     {/* Search Results Dropdown */}
                     {searchResults.length > 1 && (
-                        <div className="absolute top-full left-0 right-0 z-50 mt-1 max-h-64 overflow-y-auto rounded-md border bg-background shadow-lg">
+                        <div className="absolute top-full right-0 left-0 z-50 mt-1 max-h-64 overflow-y-auto rounded-md border bg-background shadow-lg">
                             {searchResults.map((s) => (
                                 <button
                                     key={s.id}
-                                    className="w-full px-4 py-3 text-left hover:bg-muted/50 transition-colors"
+                                    className="w-full px-4 py-3 text-left transition-colors hover:bg-muted/50"
                                     onClick={() => handleSelectStudent(s)}
                                 >
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <div className="font-medium">{s.fullName}</div>
+                                            <div className="font-medium">
+                                                {s.fullName}
+                                            </div>
                                             <div className="text-sm text-muted-foreground">
-                                                {s.phone} • Grade: {s.grade || 'N/A'}
+                                                {s.phone} • Grade:{' '}
+                                                {s.grade || 'N/A'}
                                             </div>
                                         </div>
                                         <div className="text-xs text-muted-foreground">
@@ -416,7 +435,8 @@ export default function FeesCollectionPage() {
                             </div>
 
                             {/* 3. Class Selector - stays visible when class is selected */}
-                            {(pageState === 'select_class' || pageState === 'payment') && (
+                            {(pageState === 'select_class' ||
+                                pageState === 'payment') && (
                                 <div className="animate-in delay-75 duration-500 fade-in-50 slide-in-from-bottom-5">
                                     <ClassSelector
                                         classes={feeClasses}
@@ -429,7 +449,7 @@ export default function FeesCollectionPage() {
                             {/* 4. Fee Grid - shows when a class is selected */}
                             {selectedClassId && (
                                 <div className="animate-in delay-75 duration-500 fade-in-50 slide-in-from-bottom-5">
-                                    <div className="flex items-center justify-between mb-4">
+                                    <div className="mb-4 flex items-center justify-between">
                                         <h3 className="text-lg font-semibold tracking-tight text-foreground">
                                             Fee Payment
                                         </h3>

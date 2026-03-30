@@ -31,7 +31,7 @@ export function TabAttendance({ student }: TabAttendanceProps) {
                     <p className="text-sm text-muted-foreground">
                         No attendance records yet
                     </p>
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="mt-1 text-xs text-muted-foreground">
                         Attendance history will appear here once classes start
                     </p>
                 </div>

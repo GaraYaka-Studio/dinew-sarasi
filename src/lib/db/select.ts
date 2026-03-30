@@ -1,9 +1,30 @@
 'use server';
 
 import { db } from '@/db';
-import { classes, enrollments, paymentItems, payments, studentFees, students, subjects, teacherPayments, teachers } from '@/db/schema';
+import {
+    classes,
+    enrollments,
+    paymentItems,
+    payments,
+    studentFees,
+    students,
+    subjects,
+    teacherPayments,
+    teachers,
+} from '@/db/schema';
 import { Student, Subject, Teacher } from '@/types/schema.types';
-import { eq, isNull, and, sql, or, ilike, like, gte, lte, desc } from 'drizzle-orm';
+import {
+    eq,
+    isNull,
+    and,
+    sql,
+    or,
+    ilike,
+    like,
+    gte,
+    lte,
+    desc,
+} from 'drizzle-orm';
 
 export async function getStudents() {
     return await db.select().from(students).where(isNull(students.deleted_at));
@@ -256,33 +277,46 @@ export async function getStudentFeeStructure(studentId: string) {
     // Get existing fee records for these classes for the entire current year
     const classIds = enrolledClasses.map((c) => c.classId);
 
-    const existingFees = classIds.length > 0 ? await db
-        .select({
-            classId: studentFees.class_id,
-            year: studentFees.year,
-            monthIndex: studentFees.month_index,
-            feeAmount: studentFees.fee_amount,
-            paidAmount: studentFees.paid_amount,
-            status: studentFees.status,
-        })
-        .from(studentFees)
-        .where(
-            and(
-                eq(studentFees.student_id, studentId),
-                eq(studentFees.year, currentYear),
-                isNull(studentFees.deleted_at)
-            )
-        ) : [];
+    const existingFees =
+        classIds.length > 0
+            ? await db
+                  .select({
+                      classId: studentFees.class_id,
+                      year: studentFees.year,
+                      monthIndex: studentFees.month_index,
+                      feeAmount: studentFees.fee_amount,
+                      paidAmount: studentFees.paid_amount,
+                      status: studentFees.status,
+                  })
+                  .from(studentFees)
+                  .where(
+                      and(
+                          eq(studentFees.student_id, studentId),
+                          eq(studentFees.year, currentYear),
+                          isNull(studentFees.deleted_at)
+                      )
+                  )
+            : [];
 
     // Month labels
-    const MONTH_LABELS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
-                          'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    const MONTH_LABELS = [
+        'JAN',
+        'FEB',
+        'MAR',
+        'APR',
+        'MAY',
+        'JUN',
+        'JUL',
+        'AUG',
+        'SEP',
+        'OCT',
+        'NOV',
+        'DEC',
+    ];
 
     // Transform into fee structure format
     return enrolledClasses.map((cls) => {
-        const classFees = existingFees.filter(
-            (f) => f.classId === cls.classId
-        );
+        const classFees = existingFees.filter((f) => f.classId === cls.classId);
 
         const months = [];
         let totalPaid = 0;
@@ -314,14 +348,17 @@ export async function getStudentFeeStructure(studentId: string) {
 
             // Not eligible if: future month OR before enrollment
             // Eligible if: current/past month AND on or after enrollment month
-            const isEligibleForPayment = i <= currentMonth && !isBeforeEnrollment;
+            const isEligibleForPayment =
+                i <= currentMonth && !isBeforeEnrollment;
 
             // Determine status - check for 'free' status from DB and map to 'skipped' in UI
-            let status: 'paid' | 'unpaid' | 'partial' | 'selected' | 'skipped' = 'unpaid';
+            let status: 'paid' | 'unpaid' | 'partial' | 'selected' | 'skipped' =
+                'unpaid';
             if (existingFee) {
                 if (existingFee.status === 'paid') status = 'paid';
                 else if (existingFee.status === 'partial') status = 'partial';
-                else if (existingFee.status === 'free') status = 'skipped'; // Map 'free' to 'skipped'
+                else if (existingFee.status === 'free')
+                    status = 'skipped'; // Map 'free' to 'skipped'
                 else status = 'unpaid';
             }
 
@@ -336,7 +373,7 @@ export async function getStudentFeeStructure(studentId: string) {
                     totalDue += feeAmount;
                 } else if (status === 'partial') {
                     totalUnpaid++;
-                    totalDue += (feeAmount - paidAmount);
+                    totalDue += feeAmount - paidAmount;
                 }
                 // Skipped months don't count toward totals
             }
@@ -450,10 +487,7 @@ export async function getStudentPayments(studentId: string) {
         .leftJoin(paymentItems, eq(paymentItems.payment_id, payments.id))
         .leftJoin(classes, eq(paymentItems.class_id, classes.id))
         .where(
-            and(
-                eq(payments.student_id, studentId),
-                isNull(payments.deleted_at)
-            )
+            and(eq(payments.student_id, studentId), isNull(payments.deleted_at))
         )
         .orderBy(desc(payments.payment_date));
 

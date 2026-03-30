@@ -8,7 +8,10 @@ interface AttendanceLogHeaderProps {
     onDateChange: (date: Date) => void;
 }
 
-export function AttendanceLogHeader({ currentDate, onDateChange }: AttendanceLogHeaderProps) {
+export function AttendanceLogHeader({
+    currentDate,
+    onDateChange,
+}: AttendanceLogHeaderProps) {
     // Calculate week range (Monday to Sunday)
     const getWeekRange = (date: Date) => {
         const day = date.getDay();
@@ -44,7 +47,9 @@ export function AttendanceLogHeader({ currentDate, onDateChange }: AttendanceLog
         <div className="flex flex-col gap-4 border-b pb-4 lg:flex-row lg:items-center lg:justify-between">
             {/* Left: Title */}
             <div>
-                <h1 className="text-2xl font-bold tracking-tight">Attendance Log</h1>
+                <h1 className="text-2xl font-bold tracking-tight">
+                    Attendance Log
+                </h1>
                 <p className="text-sm text-muted-foreground">
                     View and manage attendance records by date.
                 </p>

@@ -82,12 +82,14 @@ export function StepAcademic({ formData, onUpdate }: StepAcademicProps) {
                     .then((classes) => {
                         const transformed = classes.map((cls) => {
                             const dayName = cls.day
-                                ? cls.day.charAt(0).toUpperCase() + cls.day.slice(1)
+                                ? cls.day.charAt(0).toUpperCase() +
+                                  cls.day.slice(1)
                                 : 'TBD';
 
-                            const time = cls.startTime && cls.endTime
-                                ? `${formatTime(cls.startTime)} - ${formatTime(cls.endTime)}`
-                                : 'TBD';
+                            const time =
+                                cls.startTime && cls.endTime
+                                    ? `${formatTime(cls.startTime)} - ${formatTime(cls.endTime)}`
+                                    : 'TBD';
 
                             return {
                                 id: cls.id,
@@ -136,13 +138,15 @@ export function StepAcademic({ formData, onUpdate }: StepAcademicProps) {
     const filteredClasses = availableClasses.filter(
         (cls) =>
             cls.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            cls.subjectName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            cls.subjectName
+                ?.toLowerCase()
+                .includes(searchQuery.toLowerCase()) ||
             cls.teacherName?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     const selectedCount = formData.selectedClasses?.length || 0;
     const totalMonthlyFee = availableClasses
-        .filter(c => formData.selectedClasses?.includes(c.id))
+        .filter((c) => formData.selectedClasses?.includes(c.id))
         .reduce((sum, c) => sum + c.monthlyFee, 0);
 
     return (
@@ -188,7 +192,8 @@ export function StepAcademic({ formData, onUpdate }: StepAcademicProps) {
                             placeholder="Auto-calculated from grade"
                         />
                         <p className="text-xs text-muted-foreground">
-                            Automatically calculated based on grade. Can be edited if needed.
+                            Automatically calculated based on grade. Can be
+                            edited if needed.
                         </p>
                     </div>
                 </div>
@@ -200,8 +205,9 @@ export function StepAcademic({ formData, onUpdate }: StepAcademicProps) {
                     <h3 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
                         Class Enrollment
                     </h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        Select classes for <strong>{formData.grade || 'Selected Grade'}</strong>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        Select classes for{' '}
+                        <strong>{formData.grade || 'Selected Grade'}</strong>
                     </p>
                 </div>
 
@@ -223,15 +229,15 @@ export function StepAcademic({ formData, onUpdate }: StepAcademicProps) {
                         Loading classes...
                     </div>
                 ) : !formData.grade ? (
-                    <div className="flex flex-col items-center justify-center p-12 border border-dashed rounded-lg">
-                        <Info className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12">
+                        <Info className="mb-4 h-12 w-12 text-muted-foreground/50" />
                         <p className="text-center text-muted-foreground">
                             Please select a grade first to see available classes
                         </p>
                     </div>
                 ) : filteredClasses.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center p-12 border border-dashed rounded-lg">
-                        <Users className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12">
+                        <Users className="mb-4 h-12 w-12 text-muted-foreground/50" />
                         <p className="text-center text-muted-foreground">
                             No classes available for {formData.grade}
                         </p>
@@ -242,7 +248,7 @@ export function StepAcademic({ formData, onUpdate }: StepAcademicProps) {
                             <Card
                                 key={cls.id}
                                 className={cn(
-                                    'transition-all hover:shadow-md cursor-pointer',
+                                    'cursor-pointer transition-all hover:shadow-md',
                                     formData.selectedClasses?.includes(cls.id)
                                         ? 'border-primary bg-primary/5'
                                         : 'border-muted'
@@ -255,34 +261,42 @@ export function StepAcademic({ formData, onUpdate }: StepAcademicProps) {
                                             type="checkbox"
                                             id={`class-${cls.id}`}
                                             checked={
-                                                formData.selectedClasses?.includes(cls.id) || false
+                                                formData.selectedClasses?.includes(
+                                                    cls.id
+                                                ) || false
                                             }
                                             onChange={() => toggleClass(cls.id)}
                                             className="mt-1 h-4 w-4 rounded border-gray-300"
                                             onClick={(e) => e.stopPropagation()}
                                         />
                                         <div className="flex-1">
-                                            <div className="flex items-center gap-2 flex-wrap">
+                                            <div className="flex flex-wrap items-center gap-2">
                                                 <label
                                                     htmlFor={`class-${cls.id}`}
-                                                    className="font-medium cursor-pointer"
+                                                    className="cursor-pointer font-medium"
                                                 >
                                                     {cls.name}
                                                 </label>
                                                 <Badge
                                                     variant="outline"
-                                                    className={cn('text-xs', typeColors[cls.type])}
+                                                    className={cn(
+                                                        'text-xs',
+                                                        typeColors[cls.type]
+                                                    )}
                                                 >
                                                     {cls.type}
                                                 </Badge>
                                                 <Badge
                                                     variant="outline"
-                                                    className={cn('text-xs capitalize', mediumColors[cls.medium])}
+                                                    className={cn(
+                                                        'text-xs capitalize',
+                                                        mediumColors[cls.medium]
+                                                    )}
                                                 >
                                                     {cls.medium}
                                                 </Badge>
                                             </div>
-                                            <div className="flex flex-wrap items-center gap-x-3 text-xs text-muted-foreground mt-2">
+                                            <div className="mt-2 flex flex-wrap items-center gap-x-3 text-xs text-muted-foreground">
                                                 <span className="flex items-center gap-1">
                                                     <Calendar className="h-3 w-3" />
                                                     {cls.schedule}
@@ -293,7 +307,9 @@ export function StepAcademic({ formData, onUpdate }: StepAcademicProps) {
                                                 </span>
                                                 <span>•</span>
                                                 <span className="font-medium text-foreground">
-                                                    Rs. {cls.monthlyFee.toLocaleString()}/month
+                                                    Rs.{' '}
+                                                    {cls.monthlyFee.toLocaleString()}
+                                                    /month
                                                 </span>
                                             </div>
                                         </div>
@@ -311,10 +327,12 @@ export function StepAcademic({ formData, onUpdate }: StepAcademicProps) {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="font-medium">
-                                        {selectedCount} class{selectedCount > 1 ? 'es' : ''} selected
+                                        {selectedCount} class
+                                        {selectedCount > 1 ? 'es' : ''} selected
                                     </p>
                                     <p className="text-sm text-muted-foreground">
-                                        Total monthly fees: Rs. {totalMonthlyFee.toLocaleString()}
+                                        Total monthly fees: Rs.{' '}
+                                        {totalMonthlyFee.toLocaleString()}
                                     </p>
                                 </div>
                             </div>

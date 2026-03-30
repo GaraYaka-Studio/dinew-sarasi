@@ -12,14 +12,18 @@ interface FeeGridProps {
     onToggleMonth: (classId: string, monthIndex: number) => void;
 }
 
-export function FeeGrid({ feeClasses, selectedClassId, onToggleMonth }: FeeGridProps) {
+export function FeeGrid({
+    feeClasses,
+    selectedClassId,
+    onToggleMonth,
+}: FeeGridProps) {
     // Find the selected class
     const selectedClass = feeClasses.find((c) => c.classId === selectedClassId);
 
     if (!selectedClass) {
         return (
             <div className="flex h-40 flex-col items-center justify-center rounded-lg border border-dashed text-muted-foreground">
-                <CircleAlert className="h-8 w-8 mb-2 opacity-50" />
+                <CircleAlert className="mb-2 h-8 w-8 opacity-50" />
                 <div className="text-center">
                     <p className="text-sm font-medium">No class selected</p>
                     <p className="text-xs text-muted-foreground">
@@ -58,7 +62,8 @@ export function FeeGrid({ feeClasses, selectedClassId, onToggleMonth }: FeeGridP
                             const isSkipped = month.status === 'skipped';
                             const isFuture = month.isFuture;
                             const isBeforeEnrollment = month.isBeforeEnrollment;
-                            const isFirstEnrollmentMonth = month.isFirstEnrollmentMonth;
+                            const isFirstEnrollmentMonth =
+                                month.isFirstEnrollmentMonth;
 
                             // Determine button styling based on state
                             const getButtonClass = () => {
@@ -88,17 +93,24 @@ export function FeeGrid({ feeClasses, selectedClassId, onToggleMonth }: FeeGridP
                                 return 'border-red-300 bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-900/10 dark:text-red-400 cursor-pointer';
                             };
 
-                            const isDisabled = isPaid || isFuture || isBeforeEnrollment;
+                            const isDisabled =
+                                isPaid || isFuture || isBeforeEnrollment;
 
                             return (
                                 <button
                                     key={`${selectedClass.classId}-${month.month}`}
-                                    onClick={() => !isDisabled && onToggleMonth(selectedClass.classId, idx)}
+                                    onClick={() =>
+                                        !isDisabled &&
+                                        onToggleMonth(
+                                            selectedClass.classId,
+                                            idx
+                                        )
+                                    }
                                     disabled={isDisabled}
                                     className={cn(
-                                        'relative flex h-16 w-full flex-col gap-1 text-xs font-semibold sm:text-sm transition-all rounded-md border-2',
+                                        'relative flex h-16 w-full flex-col gap-1 rounded-md border-2 text-xs font-semibold transition-all sm:text-sm',
                                         'inline-flex items-center justify-center whitespace-nowrap',
-                                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                                        'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
                                         'disabled:pointer-events-none disabled:opacity-50',
                                         getButtonClass()
                                     )}
@@ -133,15 +145,20 @@ export function FeeGrid({ feeClasses, selectedClassId, onToggleMonth }: FeeGridP
 
                                     {isPartial && (
                                         <span className="text-[10px] font-normal opacity-80">
-                                            Due: {month.amount - (month.paidAmount || 0)}
+                                            Due:{' '}
+                                            {month.amount -
+                                                (month.paidAmount || 0)}
                                         </span>
                                     )}
 
-                                    {isUnpaid && !isFuture && !isBeforeEnrollment && (
-                                        <span className="text-[10px] font-medium opacity-80">
-                                            LKR {month.amount.toLocaleString()}
-                                        </span>
-                                    )}
+                                    {isUnpaid &&
+                                        !isFuture &&
+                                        !isBeforeEnrollment && (
+                                            <span className="text-[10px] font-medium opacity-80">
+                                                LKR{' '}
+                                                {month.amount.toLocaleString()}
+                                            </span>
+                                        )}
 
                                     {isFuture && (
                                         <span className="text-[10px] font-normal opacity-50">

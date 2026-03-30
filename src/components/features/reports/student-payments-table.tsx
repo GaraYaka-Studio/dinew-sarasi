@@ -26,7 +26,11 @@ const getPaymentTypeBadge = (type: 'monthly' | 'admission') => {
     };
 };
 
-export function StudentPaymentsTable({ data }: { data: StudentPaymentRecord[] }) {
+export function StudentPaymentsTable({
+    data,
+}: {
+    data: StudentPaymentRecord[];
+}) {
     const formatCurrency = (amount: number) => {
         return `LKR ${amount.toLocaleString()}`;
     };
@@ -50,7 +54,9 @@ export function StudentPaymentsTable({ data }: { data: StudentPaymentRecord[] })
                         {data.map((record, index) => {
                             const typeBadge = getPaymentTypeBadge(record.type);
                             return (
-                                <TableRow key={`${record.date}-${record.receiptNumber}-${index}`}>
+                                <TableRow
+                                    key={`${record.date}-${record.receiptNumber}-${index}`}
+                                >
                                     <TableCell className="text-sm">
                                         {record.date}
                                     </TableCell>
@@ -95,7 +101,10 @@ export function StudentPaymentsTable({ data }: { data: StudentPaymentRecord[] })
                 {data.map((record, index) => {
                     const typeBadge = getPaymentTypeBadge(record.type);
                     return (
-                        <Card key={`${record.date}-${record.receiptNumber}-${index}`} className="p-4">
+                        <Card
+                            key={`${record.date}-${record.receiptNumber}-${index}`}
+                            className="p-4"
+                        >
                             <div className="flex items-start justify-between">
                                 <div className="min-w-0 flex-1">
                                     <p className="truncate font-medium">
@@ -110,7 +119,10 @@ export function StudentPaymentsTable({ data }: { data: StudentPaymentRecord[] })
                                     <div className="mt-2">
                                         <Badge
                                             variant="outline"
-                                            className={cn('text-xs', typeBadge.className)}
+                                            className={cn(
+                                                'text-xs',
+                                                typeBadge.className
+                                            )}
                                         >
                                             {typeBadge.label}
                                         </Badge>

@@ -83,14 +83,17 @@ export async function getSessionsForWeek(startDate: Date) {
         .leftJoin(teachers, eq(classes.teacher_id, teachers.id))
         .where(
             and(
-                inArray(classSessions.date, weekDates.map(d => formatDate(d))),
+                inArray(
+                    classSessions.date,
+                    weekDates.map((d) => formatDate(d))
+                ),
                 isNull(classSessions.deleted_at)
             )
         );
 
     // 2. Build a set of existing (classId, date) combinations
     const existingKeys = new Set(
-        existingSessions.map(s => `${s.classId}-${s.date}`)
+        existingSessions.map((s) => `${s.classId}-${s.date}`)
     );
 
     // 3. Get active classes with schedules
@@ -188,7 +191,10 @@ export async function getSessionsForWeek(startDate: Date) {
         .leftJoin(teachers, eq(classes.teacher_id, teachers.id))
         .where(
             and(
-                inArray(classSessions.date, weekDates.map(d => formatDate(d))),
+                inArray(
+                    classSessions.date,
+                    weekDates.map((d) => formatDate(d))
+                ),
                 isNull(classSessions.deleted_at)
             )
         )
@@ -217,12 +223,7 @@ export async function getActiveClassesForSession() {
         .from(classes)
         .innerJoin(subjects, eq(classes.subject_id, subjects.id))
         .leftJoin(teachers, eq(classes.teacher_id, teachers.id))
-        .where(
-            and(
-                eq(classes.is_active, true),
-                isNull(classes.deleted_at)
-            )
-        )
+        .where(and(eq(classes.is_active, true), isNull(classes.deleted_at)))
         .orderBy(classes.grade, subjects.name);
 
     return result;
@@ -240,7 +241,8 @@ export async function checkConflicts(data: {
     hallName?: string;
     excludeSessionId?: string;
 }) {
-    const { classId, date, startTime, endTime, hallName, excludeSessionId } = data;
+    const { classId, date, startTime, endTime, hallName, excludeSessionId } =
+        data;
 
     // Get class details to check grade conflicts
     const classInfo = await db
@@ -269,13 +271,15 @@ export async function checkConflicts(data: {
             and(
                 eq(classSessions.date, date),
                 isNull(classSessions.deleted_at),
-                excludeSessionId ? ne(classSessions.id, excludeSessionId) : sql`1=1`,
+                excludeSessionId
+                    ? ne(classSessions.id, excludeSessionId)
+                    : sql`1=1`,
                 ne(classSessions.status, 'cancelled')
             )
         );
 
     // Check for time overlaps and conflicts
-    const conflictingSessions = conflicts.filter(session => {
+    const conflictingSessions = conflicts.filter((session) => {
         // Parse times for comparison
         const startMins = parseTimeToMinutes(startTime);
         const endMins = parseTimeToMinutes(endTime);
@@ -283,7 +287,8 @@ export async function checkConflicts(data: {
         const sessionEndMins = parseTimeToMinutes(session.endTime);
 
         // Check for time overlap
-        const isTimeOverlap = startMins < sessionEndMins && endMins > sessionStartMins;
+        const isTimeOverlap =
+            startMins < sessionEndMins && endMins > sessionStartMins;
 
         if (!isTimeOverlap) return false;
 
@@ -327,7 +332,15 @@ function formatDate(date: Date): string {
 }
 
 function getDayOfWeek(date: Date): string {
-    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const days = [
+        'sunday',
+        'monday',
+        'tuesday',
+        'wednesday',
+        'thursday',
+        'friday',
+        'saturday',
+    ];
     return days[date.getDay()];
 }
 

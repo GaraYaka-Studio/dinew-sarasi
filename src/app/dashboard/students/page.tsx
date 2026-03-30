@@ -25,7 +25,9 @@ type SortOrder = 'asc' | 'desc';
 export default function StudentsPage() {
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
-    const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+    const [selectedStudent, setSelectedStudent] = useState<Student | null>(
+        null
+    );
     const [students, setStudents] = useState<Student[]>([]);
     const [grades, setGrades] = useState<string[]>([]);
 
@@ -49,17 +51,21 @@ export default function StudentsPage() {
         // Apply search filter
         if (searchQuery.trim()) {
             const query = searchQuery.toLowerCase();
-            filtered = filtered.filter((student) =>
-                student.full_name.toLowerCase().includes(query) ||
-                student.student_id.toString().includes(query) ||
-                student.phone.includes(query) ||
-                (student.qr_code && student.qr_code.toLowerCase().includes(query))
+            filtered = filtered.filter(
+                (student) =>
+                    student.full_name.toLowerCase().includes(query) ||
+                    student.student_id.toString().includes(query) ||
+                    student.phone.includes(query) ||
+                    (student.qr_code &&
+                        student.qr_code.toLowerCase().includes(query))
             );
         }
 
         // Apply grade filter
         if (selectedGrade !== 'all') {
-            filtered = filtered.filter((student) => student.current_grade === selectedGrade);
+            filtered = filtered.filter(
+                (student) => student.current_grade === selectedGrade
+            );
         }
 
         // Apply batch filter
@@ -67,13 +73,18 @@ export default function StudentsPage() {
             if (selectedBatch === 'general') {
                 filtered = filtered.filter((student) => !student.batch_year);
             } else {
-                filtered = filtered.filter((student) => student.batch_year?.toString() === selectedBatch);
+                filtered = filtered.filter(
+                    (student) =>
+                        student.batch_year?.toString() === selectedBatch
+                );
             }
         }
 
         // Apply status filter
         if (selectedStatus !== 'all') {
-            filtered = filtered.filter((student) => student.status === selectedStatus);
+            filtered = filtered.filter(
+                (student) => student.status === selectedStatus
+            );
         }
 
         // Apply sorting
@@ -108,7 +119,15 @@ export default function StudentsPage() {
         });
 
         return filtered;
-    }, [students, searchQuery, selectedGrade, selectedBatch, selectedStatus, sortField, sortOrder]);
+    }, [
+        students,
+        searchQuery,
+        selectedGrade,
+        selectedBatch,
+        selectedStatus,
+        sortField,
+        sortOrder,
+    ]);
 
     const handleSort = (field: SortField) => {
         if (sortField === field) {
@@ -238,7 +257,13 @@ export default function StudentsPage() {
             />
 
             {/* Main Student List */}
-            <StudentList students={filteredStudents} onViewStudent={handleViewStudent} onSort={handleSort} sortField={sortField} sortOrder={sortOrder} />
+            <StudentList
+                students={filteredStudents}
+                onViewStudent={handleViewStudent}
+                onSort={handleSort}
+                sortField={sortField}
+                sortOrder={sortOrder}
+            />
 
             {/* Add Student Dialog */}
             <StudentDialog

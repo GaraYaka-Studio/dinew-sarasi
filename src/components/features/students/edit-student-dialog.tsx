@@ -72,7 +72,9 @@ export function EditStudentDialog({
 
     // Use lazy initialization - Dialog will remount when student changes via key prop
     const [currentStep, setCurrentStep] = useState(1);
-    const [formData, setFormData] = useState<FormData>(() => getInitialFormData(student));
+    const [formData, setFormData] = useState<FormData>(() =>
+        getInitialFormData(student)
+    );
 
     const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -98,7 +100,8 @@ export function EditStudentDialog({
         ? updateStudent.bind(null, student.id, personalInfo, academicInfo)
         : null;
     const [state, formAction, pending] = useActionState(
-        updateStudentBound || (() => ({ success: false, status: 0, error: null })),
+        updateStudentBound ||
+            (() => ({ success: false, status: 0, error: null })),
         { success: false, status: 0, error: null }
     );
 
@@ -190,14 +193,21 @@ export function EditStudentDialog({
                                 const isCompleted = currentStep > stepNum;
 
                                 return (
-                                    <div key={stepNum} className="flex flex-1 items-center">
+                                    <div
+                                        key={stepNum}
+                                        className="flex flex-1 items-center"
+                                    >
                                         <div className="flex items-center gap-2">
                                             <div
                                                 className={cn(
                                                     'flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition-colors',
-                                                    isCompleted && 'bg-green-500 text-white',
-                                                    isActive && 'bg-primary text-primary-foreground',
-                                                    !isActive && !isCompleted && 'bg-muted text-muted-foreground'
+                                                    isCompleted &&
+                                                        'bg-green-500 text-white',
+                                                    isActive &&
+                                                        'bg-primary text-primary-foreground',
+                                                    !isActive &&
+                                                        !isCompleted &&
+                                                        'bg-muted text-muted-foreground'
                                                 )}
                                             >
                                                 {stepNum}
@@ -205,14 +215,18 @@ export function EditStudentDialog({
                                             <span
                                                 className={cn(
                                                     'text-sm font-medium',
-                                                    isActive && 'text-foreground',
-                                                    !isActive && 'text-muted-foreground'
+                                                    isActive &&
+                                                        'text-foreground',
+                                                    !isActive &&
+                                                        'text-muted-foreground'
                                                 )}
                                             >
                                                 {label}
                                             </span>
                                         </div>
-                                        {stepNum < 2 && <div className="mx-2 h-[2px] flex-1 bg-muted" />}
+                                        {stepNum < 2 && (
+                                            <div className="mx-2 h-[2px] flex-1 bg-muted" />
+                                        )}
                                     </div>
                                 );
                             })}
@@ -229,7 +243,9 @@ export function EditStudentDialog({
                                         key={step}
                                         className={cn(
                                             'h-2 w-8 rounded-full transition-colors',
-                                            currentStep >= step ? 'bg-primary' : 'bg-muted'
+                                            currentStep >= step
+                                                ? 'bg-primary'
+                                                : 'bg-muted'
                                         )}
                                     />
                                 ))}
@@ -240,12 +256,22 @@ export function EditStudentDialog({
 
                 {/* Body: Scrollable Content */}
                 <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto">
-                    <form id="edit-student-form" action={formAction} className="p-6">
+                    <form
+                        id="edit-student-form"
+                        action={formAction}
+                        className="p-6"
+                    >
                         {currentStep === 1 && (
-                            <StepPersonal formData={formData} onUpdate={updateFormData} />
+                            <StepPersonal
+                                formData={formData}
+                                onUpdate={updateFormData}
+                            />
                         )}
                         {currentStep === 2 && (
-                            <StepAcademic formData={formData} onUpdate={updateFormData} />
+                            <StepAcademic
+                                formData={formData}
+                                onUpdate={updateFormData}
+                            />
                         )}
                     </form>
                 </div>
@@ -265,7 +291,11 @@ export function EditStudentDialog({
 
                         <div className="flex gap-2">
                             {currentStep > 1 && (
-                                <Button variant="outline" onClick={handleBack} disabled={pending}>
+                                <Button
+                                    variant="outline"
+                                    onClick={handleBack}
+                                    disabled={pending}
+                                >
                                     <ChevronLeft className="mr-2 h-4 w-4" />
                                     Back
                                 </Button>
@@ -279,7 +309,10 @@ export function EditStudentDialog({
                                     {pending ? 'Saving...' : 'Save Changes'}
                                 </Button>
                             ) : (
-                                <Button onClick={handleNext} disabled={isNextDisabled}>
+                                <Button
+                                    onClick={handleNext}
+                                    disabled={isNextDisabled}
+                                >
                                     Next
                                     <ChevronRight className="ml-2 h-4 w-4" />
                                 </Button>

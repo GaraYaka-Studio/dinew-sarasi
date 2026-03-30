@@ -39,7 +39,10 @@ type BeepType = 'success' | 'warning' | 'error';
 
 function playBeep(type: BeepType): void {
     try {
-        const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        const AudioContextClass =
+            window.AudioContext ||
+            (window as unknown as { webkitAudioContext: typeof AudioContext })
+                .webkitAudioContext;
         const audioContext = new AudioContextClass();
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
@@ -53,7 +56,10 @@ function playBeep(type: BeepType): void {
             case 'success':
                 oscillator.type = 'sine';
                 oscillator.frequency.setValueAtTime(800, now);
-                oscillator.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
+                oscillator.frequency.exponentialRampToValueAtTime(
+                    1200,
+                    now + 0.1
+                );
                 gainNode.gain.setValueAtTime(0.3, now);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
                 oscillator.start(now);
@@ -71,7 +77,10 @@ function playBeep(type: BeepType): void {
             case 'error':
                 oscillator.type = 'sawtooth';
                 oscillator.frequency.setValueAtTime(400, now);
-                oscillator.frequency.exponentialRampToValueAtTime(200, now + 0.15);
+                oscillator.frequency.exponentialRampToValueAtTime(
+                    200,
+                    now + 0.15
+                );
                 gainNode.gain.setValueAtTime(0.25, now);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
                 oscillator.start(now);
@@ -90,7 +99,9 @@ function playBeep(type: BeepType): void {
 export default function AttendanceScanPage() {
     // State
     const [scanMode, setScanMode] = useState<ScanMode>('normal');
-    const [student, setStudent] = useState<StudentDisplayData | undefined>(undefined);
+    const [student, setStudent] = useState<StudentDisplayData | undefined>(
+        undefined
+    );
     const [status, setStatus] = useState<ScanStatus>('idle');
     const [activeClass, setActiveClass] = useState<string>('');
     const [activeSession, setActiveSession] = useState<string | null>(null);
@@ -103,9 +114,15 @@ export default function AttendanceScanPage() {
     const scanModeRef = useRef(scanMode);
 
     // Keep refs in sync
-    useEffect(() => { activeClassRef.current = activeClass; }, [activeClass]);
-    useEffect(() => { activeSessionRef.current = activeSession; }, [activeSession]);
-    useEffect(() => { scanModeRef.current = scanMode; }, [scanMode]);
+    useEffect(() => {
+        activeClassRef.current = activeClass;
+    }, [activeClass]);
+    useEffect(() => {
+        activeSessionRef.current = activeSession;
+    }, [activeSession]);
+    useEffect(() => {
+        scanModeRef.current = scanMode;
+    }, [scanMode]);
 
     // Mobile detection
     useEffect(() => {
@@ -119,7 +136,10 @@ export default function AttendanceScanPage() {
     const loadAttendanceCount = async () => {
         if (!activeSession) return;
         try {
-            const count = await getSessionAttendanceCount(activeSession, getCurrentDate());
+            const count = await getSessionAttendanceCount(
+                activeSession,
+                getCurrentDate()
+            );
             setCurrentCount(count);
         } catch {
             console.error('Failed to load attendance count');
@@ -140,7 +160,10 @@ export default function AttendanceScanPage() {
         }, delay);
     }, []);
 
-    const handleMarkAttendanceInternal = async (studentId: string, studentName: string) => {
+    const handleMarkAttendanceInternal = async (
+        studentId: string,
+        studentName: string
+    ) => {
         const currentClass = activeClassRef.current;
         const currentSession = activeSessionRef.current;
         const currentMode = scanModeRef.current;
@@ -165,7 +188,7 @@ export default function AttendanceScanPage() {
                     description: `${studentName} - Present`,
                     duration: 2000,
                 });
-                setCurrentCount(prev => prev + 1);
+                setCurrentCount((prev) => prev + 1);
 
                 if (currentMode === 'rapid') {
                     clearStudentAfterDelay(2500);
@@ -188,12 +211,14 @@ export default function AttendanceScanPage() {
             }
         } catch {
             playBeep('error');
-            toast.error('Failed to Mark Attendance', { description: 'An error occurred' });
+            toast.error('Failed to Mark Attendance', {
+                description: 'An error occurred',
+            });
         }
     };
 
     const handleModeToggle = useCallback(() => {
-        setScanMode(prev => prev === 'normal' ? 'rapid' : 'normal');
+        setScanMode((prev) => (prev === 'normal' ? 'rapid' : 'normal'));
         setStudent(undefined);
         setStatus('idle');
     }, []);
@@ -222,19 +247,26 @@ export default function AttendanceScanPage() {
         // Debounce search
         setTimeout(async () => {
             try {
-                const searchResults = await searchStudentsForAttendance(query, currentClass);
+                const searchResults = await searchStudentsForAttendance(
+                    query,
+                    currentClass
+                );
 
                 if (searchResults.length === 0) {
                     setStatus('idle');
                     setStudent(undefined);
                     playBeep('error');
                     toast.error('Student not found', {
-                        description: 'No student found with this ID in the selected class',
+                        description:
+                            'No student found with this ID in the selected class',
                     });
                     return;
                 }
 
-                const studentData = await getStudentForAttendance(searchResults[0].id, currentClass);
+                const studentData = await getStudentForAttendance(
+                    searchResults[0].id,
+                    currentClass
+                );
 
                 if (!studentData || !studentData.isEnrolled) {
                     setStatus('idle');
@@ -263,13 +295,18 @@ export default function AttendanceScanPage() {
                 setStatus('active');
 
                 if (currentMode === 'rapid') {
-                    await handleMarkAttendanceInternal(studentData.id, displayData.name);
+                    await handleMarkAttendanceInternal(
+                        studentData.id,
+                        displayData.name
+                    );
                 }
             } catch {
                 setStatus('idle');
                 setStudent(undefined);
                 playBeep('error');
-                toast.error('Search failed', { description: 'An error occurred' });
+                toast.error('Search failed', {
+                    description: 'An error occurred',
+                });
             }
         }, 300);
     }, []);
@@ -321,8 +358,14 @@ export default function AttendanceScanPage() {
                     <StudentResultCard
                         status={status === 'loading' ? 'idle' : status}
                         student={student}
-                        onMarkPresent={scanMode === 'normal' ? handleMarkPresent : undefined}
-                        onCancel={scanMode === 'normal' ? handleCancel : undefined}
+                        onMarkPresent={
+                            scanMode === 'normal'
+                                ? handleMarkPresent
+                                : undefined
+                        }
+                        onCancel={
+                            scanMode === 'normal' ? handleCancel : undefined
+                        }
                     />
                 </section>
             </main>

@@ -1,14 +1,13 @@
 'use client';
 
-import {
-    Tabs,
-    TabsContent,
-    TabsList,
-    TabsTrigger,
-} from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { StudentPaymentsTable } from './student-payments-table';
 import { TeacherPaymentsTable } from './teacher-payments-table';
-import type { StudentPaymentRecord, TeacherPaymentGroup, FinancialTabType } from '@/types/reports';
+import type {
+    StudentPaymentRecord,
+    TeacherPaymentGroup,
+    FinancialTabType,
+} from '@/types/reports';
 
 interface FinancialTabsProps {
     studentPayments: StudentPaymentRecord[];
@@ -29,7 +28,10 @@ export function FinancialTabs({
             onValueChange={(value) => onTabChange(value as FinancialTabType)}
             className="flex h-full flex-col"
         >
-            <TabsList variant="line" className="w-full justify-start border-b pb-0">
+            <TabsList
+                variant="line"
+                className="w-full justify-start border-b pb-0"
+            >
                 <TabsTrigger value="student">Student Payments</TabsTrigger>
                 <TabsTrigger value="teacher">Teacher Payments</TabsTrigger>
             </TabsList>

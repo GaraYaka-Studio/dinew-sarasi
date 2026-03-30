@@ -20,7 +20,10 @@ export const SESSION_BUFFER_MINUTES = 10; // Minutes before start time to consid
  * timeToMinutes("22:00:00") // 1320
  * timeToMinutes("00:00:00", 1320) // 1440 (midnight crossover detected)
  */
-export function timeToMinutes(timeStr: string | null, startMinutes?: number): number {
+export function timeToMinutes(
+    timeStr: string | null,
+    startMinutes?: number
+): number {
     if (!timeStr) return -1;
     const [hours, minutes] = timeStr.split(':').map(Number);
     const result = hours * 60 + minutes;
@@ -112,8 +115,8 @@ export function getDateOffset(days: number): string {
 export function getCurrentScanTime(): string {
     const now = new Date();
     // Convert to Sri Lanka timezone (UTC+5:30)
-    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-    const sriLankaTime = new Date(utc + (3600000 * 5.5));
+    const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+    const sriLankaTime = new Date(utc + 3600000 * 5.5);
 
     const hours = String(sriLankaTime.getHours()).padStart(2, '0');
     const minutes = String(sriLankaTime.getMinutes()).padStart(2, '0');
@@ -131,6 +134,6 @@ export function getCurrentScanTime(): string {
 export function getCurrentSriLankaTimestamp(): Date {
     const now = new Date();
     // Convert to Sri Lanka timezone (UTC+5:30)
-    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-    return new Date(utc + (3600000 * 5.5));
+    const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+    return new Date(utc + 3600000 * 5.5);
 }

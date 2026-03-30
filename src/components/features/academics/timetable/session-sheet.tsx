@@ -34,7 +34,9 @@ export function SessionSheet({
 }: SessionSheetProps) {
     const router = useRouter();
     // Use lazy initialization and key prop on Sheet to reset when session changes
-    const [isCancelled, setIsCancelled] = useState(session?.status === 'cancelled' ?? false);
+    const [isCancelled, setIsCancelled] = useState(
+        session?.status === 'cancelled' ?? false
+    );
     const [isEditing, setIsEditing] = useState(false);
     const [editStartTime, setEditStartTime] = useState('');
     const [editEndTime, setEditEndTime] = useState('');
@@ -145,22 +147,28 @@ export function SessionSheet({
                         </div>
                         <div className="flex items-center gap-3">
                             <Clock className="h-4 w-4 text-muted-foreground" />
-                            <div className="text-sm flex-1">
+                            <div className="flex-1 text-sm">
                                 <span className="block font-medium">Time</span>
                                 {isEditing ? (
-                                    <div className="flex items-center gap-2 mt-1">
+                                    <div className="mt-1 flex items-center gap-2">
                                         <input
                                             type="time"
                                             value={editStartTime}
-                                            onChange={(e) => setEditStartTime(e.target.value)}
-                                            className="border rounded px-2 py-1 text-xs"
+                                            onChange={(e) =>
+                                                setEditStartTime(e.target.value)
+                                            }
+                                            className="rounded border px-2 py-1 text-xs"
                                         />
-                                        <span className="text-muted-foreground">-</span>
+                                        <span className="text-muted-foreground">
+                                            -
+                                        </span>
                                         <input
                                             type="time"
                                             value={editEndTime}
-                                            onChange={(e) => setEditEndTime(e.target.value)}
-                                            className="border rounded px-2 py-1 text-xs"
+                                            onChange={(e) =>
+                                                setEditEndTime(e.target.value)
+                                            }
+                                            className="rounded border px-2 py-1 text-xs"
                                         />
                                     </div>
                                 ) : (
@@ -262,7 +270,7 @@ export function SessionSheet({
                         </Button>
                     )}
                     {!canDelete && (
-                        <p className="text-xs text-muted-foreground w-full text-center">
+                        <p className="w-full text-center text-xs text-muted-foreground">
                             Only extra sessions can be deleted
                         </p>
                     )}

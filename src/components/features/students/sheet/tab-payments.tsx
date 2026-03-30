@@ -4,10 +4,20 @@ import { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { AlertCircle, Receipt, Calendar, Loader2, Eye, ArrowLeft } from 'lucide-react';
+import {
+    AlertCircle,
+    Receipt,
+    Calendar,
+    Loader2,
+    Eye,
+    ArrowLeft,
+} from 'lucide-react';
 import { Student } from '@/types/schema.types';
 import { getStudentPayments } from '@/lib/db/select';
-import { ReceiptView, ReceiptItem } from '@/components/features/payments/collect/receipt-view';
+import {
+    ReceiptView,
+    ReceiptItem,
+} from '@/components/features/payments/collect/receipt-view';
 
 interface TabPaymentsProps {
     student: Student;
@@ -33,9 +43,24 @@ interface Payment {
     items: PaymentItem[];
 }
 
-const MONTH_LABELS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+const MONTH_LABELS = [
+    'JAN',
+    'FEB',
+    'MAR',
+    'APR',
+    'MAY',
+    'JUN',
+    'JUL',
+    'AUG',
+    'SEP',
+    'OCT',
+    'NOV',
+    'DEC',
+];
 
-function formatPaymentMethod(method: 'cash' | 'card' | 'bank_transfer'): string {
+function formatPaymentMethod(
+    method: 'cash' | 'card' | 'bank_transfer'
+): string {
     switch (method) {
         case 'cash':
             return 'Cash';
@@ -56,7 +81,10 @@ function formatPaymentDate(date: Date): string {
     });
 }
 
-function formatMonthYear(monthIndex: number | null, year: number | null): string {
+function formatMonthYear(
+    monthIndex: number | null,
+    year: number | null
+): string {
     if (monthIndex === null || year === null) return '-';
     return `${MONTH_LABELS[monthIndex]} ${year}`;
 }
@@ -113,7 +141,10 @@ function paymentToReceiptData(payment: Payment, student: Student) {
         totalAmount: Number(payment.totalAmount),
         cashReceived: Number(payment.totalAmount),
         balance: 0,
-        date: payment.paymentDate instanceof Date ? payment.paymentDate.toISOString() : new Date(payment.paymentDate).toISOString(),
+        date:
+            payment.paymentDate instanceof Date
+                ? payment.paymentDate.toISOString()
+                : new Date(payment.paymentDate).toISOString(),
     };
 }
 
@@ -121,7 +152,9 @@ export function TabPayments({ student }: TabPaymentsProps) {
     const [payments, setPayments] = useState<Payment[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
+    const [selectedPayment, setSelectedPayment] = useState<Payment | null>(
+        null
+    );
 
     const hasAdmissionPending = student.admission_status === 'pending';
     const admissionFee = Number(student.admission_fee) || 1000; // Default to 1000 if not set
@@ -158,7 +191,11 @@ export function TabPayments({ student }: TabPaymentsProps) {
                     if (row.itemId) {
                         paymentMap.get(paymentId)!.items.push({
                             itemId: row.itemId,
-                            itemType: row.itemType as 'monthly' | 'admission' | 'exam' | 'material',
+                            itemType: row.itemType as
+                                | 'monthly'
+                                | 'admission'
+                                | 'exam'
+                                | 'material',
                             itemClassId: row.itemClassId,
                             itemMonthIndex: row.itemMonthIndex,
                             itemYear: row.itemYear,
@@ -244,7 +281,11 @@ export function TabPayments({ student }: TabPaymentsProps) {
                                 Rs. {admissionFee.toLocaleString()} is pending
                             </p>
                         </div>
-                        <Button size="sm" variant="destructive" onClick={handleSettleAdmission}>
+                        <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={handleSettleAdmission}
+                        >
                             Settle Now
                         </Button>
                     </div>
@@ -260,7 +301,7 @@ export function TabPayments({ student }: TabPaymentsProps) {
                 {isLoading ? (
                     <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
                         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground mt-2">
+                        <p className="mt-2 text-sm text-muted-foreground">
                             Loading payment history...
                         </p>
                     </div>
@@ -270,20 +311,21 @@ export function TabPayments({ student }: TabPaymentsProps) {
                     </div>
                 ) : payments.length === 0 ? (
                     <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-                        <Receipt className="h-8 w-8 text-muted-foreground/50 mb-2" />
+                        <Receipt className="mb-2 h-8 w-8 text-muted-foreground/50" />
                         <p className="text-sm text-muted-foreground">
                             No payment history available yet
                         </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                            Payment records will appear here once fees are collected
+                        <p className="mt-1 text-xs text-muted-foreground">
+                            Payment records will appear here once fees are
+                            collected
                         </p>
                     </div>
                 ) : (
                     <div className="space-y-3">
                         {payments.map((payment) => (
                             <Card key={payment.paymentId} className="p-4">
-                                <div className="flex items-start justify-between mb-3">
-                                    <div className="flex items-start gap-3 flex-1">
+                                <div className="mb-3 flex items-start justify-between">
+                                    <div className="flex flex-1 items-start gap-3">
                                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                                             <Receipt className="h-5 w-5 text-primary" />
                                         </div>
@@ -294,22 +336,36 @@ export function TabPayments({ student }: TabPaymentsProps) {
                                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                                 <span className="flex items-center gap-1">
                                                     <Calendar className="h-3 w-3" />
-                                                    {formatPaymentDate(payment.paymentDate)}
+                                                    {formatPaymentDate(
+                                                        payment.paymentDate
+                                                    )}
                                                 </span>
                                                 <span>•</span>
-                                                <span>{formatPaymentMethod(payment.method)}</span>
+                                                <span>
+                                                    {formatPaymentMethod(
+                                                        payment.method
+                                                    )}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <Badge variant="secondary" className="font-semibold">
-                                            Rs. {Number(payment.totalAmount).toLocaleString()}
+                                        <Badge
+                                            variant="secondary"
+                                            className="font-semibold"
+                                        >
+                                            Rs.{' '}
+                                            {Number(
+                                                payment.totalAmount
+                                            ).toLocaleString()}
                                         </Badge>
                                         <Button
                                             variant="ghost"
                                             size="icon"
                                             className="h-8 w-8"
-                                            onClick={() => setSelectedPayment(payment)}
+                                            onClick={() =>
+                                                setSelectedPayment(payment)
+                                            }
                                             title="View receipt"
                                         >
                                             <Eye className="h-4 w-4" />
@@ -327,22 +383,32 @@ export function TabPayments({ student }: TabPaymentsProps) {
                                             >
                                                 <div className="flex flex-col">
                                                     <span className="font-medium">
-                                                        {item.itemType === 'admission'
+                                                        {item.itemType ===
+                                                        'admission'
                                                             ? 'Admission Fee'
-                                                            : item.itemType === 'monthly'
-                                                                ? `Monthly Fee - ${item.className || 'Class'}`
-                                                                : item.itemType === 'exam'
-                                                                    ? `Exam Fee - ${item.className || 'Class'}`
-                                                                    : `Material Fee - ${item.className || 'Class'}`}
+                                                            : item.itemType ===
+                                                                'monthly'
+                                                              ? `Monthly Fee - ${item.className || 'Class'}`
+                                                              : item.itemType ===
+                                                                  'exam'
+                                                                ? `Exam Fee - ${item.className || 'Class'}`
+                                                                : `Material Fee - ${item.className || 'Class'}`}
                                                     </span>
-                                                    {item.itemType === 'monthly' && (
+                                                    {item.itemType ===
+                                                        'monthly' && (
                                                         <span className="text-xs text-muted-foreground">
-                                                            {formatMonthYear(item.itemMonthIndex, item.itemYear)}
+                                                            {formatMonthYear(
+                                                                item.itemMonthIndex,
+                                                                item.itemYear
+                                                            )}
                                                         </span>
                                                     )}
                                                 </div>
                                                 <span className="font-medium text-foreground">
-                                                    Rs. {Number(item.itemAmount).toLocaleString()}
+                                                    Rs.{' '}
+                                                    {Number(
+                                                        item.itemAmount
+                                                    ).toLocaleString()}
                                                 </span>
                                             </div>
                                         ))}

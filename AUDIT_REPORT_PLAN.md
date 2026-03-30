@@ -15,6 +15,7 @@ The audit report page currently displays mock data from `src/lib/mock-data-audit
 ## Database Schema Reference
 
 **Table: `audit_log`**
+
 ```sql
 {
     id: uuid           -- Primary key
@@ -39,7 +40,13 @@ Add at the end of the file (after `ActivitySummary`):
 // ============================================================================
 
 export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'LOGIN' | 'EXPORT';
-export type AuditModule = 'Students' | 'Finance' | 'Classes' | 'Staff' | 'Settings' | 'System';
+export type AuditModule =
+    | 'Students'
+    | 'Finance'
+    | 'Classes'
+    | 'Staff'
+    | 'Settings'
+    | 'System';
 
 export interface AuditLogRecord {
     id: string;
@@ -69,9 +76,15 @@ export interface AuditSummary {
 ### Step 2: Add Server Actions to `src/lib/db/reports.ts`
 
 **2.1. Add imports at the top:**
+
 ```typescript
 import { auditLogs, profiles } from '@/db/schema';
-import type { AuditLogRecord, AuditAction, AuditModule, AuditSummary } from '@/types/reports';
+import type {
+    AuditLogRecord,
+    AuditAction,
+    AuditModule,
+    AuditSummary,
+} from '@/types/reports';
 ```
 
 **2.2. Add after the activity log section:**
@@ -521,14 +534,14 @@ Delete `src/lib/mock-data-audit.ts` - no longer needed since helpers are now inl
 
 ## Files Summary
 
-| File | Action | Description |
-|------|--------|-------------|
-| `src/types/reports.ts` | Add | AuditLogRecord, AuditAction, AuditModule, AuditSummary |
-| `src/lib/db/reports.ts` | Add | getAuditLogs(), getAuditLogsByMonth(), getAuditSummary() |
-| `src/app/dashboard/reports/audit/page.tsx` | Replace | Mock data → real server action with useEffect |
-| `src/components/features/reports/audit-filters.tsx` | Modify | Import from @/types/reports |
-| `src/components/features/reports/audit-timeline.tsx` | Modify | Import from @/types/reports + inline helpers |
-| `src/lib/mock-data-audit.ts` | Delete | No longer needed |
+| File                                                 | Action  | Description                                              |
+| ---------------------------------------------------- | ------- | -------------------------------------------------------- |
+| `src/types/reports.ts`                               | Add     | AuditLogRecord, AuditAction, AuditModule, AuditSummary   |
+| `src/lib/db/reports.ts`                              | Add     | getAuditLogs(), getAuditLogsByMonth(), getAuditSummary() |
+| `src/app/dashboard/reports/audit/page.tsx`           | Replace | Mock data → real server action with useEffect            |
+| `src/components/features/reports/audit-filters.tsx`  | Modify  | Import from @/types/reports                              |
+| `src/components/features/reports/audit-timeline.tsx` | Modify  | Import from @/types/reports + inline helpers             |
+| `src/lib/mock-data-audit.ts`                         | Delete  | No longer needed                                         |
 
 ---
 

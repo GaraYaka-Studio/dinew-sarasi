@@ -138,13 +138,13 @@ export function EditClassDialog({
     // Bind updateClass with form data
     const updateClassBound = classItem
         ? updateClass.bind(null, classItem.id, {
-            ...formData,
-            isActive: classItem.status === 'Active',
-        })
+              ...formData,
+              isActive: classItem.status === 'Active',
+          })
         : null;
     const [state, formAction, pending] = useActionState(
         updateClassBound ||
-        (() => ({ success: false, status: 0, error: null })),
+            (() => ({ success: false, status: 0, error: null })),
         { success: false, status: 0, error: null }
     );
 
@@ -176,7 +176,8 @@ export function EditClassDialog({
                 <DialogHeader className="border-b px-6 py-4">
                     <DialogTitle>Edit Class</DialogTitle>
                     <DialogDescription>
-                        Update information for {classItem.subject} - {classItem.grade}
+                        Update information for {classItem.subject} -{' '}
+                        {classItem.grade}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -195,14 +196,19 @@ export function EditClassDialog({
                                 {/* Section 1: Subject Info */}
                                 <div className="space-y-4">
                                     <h3 className="flex items-center gap-2 text-sm font-medium tracking-wider text-muted-foreground uppercase">
-                                        <BookOpen className="h-4 w-4" /> Subject Details
+                                        <BookOpen className="h-4 w-4" /> Subject
+                                        Details
                                     </h3>
                                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                         <div className="space-y-2">
-                                            <Label htmlFor="edit-grade">Grade</Label>
+                                            <Label htmlFor="edit-grade">
+                                                Grade
+                                            </Label>
                                             <Select
                                                 value={formData.grade}
-                                                onValueChange={(value) => updateField('grade', value)}
+                                                onValueChange={(value) =>
+                                                    updateField('grade', value)
+                                                }
                                                 name="grade"
                                             >
                                                 <SelectTrigger id="edit-grade">
@@ -210,7 +216,10 @@ export function EditClassDialog({
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {GRADES.map((grade) => (
-                                                        <SelectItem key={grade} value={grade}>
+                                                        <SelectItem
+                                                            key={grade}
+                                                            value={grade}
+                                                        >
                                                             {grade}
                                                         </SelectItem>
                                                     ))}
@@ -218,10 +227,17 @@ export function EditClassDialog({
                                             </Select>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="edit-subject">Subject</Label>
+                                            <Label htmlFor="edit-subject">
+                                                Subject
+                                            </Label>
                                             <Select
                                                 value={formData.subjectId}
-                                                onValueChange={(value) => updateField('subjectId', value)}
+                                                onValueChange={(value) =>
+                                                    updateField(
+                                                        'subjectId',
+                                                        value
+                                                    )
+                                                }
                                                 name="subject"
                                             >
                                                 <SelectTrigger id="edit-subject">
@@ -229,7 +245,10 @@ export function EditClassDialog({
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {subjects.map((subject) => (
-                                                        <SelectItem key={subject.id} value={subject.id}>
+                                                        <SelectItem
+                                                            key={subject.id}
+                                                            value={subject.id}
+                                                        >
                                                             {subject.name}
                                                         </SelectItem>
                                                     ))}
@@ -240,43 +259,65 @@ export function EditClassDialog({
 
                                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                         <div className="space-y-2">
-                                            <Label htmlFor="edit-medium">Medium</Label>
+                                            <Label htmlFor="edit-medium">
+                                                Medium
+                                            </Label>
                                             <Select
                                                 value={formData.medium}
-                                                onValueChange={(value) => updateField('medium', value)}
+                                                onValueChange={(value) =>
+                                                    updateField('medium', value)
+                                                }
                                                 name="medium"
                                             >
                                                 <SelectTrigger id="edit-medium">
                                                     <SelectValue placeholder="Select Medium" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="sinhala">Sinhala</SelectItem>
-                                                    <SelectItem value="english">English</SelectItem>
-                                                    <SelectItem value="tamil">Tamil</SelectItem>
+                                                    <SelectItem value="sinhala">
+                                                        Sinhala
+                                                    </SelectItem>
+                                                    <SelectItem value="english">
+                                                        English
+                                                    </SelectItem>
+                                                    <SelectItem value="tamil">
+                                                        Tamil
+                                                    </SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="edit-type">Class Type</Label>
+                                            <Label htmlFor="edit-type">
+                                                Class Type
+                                            </Label>
                                             <Select
                                                 value={formData.type}
-                                                onValueChange={(value) => updateField('type', value)}
+                                                onValueChange={(value) =>
+                                                    updateField('type', value)
+                                                }
                                                 name="type"
                                             >
                                                 <SelectTrigger id="edit-type">
                                                     <SelectValue placeholder="Select Type" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="theory">Theory</SelectItem>
-                                                    <SelectItem value="revision">Revision</SelectItem>
-                                                    <SelectItem value="paper">Paper Class</SelectItem>
+                                                    <SelectItem value="theory">
+                                                        Theory
+                                                    </SelectItem>
+                                                    <SelectItem value="revision">
+                                                        Revision
+                                                    </SelectItem>
+                                                    <SelectItem value="paper">
+                                                        Paper Class
+                                                    </SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label htmlFor="edit-name">Class Name</Label>
+                                        <Label htmlFor="edit-name">
+                                            Class Name
+                                        </Label>
                                         <Input
                                             id="edit-name"
                                             name="name"
@@ -295,14 +336,22 @@ export function EditClassDialog({
                                 {/* Section 2: Teacher & Fees */}
                                 <div className="space-y-4 border-t pt-2">
                                     <h3 className="mt-2 flex items-center gap-2 text-sm font-medium tracking-wider text-muted-foreground uppercase">
-                                        <User className="h-4 w-4" /> Teacher & Fees
+                                        <User className="h-4 w-4" /> Teacher &
+                                        Fees
                                     </h3>
                                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                         <div className="space-y-2">
-                                            <Label htmlFor="edit-teacher">Teacher</Label>
+                                            <Label htmlFor="edit-teacher">
+                                                Teacher
+                                            </Label>
                                             <Select
                                                 value={formData.teacherId}
-                                                onValueChange={(value) => updateField('teacherId', value)}
+                                                onValueChange={(value) =>
+                                                    updateField(
+                                                        'teacherId',
+                                                        value
+                                                    )
+                                                }
                                                 name="teacher"
                                             >
                                                 <SelectTrigger id="edit-teacher">
@@ -310,7 +359,10 @@ export function EditClassDialog({
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {teachers.map((teacher) => (
-                                                        <SelectItem key={teacher.id} value={teacher.id}>
+                                                        <SelectItem
+                                                            key={teacher.id}
+                                                            value={teacher.id}
+                                                        >
                                                             {teacher.name}
                                                         </SelectItem>
                                                     ))}
@@ -318,7 +370,9 @@ export function EditClassDialog({
                                             </Select>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="edit-fee">Monthly Fee (LKR)</Label>
+                                            <Label htmlFor="edit-fee">
+                                                Monthly Fee (LKR)
+                                            </Label>
                                             <div className="relative">
                                                 <Banknote className="absolute top-2.5 left-3 h-4 w-4 text-muted-foreground" />
                                                 <Input
@@ -327,7 +381,12 @@ export function EditClassDialog({
                                                     placeholder="2500"
                                                     className="pl-9"
                                                     value={formData.monthlyFee}
-                                                    onChange={(e) => updateField('monthlyFee', e.target.value)}
+                                                    onChange={(e) =>
+                                                        updateField(
+                                                            'monthlyFee',
+                                                            e.target.value
+                                                        )
+                                                    }
                                                     name="fee"
                                                 />
                                             </div>
@@ -342,10 +401,14 @@ export function EditClassDialog({
                                     </h3>
                                     <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                                         <div className="space-y-2">
-                                            <Label htmlFor="edit-day">Day</Label>
+                                            <Label htmlFor="edit-day">
+                                                Day
+                                            </Label>
                                             <Select
                                                 value={formData.day}
-                                                onValueChange={(value) => updateField('day', value)}
+                                                onValueChange={(value) =>
+                                                    updateField('day', value)
+                                                }
                                                 name="day"
                                             >
                                                 <SelectTrigger id="edit-day">
@@ -353,7 +416,10 @@ export function EditClassDialog({
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {DAYS.map((day) => (
-                                                        <SelectItem key={day.value} value={day.value}>
+                                                        <SelectItem
+                                                            key={day.value}
+                                                            value={day.value}
+                                                        >
                                                             {day.label}
                                                         </SelectItem>
                                                     ))}
@@ -361,33 +427,54 @@ export function EditClassDialog({
                                             </Select>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="edit-start-time">Start Time</Label>
+                                            <Label htmlFor="edit-start-time">
+                                                Start Time
+                                            </Label>
                                             <Input
                                                 id="edit-start-time"
                                                 type="time"
                                                 value={formData.startTime}
-                                                onChange={(e) => updateField('startTime', e.target.value)}
+                                                onChange={(e) =>
+                                                    updateField(
+                                                        'startTime',
+                                                        e.target.value
+                                                    )
+                                                }
                                                 name="startTime"
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="edit-end-time">End Time</Label>
+                                            <Label htmlFor="edit-end-time">
+                                                End Time
+                                            </Label>
                                             <Input
                                                 id="edit-end-time"
                                                 type="time"
                                                 value={formData.endTime}
-                                                onChange={(e) => updateField('endTime', e.target.value)}
+                                                onChange={(e) =>
+                                                    updateField(
+                                                        'endTime',
+                                                        e.target.value
+                                                    )
+                                                }
                                                 name="endTime"
                                             />
                                         </div>
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="edit-hall">Hall Name (Optional)</Label>
+                                        <Label htmlFor="edit-hall">
+                                            Hall Name (Optional)
+                                        </Label>
                                         <Input
                                             id="edit-hall"
                                             placeholder="e.g., Hall A, Room 101"
                                             value={formData.hallName}
-                                            onChange={(e) => updateField('hallName', e.target.value)}
+                                            onChange={(e) =>
+                                                updateField(
+                                                    'hallName',
+                                                    e.target.value
+                                                )
+                                            }
                                             name="hallName"
                                         />
                                     </div>

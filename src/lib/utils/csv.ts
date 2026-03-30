@@ -31,7 +31,11 @@ function formatCSVValue(value: unknown): string {
     }
     if (typeof value === 'string') {
         // Escape quotes and wrap in quotes if contains comma, quote, or newline
-        if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+        if (
+            value.includes(',') ||
+            value.includes('"') ||
+            value.includes('\n')
+        ) {
             return `"${value.replace(/"/g, '""')}"`;
         }
         return value;

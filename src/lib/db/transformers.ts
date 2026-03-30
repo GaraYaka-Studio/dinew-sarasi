@@ -9,7 +9,15 @@ export type ClassWithDetails = {
     grade: string;
     medium: 'sinhala' | 'english' | 'tamil' | null;
     type: 'theory' | 'revision' | 'paper' | null;
-    day: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday' | null;
+    day:
+        | 'monday'
+        | 'tuesday'
+        | 'wednesday'
+        | 'thursday'
+        | 'friday'
+        | 'saturday'
+        | 'sunday'
+        | null;
     startTime: string | null;
     endTime: string | null;
     hallName: string | null;
@@ -24,11 +32,12 @@ export type ClassWithDetails = {
     studentCount?: number;
 };
 
-export function transformToClassItem(
-    dbClass: ClassWithDetails
-): ClassItem {
+export function transformToClassItem(dbClass: ClassWithDetails): ClassItem {
     // Map medium enum to display format
-    const mediumMap: Record<'sinhala' | 'english' | 'tamil', ClassItem['medium']> = {
+    const mediumMap: Record<
+        'sinhala' | 'english' | 'tamil',
+        ClassItem['medium']
+    > = {
         sinhala: 'Sinhala Med',
         english: 'English Med',
         tamil: 'Tamil Med',
@@ -38,7 +47,11 @@ export function transformToClassItem(
     const category = determineCategory(dbClass.grade, dbClass.subjectCategory);
 
     // Format schedule
-    const schedule = formatSchedule(dbClass.day, dbClass.startTime, dbClass.endTime);
+    const schedule = formatSchedule(
+        dbClass.day,
+        dbClass.startTime,
+        dbClass.endTime
+    );
 
     return {
         id: dbClass.id,
@@ -46,11 +59,13 @@ export function transformToClassItem(
         grade: dbClass.grade,
         medium: dbClass.medium ? mediumMap[dbClass.medium] : 'Sinhala Med',
         teacherName: dbClass.teacherName || 'Not Assigned',
-        teacher: dbClass.teacherName ? {
-            id: dbClass.teacherId || '',
-            phone: dbClass.teacherPhone || '',
-            email: '',
-        } : undefined,
+        teacher: dbClass.teacherName
+            ? {
+                  id: dbClass.teacherId || '',
+                  phone: dbClass.teacherPhone || '',
+                  email: '',
+              }
+            : undefined,
         schedule,
         fee: Number(dbClass.monthlyFee) || 0,
         studentCount: dbClass.studentCount || 0,
@@ -59,13 +74,18 @@ export function transformToClassItem(
     };
 }
 
-function determineCategory(grade: string, subjectCategory?: string | null): ClassItem['category'] {
+function determineCategory(
+    grade: string,
+    subjectCategory?: string | null
+): ClassItem['category'] {
     if (subjectCategory) {
         const categoryLower = subjectCategory.toLowerCase();
         if (categoryLower.includes('primary')) return 'Primary';
         if (categoryLower.includes('junior')) return 'Junior';
-        if (categoryLower.includes('ol') || categoryLower.includes('ordinary')) return 'Ordinary Level';
-        if (categoryLower.includes('al') || categoryLower.includes('advanced')) return 'Advanced Level';
+        if (categoryLower.includes('ol') || categoryLower.includes('ordinary'))
+            return 'Ordinary Level';
+        if (categoryLower.includes('al') || categoryLower.includes('advanced'))
+            return 'Advanced Level';
     }
 
     // Fallback to grade-based detection
@@ -87,13 +107,12 @@ function formatSchedule(
     startTime: string | null,
     endTime: string | null
 ): { day: string; time: string } {
-    const dayName = day
-        ? day.charAt(0).toUpperCase() + day.slice(1)
-        : 'TBD';
+    const dayName = day ? day.charAt(0).toUpperCase() + day.slice(1) : 'TBD';
 
-    const time = startTime && endTime
-        ? `${formatTime(startTime)} - ${formatTime(endTime)}`
-        : 'TBD';
+    const time =
+        startTime && endTime
+            ? `${formatTime(startTime)} - ${formatTime(endTime)}`
+            : 'TBD';
 
     return { day: dayName, time };
 }
@@ -135,7 +154,7 @@ export interface StudentSearchResult {
     status: 'active' | 'inactive' | 'graduated' | 'suspended' | null;
     admissionStatus: 'pending' | 'paid' | 'free' | null;
     admissionFee: string | null;
-    dob: string | null;  // Date from DB is returned as string
+    dob: string | null; // Date from DB is returned as string
     gender: 'male' | 'female';
     address: string | null;
     school: string | null;
@@ -174,8 +193,16 @@ export function transformToStudentDetail(
 ): StudentDetail {
     // Calculate summary stats from enrolled classes
     const totalClasses = dbStudent.enrolledClasses?.length || 0;
-    const totalUnpaid = dbStudent.enrolledClasses?.reduce((sum, cls) => sum + cls.totalUnpaid, 0) || 0;
-    const totalDue = dbStudent.enrolledClasses?.reduce((sum, cls) => sum + cls.totalDue, 0) || 0;
+    const totalUnpaid =
+        dbStudent.enrolledClasses?.reduce(
+            (sum, cls) => sum + cls.totalUnpaid,
+            0
+        ) || 0;
+    const totalDue =
+        dbStudent.enrolledClasses?.reduce(
+            (sum, cls) => sum + cls.totalDue,
+            0
+        ) || 0;
 
     return {
         // Base Info
@@ -184,17 +211,21 @@ export function transformToStudentDetail(
         studentId: `SRS-${dbStudent.studentId}`,
         phone: dbStudent.phone,
         grade: dbStudent.grade || 'N/A',
-        batch: dbStudent.batchYear
-            ? `${dbStudent.batchYear} A/L`
-            : 'General',
-        status: dbStudent.status === 'active' ? 'active' :
-            dbStudent.status === 'graduated' ? 'left' :
-            dbStudent.status === 'suspended' ? 'draft' :
-            'active',
+        batch: dbStudent.batchYear ? `${dbStudent.batchYear} A/L` : 'General',
+        status:
+            dbStudent.status === 'active'
+                ? 'active'
+                : dbStudent.status === 'graduated'
+                  ? 'left'
+                  : dbStudent.status === 'suspended'
+                    ? 'draft'
+                    : 'active',
         paymentStatus: dbStudent.status === 'active' ? 'paid' : 'draft',
         initials: dbStudent.initials || 'ST',
         lastActivity: 'Active now',
-        admissionDate: dbStudent.createdAt?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
+        admissionDate:
+            dbStudent.createdAt?.toISOString().split('T')[0] ||
+            new Date().toISOString().split('T')[0],
 
         // Personal Details
         dateOfBirth: dbStudent.dob || '',
@@ -205,7 +236,10 @@ export function transformToStudentDetail(
         // Guardian
         guardian: {
             name: dbStudent.guardianName || '',
-            relationship: (dbStudent.guardianRelationship || 'Father') as 'Father' | 'Mother' | 'Guardian',
+            relationship: (dbStudent.guardianRelationship || 'Father') as
+                | 'Father'
+                | 'Mother'
+                | 'Guardian',
             phone: dbStudent.guardianPhone || '',
             isEmergencyContact: true,
         },
@@ -215,7 +249,9 @@ export function transformToStudentDetail(
         alYear: dbStudent.batchYear ?? undefined,
 
         // Financial
-        admissionStatus: (dbStudent.admissionStatus === 'free' ? 'PAID' : dbStudent.admissionStatus?.toUpperCase()) as 'PENDING' | 'PAID',
+        admissionStatus: (dbStudent.admissionStatus === 'free'
+            ? 'PAID'
+            : dbStudent.admissionStatus?.toUpperCase()) as 'PENDING' | 'PAID',
         admissionFee: Number(dbStudent.admissionFee) || 1000,
         arrears: totalDue, // Use calculated total due
         paymentHistory: [], // Can be fetched separately if needed
@@ -225,12 +261,13 @@ export function transformToStudentDetail(
         attendanceHistory: [],
 
         // Enrolled Classes
-        enrolledClasses: dbStudent.enrolledClasses?.map((c) => ({
-            id: c.classId,
-            name: c.className,
-            grade: '',
-            teacher: '',
-            schedule: '',
-        })) || [],
+        enrolledClasses:
+            dbStudent.enrolledClasses?.map((c) => ({
+                id: c.classId,
+                name: c.className,
+                grade: '',
+                teacher: '',
+                schedule: '',
+            })) || [],
     };
 }

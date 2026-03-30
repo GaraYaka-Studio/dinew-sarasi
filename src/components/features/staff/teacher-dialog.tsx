@@ -35,7 +35,10 @@ export function TeacherDialog({ isOpen, onOpenChange }: TeacherDialogProps) {
     const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
 
     const addTeacherWithSubjects = addTeacher.bind(null, selectedSubjects);
-    const [state, formAction, pending] = useActionState(addTeacherWithSubjects, { success: false, status: 0, error: null });
+    const [state, formAction, pending] = useActionState(
+        addTeacherWithSubjects,
+        { success: false, status: 0, error: null }
+    );
 
     const toggleSubject = (subject: string) => {
         setSelectedSubjects((prev) =>
@@ -66,8 +69,11 @@ export function TeacherDialog({ isOpen, onOpenChange }: TeacherDialogProps) {
     }, [state, onOpenChange]);
 
     return (
-        <Dialog open={isOpen} onOpenChange={onOpenChange} >
-            <DialogContent className="flex h-[95vh] max-h-[900px] w-full max-w-lg flex-col p-0 sm:h-auto" showCloseButton={false}>
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogContent
+                className="flex h-[95vh] max-h-[900px] w-full max-w-lg flex-col p-0 sm:h-auto"
+                showCloseButton={false}
+            >
                 <DialogHeader className="border-b px-6 py-4">
                     <DialogTitle>Add New Teacher</DialogTitle>
                     <DialogDescription>
@@ -98,7 +104,7 @@ export function TeacherDialog({ isOpen, onOpenChange }: TeacherDialogProps) {
                                             setFormValues({
                                                 ...formValues,
                                                 fullName: e.target.value,
-                                            })
+                                            });
                                         }}
                                         placeholder="e.g., Kamal Perera"
                                         required
@@ -117,7 +123,7 @@ export function TeacherDialog({ isOpen, onOpenChange }: TeacherDialogProps) {
                                             setFormValues({
                                                 ...formValues,
                                                 displayName: e.target.value,
-                                            })
+                                            });
                                         }}
                                         placeholder="e.g., Mr. Kamal"
                                         required
@@ -135,7 +141,7 @@ export function TeacherDialog({ isOpen, onOpenChange }: TeacherDialogProps) {
                                                 setFormValues({
                                                     ...formValues,
                                                     nic: e.target.value,
-                                                })
+                                                });
                                             }}
                                             placeholder="123456789V"
                                             required
@@ -152,7 +158,7 @@ export function TeacherDialog({ isOpen, onOpenChange }: TeacherDialogProps) {
                                                 setFormValues({
                                                     ...formValues,
                                                     phone: e.target.value,
-                                                })
+                                                });
                                             }}
                                             placeholder="077-1234567"
                                             required
@@ -173,24 +179,28 @@ export function TeacherDialog({ isOpen, onOpenChange }: TeacherDialogProps) {
                                     <Label htmlFor="subjects">Subjects</Label>
                                     <div className="rounded-md border p-3">
                                         <div className="flex flex-wrap gap-2">
-                                            {TEACHING_SUBJECTS.map((subject) => (
-                                                <button
-                                                    key={subject}
-                                                    type="button"
-                                                    onClick={() =>
-                                                        toggleSubject(subject)
-                                                    }
-                                                    className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                                                        selectedSubjects.includes(
-                                                            subject
-                                                        )
-                                                            ? 'bg-primary text-primary-foreground'
-                                                            : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                                                    }`}
-                                                >
-                                                    {subject}
-                                                </button>
-                                            ))}
+                                            {TEACHING_SUBJECTS.map(
+                                                (subject) => (
+                                                    <button
+                                                        key={subject}
+                                                        type="button"
+                                                        onClick={() =>
+                                                            toggleSubject(
+                                                                subject
+                                                            )
+                                                        }
+                                                        className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                                                            selectedSubjects.includes(
+                                                                subject
+                                                            )
+                                                                ? 'bg-primary text-primary-foreground'
+                                                                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                                                        }`}
+                                                    >
+                                                        {subject}
+                                                    </button>
+                                                )
+                                            )}
                                         </div>
                                         {selectedSubjects.length === 0 && (
                                             <p className="mt-2 text-xs text-muted-foreground">

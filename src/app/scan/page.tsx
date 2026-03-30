@@ -24,7 +24,9 @@ export default function PublicScanPage() {
     const handleScan = async (qrCode: string) => {
         setIsLoading(true);
         try {
-            const response = await fetch(`/api/qr/scan?code=${encodeURIComponent(qrCode)}`);
+            const response = await fetch(
+                `/api/qr/scan?code=${encodeURIComponent(qrCode)}`
+            );
             const data: ScanResult = await response.json();
 
             setResult(data);
@@ -45,7 +47,9 @@ export default function PublicScanPage() {
                 <div className="container flex h-16 items-center px-4">
                     <div className="flex items-center gap-2">
                         <Shield className="h-6 w-6 text-primary" />
-                        <h1 className="text-xl font-bold">SARASI Institute - QR Scan</h1>
+                        <h1 className="text-xl font-bold">
+                            SARASI Institute - QR Scan
+                        </h1>
                     </div>
                 </div>
             </header>
@@ -63,8 +67,10 @@ export default function PublicScanPage() {
                                         Official Institute Use Only
                                     </p>
                                     <p className="mt-1 text-muted-foreground">
-                                        This QR code is for official institute identification purposes.
-                                        Students should scan their ID cards only at designated institute stations.
+                                        This QR code is for official institute
+                                        identification purposes. Students should
+                                        scan their ID cards only at designated
+                                        institute stations.
                                     </p>
                                 </div>
                             </div>
@@ -72,9 +78,7 @@ export default function PublicScanPage() {
                     </Card>
 
                     {/* Scanner */}
-                    <QRScanner
-                        onScan={handleScan}
-                    />
+                    <QRScanner onScan={handleScan} />
 
                     {/* Loading State */}
                     {isLoading && (
@@ -82,7 +86,9 @@ export default function PublicScanPage() {
                             <CardContent className="flex items-center justify-center p-8">
                                 <div className="text-center">
                                     <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-primary border-r-transparent" />
-                                    <p className="mt-4 text-sm text-muted-foreground">Scanning...</p>
+                                    <p className="mt-4 text-sm text-muted-foreground">
+                                        Scanning...
+                                    </p>
                                 </div>
                             </CardContent>
                         </Card>
@@ -90,15 +96,25 @@ export default function PublicScanPage() {
 
                     {/* Result Display */}
                     {result && !isLoading && (
-                        <Card className={result.error ? 'border-destructive/50' : 'border-green-500/50'}>
+                        <Card
+                            className={
+                                result.error
+                                    ? 'border-destructive/50'
+                                    : 'border-green-500/50'
+                            }
+                        >
                             <CardContent className="p-6">
                                 {result.error ? (
                                     // Error State
                                     <div className="flex items-center gap-3 text-destructive">
                                         <AlertCircle className="h-8 w-8 flex-shrink-0" />
                                         <div>
-                                            <p className="font-semibold">{result.message}</p>
-                                            <p className="text-sm">{result.error}</p>
+                                            <p className="font-semibold">
+                                                {result.message}
+                                            </p>
+                                            <p className="text-sm">
+                                                {result.error}
+                                            </p>
                                         </div>
                                     </div>
                                 ) : (
@@ -106,7 +122,9 @@ export default function PublicScanPage() {
                                     <div className="space-y-4">
                                         <div className="flex items-center gap-2 text-green-600">
                                             <Shield className="h-5 w-5" />
-                                            <p className="font-semibold">{result.message}</p>
+                                            <p className="font-semibold">
+                                                {result.message}
+                                            </p>
                                         </div>
 
                                         {result.description && (
@@ -122,27 +140,49 @@ export default function PublicScanPage() {
                                                         <User className="h-6 w-6 text-primary" />
                                                     </div>
                                                     <div className="flex-1">
-                                                        <p className="font-semibold">{result.student.name}</p>
+                                                        <p className="font-semibold">
+                                                            {
+                                                                result.student
+                                                                    .name
+                                                            }
+                                                        </p>
                                                         <p className="text-sm text-muted-foreground">
-                                                            ID: {result.student.id}
+                                                            ID:{' '}
+                                                            {result.student.id}
                                                         </p>
                                                     </div>
                                                 </div>
                                                 <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
                                                     <div>
-                                                        <span className="text-muted-foreground">Grade:</span>{' '}
-                                                        <span className="font-medium">{result.student.grade}</span>
+                                                        <span className="text-muted-foreground">
+                                                            Grade:
+                                                        </span>{' '}
+                                                        <span className="font-medium">
+                                                            {
+                                                                result.student
+                                                                    .grade
+                                                            }
+                                                        </span>
                                                     </div>
                                                     <div>
-                                                        <span className="text-muted-foreground">Status:</span>{' '}
-                                                        <span className="font-medium capitalize">{result.student.status}</span>
+                                                        <span className="text-muted-foreground">
+                                                            Status:
+                                                        </span>{' '}
+                                                        <span className="font-medium capitalize">
+                                                            {
+                                                                result.student
+                                                                    .status
+                                                            }
+                                                        </span>
                                                     </div>
                                                 </div>
                                             </div>
                                         )}
 
-                                        <p className="text-xs text-muted-foreground text-center">
-                                            For detailed information, please contact the institute administration.
+                                        <p className="text-center text-xs text-muted-foreground">
+                                            For detailed information, please
+                                            contact the institute
+                                            administration.
                                         </p>
                                     </div>
                                 )}
@@ -154,7 +194,10 @@ export default function PublicScanPage() {
 
             {/* Footer */}
             <footer className="border-t py-4 text-center text-sm text-muted-foreground">
-                <p>© {new Date().getFullYear()} SARASI Institute. All rights reserved.</p>
+                <p>
+                    © {new Date().getFullYear()} SARASI Institute. All rights
+                    reserved.
+                </p>
             </footer>
         </div>
     );

@@ -15,7 +15,11 @@ import { ChevronRight } from 'lucide-react';
 import type { TeacherPaymentGroup } from '@/types/reports';
 import { useState } from 'react';
 
-export function TeacherPaymentsTable({ data }: { data: TeacherPaymentGroup[] }) {
+export function TeacherPaymentsTable({
+    data,
+}: {
+    data: TeacherPaymentGroup[];
+}) {
     const formatCurrency = (amount: number) => {
         return `LKR ${amount.toLocaleString()}`;
     };
@@ -29,7 +33,9 @@ export function TeacherPaymentsTable({ data }: { data: TeacherPaymentGroup[] }) 
                         <TableRow>
                             <TableHead>Teacher</TableHead>
                             <TableHead>Classes</TableHead>
-                            <TableHead className="text-right">Total Paid</TableHead>
+                            <TableHead className="text-right">
+                                Total Paid
+                            </TableHead>
                             <TableHead></TableHead>
                         </TableRow>
                     </TableHeader>
@@ -104,7 +110,7 @@ function TeacherPaymentRow({
                 <TableRow>
                     <TableCell colSpan={4} className="border-b bg-muted/30 p-4">
                         <div className="space-y-2">
-                            <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
+                            <p className="mb-2 text-xs font-semibold text-muted-foreground uppercase">
                                 Payment Details
                             </p>
                             {group.classes.map((classPayment, index) => (
@@ -114,11 +120,14 @@ function TeacherPaymentRow({
                                 >
                                     <div>
                                         <p className="text-sm font-medium">
-                                            {classPayment.grade} {classPayment.className}
+                                            {classPayment.grade}{' '}
+                                            {classPayment.className}
                                         </p>
                                         <p className="text-xs text-muted-foreground">
                                             {classPayment.studentCount} student
-                                            {classPayment.studentCount !== 1 ? 's' : ''}
+                                            {classPayment.studentCount !== 1
+                                                ? 's'
+                                                : ''}
                                         </p>
                                     </div>
                                     <span className="font-mono text-sm font-medium">
@@ -175,7 +184,7 @@ function TeacherPaymentCard({
             </div>
             {isOpen && (
                 <div className="mt-4 space-y-2 border-t pt-4">
-                    <p className="text-xs font-semibold uppercase text-muted-foreground">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase">
                         Payment Details
                     </p>
                     {group.classes.map((classPayment, index) => (
@@ -185,7 +194,8 @@ function TeacherPaymentCard({
                         >
                             <div>
                                 <p className="text-sm font-medium">
-                                    {classPayment.grade} {classPayment.className}
+                                    {classPayment.grade}{' '}
+                                    {classPayment.className}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
                                     {classPayment.studentCount} student

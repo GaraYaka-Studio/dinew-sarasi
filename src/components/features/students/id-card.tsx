@@ -7,29 +7,29 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Printer, Download } from 'lucide-react';
 
 interface IDCardProps {
-  student: {
-    fullName: string;
-    studentId: string; // Serial ID (number from database)
-    qrCode: string;    // QR code string
-    photoUrl?: string;
-    currentGrade?: string;
-    phone?: string;
-  };
-  className?: string;
+    student: {
+        fullName: string;
+        studentId: string; // Serial ID (number from database)
+        qrCode: string; // QR code string
+        photoUrl?: string;
+        currentGrade?: string;
+        phone?: string;
+    };
+    className?: string;
 }
 
 export function IDCard({ student, className }: IDCardProps) {
-  const cardRef = useRef<HTMLDivElement>(null);
+    const cardRef = useRef<HTMLDivElement>(null);
 
-  // Format the display ID (e.g., SRS-2025-001)
-  const displayId = student.studentId
-    ? `SRS-${new Date().getFullYear()}-${String(student.studentId).padStart(3, '0')}`
-    : 'Pending...';
+    // Format the display ID (e.g., SRS-2025-001)
+    const displayId = student.studentId
+        ? `SRS-${new Date().getFullYear()}-${String(student.studentId).padStart(3, '0')}`
+        : 'Pending...';
 
-  const handlePrint = () => {
-    const printWindow = window.open('', '_blank');
-    if (printWindow && cardRef.current) {
-      printWindow.document.write(`
+    const handlePrint = () => {
+        const printWindow = window.open('', '_blank');
+        if (printWindow && cardRef.current) {
+            printWindow.document.write(`
         <html>
           <head>
             <title>ID Card - ${student.fullName}</title>
@@ -58,91 +58,102 @@ export function IDCard({ student, className }: IDCardProps) {
           </body>
         </html>
       `);
-      printWindow.document.close();
-    }
-  };
+            printWindow.document.close();
+        }
+    };
 
-  const handleDownloadQR = () => {
-    const link = document.createElement('a');
-    link.href = `data:text/plain;charset=utf-8,${student.qrCode}`;
-    link.download = `${student.fullName.replace(/\s+/g, '-')}-qr-code.txt`;
-    link.click();
-  };
+    const handleDownloadQR = () => {
+        const link = document.createElement('a');
+        link.href = `data:text/plain;charset=utf-8,${student.qrCode}`;
+        link.download = `${student.fullName.replace(/\s+/g, '-')}-qr-code.txt`;
+        link.click();
+    };
 
-  return (
-    <div className={`space-y-4 ${className || ''}`}>
-      {/* ID Card - Printable Area */}
-      <Card ref={cardRef} className="w-full max-w-sm overflow-hidden border-2">
-        {/* Header */}
-        <div className="bg-primary p-4 text-center text-primary-foreground">
-          <h3 className="text-lg font-bold">SARASI INSTITUTE</h3>
-          <p className="text-sm opacity-90">Student Identification Card</p>
+    return (
+        <div className={`space-y-4 ${className || ''}`}>
+            {/* ID Card - Printable Area */}
+            <Card
+                ref={cardRef}
+                className="w-full max-w-sm overflow-hidden border-2"
+            >
+                {/* Header */}
+                <div className="bg-primary p-4 text-center text-primary-foreground">
+                    <h3 className="text-lg font-bold">SARASI INSTITUTE</h3>
+                    <p className="text-sm opacity-90">
+                        Student Identification Card
+                    </p>
+                </div>
+
+                {/* Content */}
+                <div className="p-6">
+                    {/* Photo Area */}
+                    <div className="mb-4 text-center">
+                        {student.photoUrl ? (
+                            <img
+                                src={student.photoUrl}
+                                alt={student.fullName}
+                                className="mx-auto h-20 w-20 rounded-full border-2 border-border object-cover"
+                            />
+                        ) : (
+                            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
+                                <span className="text-2xl font-bold text-primary">
+                                    {student.fullName
+                                        .split(' ')
+                                        .map((n) => n[0])
+                                        .join('')
+                                        .toUpperCase()
+                                        .slice(0, 2)}
+                                </span>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Student Info */}
+                    <div className="space-y-2 text-center">
+                        <h4 className="text-xl font-bold">
+                            {student.fullName}
+                        </h4>
+                        <p className="text-lg font-semibold text-primary">
+                            {displayId}
+                        </p>
+                        {student.currentGrade && (
+                            <p className="text-sm text-muted-foreground">
+                                Grade: {student.currentGrade}
+                            </p>
+                        )}
+                    </div>
+
+                    {/* QR Code */}
+                    <div className="my-4 flex justify-center">
+                        <QRCode value={student.qrCode} size={150} level="H" />
+                    </div>
+
+                    <p className="text-center text-xs text-muted-foreground">
+                        Scan QR code for quick verification
+                    </p>
+                </div>
+
+                {/* Footer */}
+                <div className="border-t bg-muted/30 p-3 text-center text-xs text-muted-foreground">
+                    Valid for academic year {new Date().getFullYear()}
+                </div>
+            </Card>
+
+            {/* Action Buttons - Not Printed */}
+            <div className="flex gap-2 print:hidden">
+                <Button onClick={handlePrint} className="flex-1">
+                    <Printer className="mr-2 h-4 w-4" />
+                    Print Card
+                </Button>
+                <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={handleDownloadQR}
+                >
+                    <Download className="mr-2 h-4 w-4" />
+                    Save QR
+                </Button>
+            </div>
         </div>
-
-        {/* Content */}
-        <div className="p-6">
-          {/* Photo Area */}
-          <div className="mb-4 text-center">
-            {student.photoUrl ? (
-              <img
-                src={student.photoUrl}
-                alt={student.fullName}
-                className="mx-auto h-20 w-20 rounded-full object-cover border-2 border-border"
-              />
-            ) : (
-              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
-                <span className="text-2xl font-bold text-primary">
-                  {student.fullName
-                    .split(' ')
-                    .map((n) => n[0])
-                    .join('')
-                    .toUpperCase()
-                    .slice(0, 2)}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Student Info */}
-          <div className="space-y-2 text-center">
-            <h4 className="text-xl font-bold">{student.fullName}</h4>
-            <p className="text-lg font-semibold text-primary">{displayId}</p>
-            {student.currentGrade && (
-              <p className="text-sm text-muted-foreground">Grade: {student.currentGrade}</p>
-            )}
-          </div>
-
-          {/* QR Code */}
-          <div className="my-4 flex justify-center">
-            <QRCode
-              value={student.qrCode}
-              size={150}
-              level="H"
-            />
-          </div>
-
-          <p className="text-center text-xs text-muted-foreground">
-            Scan QR code for quick verification
-          </p>
-        </div>
-
-        {/* Footer */}
-        <div className="border-t bg-muted/30 p-3 text-center text-xs text-muted-foreground">
-          Valid for academic year {new Date().getFullYear()}
-        </div>
-      </Card>
-
-      {/* Action Buttons - Not Printed */}
-      <div className="flex gap-2 print:hidden">
-        <Button onClick={handlePrint} className="flex-1">
-          <Printer className="mr-2 h-4 w-4" />
-          Print Card
-        </Button>
-        <Button variant="outline" className="flex-1" onClick={handleDownloadQR}>
-          <Download className="mr-2 h-4 w-4" />
-          Save QR
-        </Button>
-      </div>
-    </div>
-  );
+    );
 }

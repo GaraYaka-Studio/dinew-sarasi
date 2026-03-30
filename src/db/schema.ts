@@ -17,16 +17,9 @@ import {
     varchar,
 } from 'drizzle-orm/pg-core';
 
-export const gender = pgEnum('gender', [
-    'male',
-    'female',
-]);
+export const gender = pgEnum('gender', ['male', 'female']);
 
-export const userRole = pgEnum('user_role', [
-    'admin',
-    'staff',
-    'teacher'
-]);
+export const userRole = pgEnum('user_role', ['admin', 'staff', 'teacher']);
 
 export const studentStatus = pgEnum('student_status', [
     'active',
@@ -41,11 +34,7 @@ export const classMedium = pgEnum('class_medium', [
     'tamil',
 ]);
 
-export const classType = pgEnum('class_type', [
-    'theory',
-    'revision',
-    'paper',
-]);
+export const classType = pgEnum('class_type', ['theory', 'revision', 'paper']);
 
 export const dayOfWeek = pgEnum('day_of_week', [
     'monday',
@@ -60,7 +49,7 @@ export const dayOfWeek = pgEnum('day_of_week', [
 export const paymentMethod = pgEnum('payment_method', [
     'cash',
     'card',
-    'bank_transfer'
+    'bank_transfer',
 ]);
 
 export const feeType = pgEnum('fee_type', [
@@ -165,65 +154,79 @@ export const classes = pgTable('classes', {
     deleted_at: timestamp(),
 });
 
-export const classSessions = pgTable('class_sessions', {
-    id: uuid().defaultRandom().primaryKey(),
-    class_id: uuid().notNull().references(() => classes.id, { onDelete: 'cascade' }),
-    date: date().notNull(),
-    start_time: time().notNull(),
-    end_time: time().notNull(),
-    status: sessionStatus().default('scheduled'),
-    hall_name: varchar({ length: 50 }),
-    notes: text(),
-    created_by: uuid().references(() => profiles.id),
-    created_at: timestamp().defaultNow(),
-    updated_at: timestamp().defaultNow(),
-    deleted_at: timestamp(),
-}, (tb) => [
-    index('idx_session_class_date').on(tb.class_id, tb.date),
-    index('idx_session_date').on(tb.date),
-    index('idx_session_status').on(tb.status),
-]);
+export const classSessions = pgTable(
+    'class_sessions',
+    {
+        id: uuid().defaultRandom().primaryKey(),
+        class_id: uuid()
+            .notNull()
+            .references(() => classes.id, { onDelete: 'cascade' }),
+        date: date().notNull(),
+        start_time: time().notNull(),
+        end_time: time().notNull(),
+        status: sessionStatus().default('scheduled'),
+        hall_name: varchar({ length: 50 }),
+        notes: text(),
+        created_by: uuid().references(() => profiles.id),
+        created_at: timestamp().defaultNow(),
+        updated_at: timestamp().defaultNow(),
+        deleted_at: timestamp(),
+    },
+    (tb) => [
+        index('idx_session_class_date').on(tb.class_id, tb.date),
+        index('idx_session_date').on(tb.date),
+        index('idx_session_status').on(tb.status),
+    ]
+);
 
-export const students = pgTable('students', {
-    id: uuid().defaultRandom().primaryKey(),
-    student_id: serial(),
-    full_name: text().notNull(),
-    initials: varchar({ length: 20 }),
-    dob: date(),
-    gender: gender().notNull(),
-    address: text(),
-    phone: varchar({ length: 20 }).notNull(),
-    school: varchar({ length: 150 }),
-    guardian_name: text(),
-    guardian_phone: text(),
-    guardian_relationship: varchar({ length: 50 }),
-    is_emergency_contact: boolean(),
-    batch_year: integer(),
-    current_grade: varchar({ length: 20 }),
-    status: studentStatus().default('active'),
-    admission_status: admissionStatus().default('pending'),
-    admission_fee: decimal({ precision: 10, scale: 2 }),
-    qr_code: text(),
-    photo_url: text(),
-    sync_id: uuid(),
-    deleted_at: timestamp(),
-    last_modified_at: timestamp().defaultNow(),
-    created_at: timestamp().defaultNow(),
-}, (tb) => [
-    index('idx_students_qr').on(tb.qr_code),
-    index('idx_students_phone').on(tb.phone),
-]);
+export const students = pgTable(
+    'students',
+    {
+        id: uuid().defaultRandom().primaryKey(),
+        student_id: serial(),
+        full_name: text().notNull(),
+        initials: varchar({ length: 20 }),
+        dob: date(),
+        gender: gender().notNull(),
+        address: text(),
+        phone: varchar({ length: 20 }).notNull(),
+        school: varchar({ length: 150 }),
+        guardian_name: text(),
+        guardian_phone: text(),
+        guardian_relationship: varchar({ length: 50 }),
+        is_emergency_contact: boolean(),
+        batch_year: integer(),
+        current_grade: varchar({ length: 20 }),
+        status: studentStatus().default('active'),
+        admission_status: admissionStatus().default('pending'),
+        admission_fee: decimal({ precision: 10, scale: 2 }),
+        qr_code: text(),
+        photo_url: text(),
+        sync_id: uuid(),
+        deleted_at: timestamp(),
+        last_modified_at: timestamp().defaultNow(),
+        created_at: timestamp().defaultNow(),
+    },
+    (tb) => [
+        index('idx_students_qr').on(tb.qr_code),
+        index('idx_students_phone').on(tb.phone),
+    ]
+);
 
-export const enrollments = pgTable('enrollments', {
-    id: uuid().defaultRandom().primaryKey(),
-    student_id: uuid().references(() => students.id),
-    class_id: uuid().references(() => classes.id),
-    enrolled_at: date().defaultNow(),
-    is_active: boolean().default(true),
-    deleted_at: timestamp(),
-}, (tb) => [
-    uniqueIndex('idx_unique_enrollment').on(tb.student_id, tb.class_id),
-]);
+export const enrollments = pgTable(
+    'enrollments',
+    {
+        id: uuid().defaultRandom().primaryKey(),
+        student_id: uuid().references(() => students.id),
+        class_id: uuid().references(() => classes.id),
+        enrolled_at: date().defaultNow(),
+        is_active: boolean().default(true),
+        deleted_at: timestamp(),
+    },
+    (tb) => [
+        uniqueIndex('idx_unique_enrollment').on(tb.student_id, tb.class_id),
+    ]
+);
 
 export const teacherPayments = pgTable('teacher_payments', {
     id: uuid().defaultRandom().primaryKey(),
@@ -233,23 +236,32 @@ export const teacherPayments = pgTable('teacher_payments', {
     notes: text(),
 });
 
-export const studentFees = pgTable('student_fees', {
-    id: uuid().defaultRandom().primaryKey(),
-    student_id: uuid().references(() => students.id),
-    class_id: uuid().references(() => classes.id),
-    year: integer().notNull(),
-    month_index: integer().notNull(),
-    fee_amount: decimal({ precision: 10, scale: 2 }).notNull(),
-    paid_amount: decimal({ precision: 10, scale: 2 }).default('0'),
-    status: paymentStatus().default('pending'),
-    due_date: date(),
-    sync_id: uuid(),
-    updated_at: timestamp().defaultNow(),
-    deleted_at: timestamp(),
-}, (tb) => [
-    uniqueIndex().on(tb.student_id, tb.class_id, tb.year, tb.month_index),
-    index('idx_fee_status_lookup').on(tb.class_id, tb.year, tb.month_index, tb.status),
-]);
+export const studentFees = pgTable(
+    'student_fees',
+    {
+        id: uuid().defaultRandom().primaryKey(),
+        student_id: uuid().references(() => students.id),
+        class_id: uuid().references(() => classes.id),
+        year: integer().notNull(),
+        month_index: integer().notNull(),
+        fee_amount: decimal({ precision: 10, scale: 2 }).notNull(),
+        paid_amount: decimal({ precision: 10, scale: 2 }).default('0'),
+        status: paymentStatus().default('pending'),
+        due_date: date(),
+        sync_id: uuid(),
+        updated_at: timestamp().defaultNow(),
+        deleted_at: timestamp(),
+    },
+    (tb) => [
+        uniqueIndex().on(tb.student_id, tb.class_id, tb.year, tb.month_index),
+        index('idx_fee_status_lookup').on(
+            tb.class_id,
+            tb.year,
+            tb.month_index,
+            tb.status
+        ),
+    ]
+);
 
 export const payments = pgTable('payments', {
     id: uuid().defaultRandom().primaryKey(),
@@ -274,22 +286,36 @@ export const paymentItems = pgTable('payment_items', {
     amount: decimal({ precision: 10, scale: 2 }).notNull(),
 });
 
-export const attendanceRecords = pgTable('attendance_records', {
-    id: uuid().defaultRandom().primaryKey(),
-    student_id: uuid().notNull().references(() => students.id),
-    class_id: uuid().notNull().references(() => classes.id),
-    session_id: uuid().references(() => classSessions.id, { onDelete: 'restrict' }),
-    date: date().notNull(),
-    scan_time: time().defaultNow(),
-    status: attendanceStatus().default('present'),
-    marked_by: uuid().references(() => profiles.id),
-    sync_id: uuid(),
-    created_at: timestamp().defaultNow(),
-}, (tb) => [
-    uniqueIndex('attendance_records_class_date_unique').on(tb.student_id, tb.class_id, tb.date),
-    index('idx_daily_attendance_report').on(tb.date, tb.class_id),
-    index('idx_session_attendance').on(tb.session_id),
-]);
+export const attendanceRecords = pgTable(
+    'attendance_records',
+    {
+        id: uuid().defaultRandom().primaryKey(),
+        student_id: uuid()
+            .notNull()
+            .references(() => students.id),
+        class_id: uuid()
+            .notNull()
+            .references(() => classes.id),
+        session_id: uuid().references(() => classSessions.id, {
+            onDelete: 'restrict',
+        }),
+        date: date().notNull(),
+        scan_time: time().defaultNow(),
+        status: attendanceStatus().default('present'),
+        marked_by: uuid().references(() => profiles.id),
+        sync_id: uuid(),
+        created_at: timestamp().defaultNow(),
+    },
+    (tb) => [
+        uniqueIndex('attendance_records_class_date_unique').on(
+            tb.student_id,
+            tb.class_id,
+            tb.date
+        ),
+        index('idx_daily_attendance_report').on(tb.date, tb.class_id),
+        index('idx_session_attendance').on(tb.session_id),
+    ]
+);
 
 export const auditLogs = pgTable('audit_log', {
     id: uuid().defaultRandom().primaryKey(),
@@ -305,4 +331,4 @@ export const smsLogs = pgTable('sms_logs', {
     message: text(),
     status: varchar({ length: 20 }),
     sent_at: timestamp().defaultNow(),
-})
+});

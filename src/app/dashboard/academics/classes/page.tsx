@@ -35,9 +35,12 @@ export default function ClassesPage() {
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [selectedClass, setSelectedClass] = useState<ClassItem | null>(null);
-    const [selectedClassData, setSelectedClassData] = useState<ClassWithDetails | null>(null);
+    const [selectedClassData, setSelectedClassData] =
+        useState<ClassWithDetails | null>(null);
     const [classes, setClasses] = useState<ClassItem[]>([]);
-    const [classesDataMap, setClassesDataMap] = useState<Map<string, ClassWithDetails>>(new Map());
+    const [classesDataMap, setClassesDataMap] = useState<
+        Map<string, ClassWithDetails>
+    >(new Map());
 
     // Load classes from database
     useEffect(() => {
@@ -52,7 +55,10 @@ export default function ClassesPage() {
                 dbClasses.map(async (cls) => {
                     // Get student count for each class
                     const count = await getClassStudentCount(cls.id);
-                    return transformToClassItem({ ...cls, studentCount: count });
+                    return transformToClassItem({
+                        ...cls,
+                        studentCount: count,
+                    });
                 })
             );
             setClasses(items);

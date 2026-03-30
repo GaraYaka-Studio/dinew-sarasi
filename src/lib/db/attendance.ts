@@ -1,9 +1,24 @@
 'use server';
 
 import { db } from '@/db';
-import { attendanceRecords, students, studentFees, enrollments, classSessions, classes } from '@/db/schema';
+import {
+    attendanceRecords,
+    students,
+    studentFees,
+    enrollments,
+    classSessions,
+    classes,
+} from '@/db/schema';
 import { eq, and, isNull, gte, lte, sql, desc, asc } from 'drizzle-orm';
-import { timeToMinutes, getCurrentDate, getCurrentMinutes, getDateOffset, formatDate as formatDateUtil, getCurrentScanTime, SESSION_BUFFER_MINUTES } from '@/lib/utils/time';
+import {
+    timeToMinutes,
+    getCurrentDate,
+    getCurrentMinutes,
+    getDateOffset,
+    formatDate as formatDateUtil,
+    getCurrentScanTime,
+    SESSION_BUFFER_MINUTES,
+} from '@/lib/utils/time';
 
 // Types
 export interface ClassWithSession {
@@ -96,7 +111,10 @@ type AttendanceInsertValues = {
  * Search students enrolled in a specific class
  * Searches by: student_id, full_name, phone, qr_code
  */
-export async function searchStudentsForAttendance(query: string, classId: string) {
+export async function searchStudentsForAttendance(
+    query: string,
+    classId: string
+) {
     if (!query || query.length < 2 || !classId) return [];
 
     const searchTerm = `${query}%`;
@@ -134,7 +152,10 @@ export async function searchStudentsForAttendance(query: string, classId: string
 /**
  * Get student details with attendance history and payment status
  */
-export async function getStudentForAttendance(studentId: string, classId: string) {
+export async function getStudentForAttendance(
+    studentId: string,
+    classId: string
+) {
     const student = await db
         .select({
             id: students.id,
@@ -166,12 +187,17 @@ export async function getStudentForAttendance(studentId: string, classId: string
         .limit(1);
 
     if (isEnrolled.length === 0) {
-        return { ...student[0], isEnrolled: false, attendanceHistory: [], paymentStatus: null };
+        return {
+            ...student[0],
+            isEnrolled: false,
+            attendanceHistory: [],
+            paymentStatus: null,
+        };
     }
 
     const [attendanceHistory, paymentStatus] = await Promise.all([
         getAttendanceHistory(studentId, classId),
-        getPaymentStatus(studentId, classId)
+        getPaymentStatus(studentId, classId),
     ]);
 
     return {
@@ -182,7 +208,10 @@ export async function getStudentForAttendance(studentId: string, classId: string
     };
 }
 
-async function getAttendanceHistory(studentId: string, classId: string): Promise<boolean[]> {
+async function getAttendanceHistory(
+    studentId: string,
+    classId: string
+): Promise<boolean[]> {
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
@@ -202,10 +231,15 @@ async function getAttendanceHistory(studentId: string, classId: string): Promise
         )
         .orderBy(desc(attendanceRecords.date));
 
-    return records.reverse().map(r => r.status === 'present' || r.status === 'late');
+    return records
+        .reverse()
+        .map((r) => r.status === 'present' || r.status === 'late');
 }
 
-async function getPaymentStatus(studentId: string, classId: string): Promise<PaymentStatus | null> {
+async function getPaymentStatus(
+    studentId: string,
+    classId: string
+): Promise<PaymentStatus | null> {
     const now = new Date();
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth();
@@ -263,11 +297,15 @@ export async function markAttendance(data: {
     const [enrollmentCheck, existingRecord, sessionCheck] = await Promise.all([
         validateEnrollment(studentId, classId),
         findExistingAttendance(studentId, sessionId, date),
-        validateSession(sessionId, classId)
+        validateSession(sessionId, classId),
     ]);
 
     if (!enrollmentCheck) {
-        return { success: false, status: 403, error: 'Student is not enrolled in this class' };
+        return {
+            success: false,
+            status: 403,
+            error: 'Student is not enrolled in this class',
+        };
     }
 
     if (existingRecord) {
@@ -280,13 +318,27 @@ export async function markAttendance(data: {
     }
 
     if (!sessionCheck) {
-        return { success: false, status: 404, error: 'Session not found for this class.' };
+        return {
+            success: false,
+            status: 404,
+            error: 'Session not found for this class.',
+        };
     }
 
-    return await insertAttendanceRecord(studentId, classId, sessionId, date, status, markedBy);
+    return await insertAttendanceRecord(
+        studentId,
+        classId,
+        sessionId,
+        date,
+        status,
+        markedBy
+    );
 }
 
-async function validateEnrollment(studentId: string, classId: string): Promise<boolean> {
+async function validateEnrollment(
+    studentId: string,
+    classId: string
+): Promise<boolean> {
     const result = await db
         .select()
         .from(enrollments)
@@ -302,7 +354,11 @@ async function validateEnrollment(studentId: string, classId: string): Promise<b
     return result.length > 0;
 }
 
-async function findExistingAttendance(studentId: string, sessionId: string, date: string) {
+async function findExistingAttendance(
+    studentId: string,
+    sessionId: string,
+    date: string
+) {
     const result = await db
         .select()
         .from(attendanceRecords)
@@ -317,7 +373,10 @@ async function findExistingAttendance(studentId: string, sessionId: string, date
     return result[0];
 }
 
-async function validateSession(sessionId: string, classId: string): Promise<boolean> {
+async function validateSession(
+    sessionId: string,
+    classId: string
+): Promise<boolean> {
     const result = await db
         .select()
         .from(classSessions)
@@ -358,18 +417,30 @@ async function insertAttendanceRecord(
             scan_time: getCurrentScanTime(),
         });
 
-        return { success: true, status: 201, error: null, alreadyMarked: false };
+        return {
+            success: true,
+            status: 201,
+            error: null,
+            alreadyMarked: false,
+        };
     } catch (error: unknown) {
         return handleAttendanceError(error);
     }
 }
 
 function handleAttendanceError(error: unknown): AttendanceResult {
-    const err = error as { code?: string; constraint?: string; detail?: string; message?: string };
+    const err = error as {
+        code?: string;
+        constraint?: string;
+        detail?: string;
+        message?: string;
+    };
 
     // Duplicate key error
-    const isDuplicate = err.code === '23505' ||
-        err.constraint === 'attendance_records_student_id_session_id_date_index' ||
+    const isDuplicate =
+        err.code === '23505' ||
+        err.constraint ===
+            'attendance_records_student_id_session_id_date_index' ||
         err.detail?.includes('already exists');
 
     if (isDuplicate) {
@@ -384,14 +455,17 @@ function handleAttendanceError(error: unknown): AttendanceResult {
     // Foreign key error
     if (err.code === '23503') {
         const messages: Record<string, string> = {
-            'attendance_records_student_id_students_id_fk': 'Student not found.',
-            'attendance_records_class_id_classes_id_fk': 'Class not found.',
-            'attendance_records_marked_by_profiles_id_fk': 'User account not found.',
+            attendance_records_student_id_students_id_fk: 'Student not found.',
+            attendance_records_class_id_classes_id_fk: 'Class not found.',
+            attendance_records_marked_by_profiles_id_fk:
+                'User account not found.',
         };
         return {
             success: false,
             status: 400,
-            error: messages[err.constraint || ''] || 'Session or related record not found.',
+            error:
+                messages[err.constraint || ''] ||
+                'Session or related record not found.',
         };
     }
 
@@ -406,7 +480,10 @@ function handleAttendanceError(error: unknown): AttendanceResult {
  * Get attendance count for a specific session/date
  * Returns count of students marked as present or late
  */
-export async function getSessionAttendanceCount(sessionId: string, date: string): Promise<number> {
+export async function getSessionAttendanceCount(
+    sessionId: string,
+    date: string
+): Promise<number> {
     const result = await db
         .select({ count: sql<number>`count(*)::int` })
         .from(attendanceRecords)
@@ -435,15 +512,21 @@ export async function getClassesWithSessionInfo(): Promise<ClassWithSession[]> {
 
     const [allClasses, allSessions] = await Promise.all([
         fetchActiveClasses(),
-        fetchSessionsForDate(todayDate)
+        fetchSessionsForDate(todayDate),
     ]);
 
-    const classesWithSessions = allClasses.map(cls =>
-        selectBestSessionForClass(cls, allSessions, todayDate, currentMinutes, timeBufferMinutes)
+    const classesWithSessions = allClasses.map((cls) =>
+        selectBestSessionForClass(
+            cls,
+            allSessions,
+            todayDate,
+            currentMinutes,
+            timeBufferMinutes
+        )
     );
 
     // Only return classes that have sessions today
-    return classesWithSessions.filter(cls => cls.sessionId !== null);
+    return classesWithSessions.filter((cls) => cls.sessionId !== null);
 }
 
 async function fetchActiveClasses() {
@@ -487,14 +570,15 @@ function selectBestSessionForClass(
     currentMinutes: number,
     timeBufferMinutes: number
 ): ClassWithSession {
-    const sessionsForClass = allSessions.filter(s => s.classId === cls.id);
+    const sessionsForClass = allSessions.filter((s) => s.classId === cls.id);
 
     if (sessionsForClass.length === 0) {
         return createClassWithSession(cls, null);
     }
 
-    const selectedSession = findBestSession(sessionsForClass, currentMinutes, timeBufferMinutes)
-        || sessionsForClass[0];
+    const selectedSession =
+        findBestSession(sessionsForClass, currentMinutes, timeBufferMinutes) ||
+        sessionsForClass[0];
 
     return createClassWithSession(cls, selectedSession);
 }
@@ -505,7 +589,7 @@ function findBestSession(
     timeBufferMinutes: number
 ): SessionData | null {
     // Priority 1: Current session (happening now)
-    const currentSession = sessions.find(s => {
+    const currentSession = sessions.find((s) => {
         const start = timeToMinutes(s.startTime);
         const end = timeToMinutes(s.endTime, start);
         return start <= currentMinutes && end >= timeBufferMinutes;
@@ -514,35 +598,48 @@ function findBestSession(
 
     // Priority 2: Next upcoming session
     const nextSession = sessions
-        .filter(s => timeToMinutes(s.startTime) > currentMinutes)
-        .sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime))[0];
+        .filter((s) => timeToMinutes(s.startTime) > currentMinutes)
+        .sort(
+            (a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime)
+        )[0];
     if (nextSession) return nextSession;
 
     // Priority 3: Most recent past session
     const pastSession = sessions
-        .filter(s => timeToMinutes(s.endTime, timeToMinutes(s.startTime)) < currentMinutes)
-        .sort((a, b) => timeToMinutes(b.startTime) - timeToMinutes(a.startTime))[0];
+        .filter(
+            (s) =>
+                timeToMinutes(s.endTime, timeToMinutes(s.startTime)) <
+                currentMinutes
+        )
+        .sort(
+            (a, b) => timeToMinutes(b.startTime) - timeToMinutes(a.startTime)
+        )[0];
     if (pastSession) return pastSession;
 
     return null;
 }
 
-function createClassWithSession(cls: ClassData, session: SessionData | null): ClassWithSession {
-    return session ? {
-        ...cls,
-        sessionId: session.sessionId,
-        sessionDate: session.date,
-        sessionStartTime: session.startTime,
-        sessionEndTime: session.endTime,
-        sessionStatus: session.status,
-    } : {
-        ...cls,
-        sessionId: null,
-        sessionDate: null,
-        sessionStartTime: null,
-        sessionEndTime: null,
-        sessionStatus: null,
-    };
+function createClassWithSession(
+    cls: ClassData,
+    session: SessionData | null
+): ClassWithSession {
+    return session
+        ? {
+              ...cls,
+              sessionId: session.sessionId,
+              sessionDate: session.date,
+              sessionStartTime: session.startTime,
+              sessionEndTime: session.endTime,
+              sessionStatus: session.status,
+          }
+        : {
+              ...cls,
+              sessionId: null,
+              sessionDate: null,
+              sessionStartTime: null,
+              sessionEndTime: null,
+              sessionStatus: null,
+          };
 }
 
 // ============================================================================
@@ -553,7 +650,9 @@ function createClassWithSession(cls: ClassData, session: SessionData | null): Cl
  * Get attendance log grouped by session for a specific date
  * Returns sessions with their attendance records and student details
  */
-export async function getAttendanceLogByDate(date: string): Promise<AttendanceLogSession[]> {
+export async function getAttendanceLogByDate(
+    date: string
+): Promise<AttendanceLogSession[]> {
     // Get all sessions for the date with attendance records
     const sessions = await db
         .select({
@@ -571,10 +670,13 @@ export async function getAttendanceLogByDate(date: string): Promise<AttendanceLo
         })
         .from(classSessions)
         .innerJoin(classes, eq(classSessions.class_id, classes.id))
-        .innerJoin(attendanceRecords, and(
-            eq(attendanceRecords.session_id, classSessions.id),
-            eq(attendanceRecords.date, date)
-        ))
+        .innerJoin(
+            attendanceRecords,
+            and(
+                eq(attendanceRecords.session_id, classSessions.id),
+                eq(attendanceRecords.date, date)
+            )
+        )
         .innerJoin(students, eq(attendanceRecords.student_id, students.id))
         .where(
             and(
@@ -583,7 +685,10 @@ export async function getAttendanceLogByDate(date: string): Promise<AttendanceLo
                 isNull(classSessions.deleted_at)
             )
         )
-        .orderBy(asc(classSessions.start_time), asc(attendanceRecords.scan_time));
+        .orderBy(
+            asc(classSessions.start_time),
+            asc(attendanceRecords.scan_time)
+        );
 
     // Group by session
     const sessionMap = new Map<string, AttendanceLogSession>();
@@ -617,7 +722,8 @@ export async function getAttendanceLogByDate(date: string): Promise<AttendanceLo
         const scanHour = parseInt(scanTimeParts[0]);
         const scanMinute = scanTimeParts[1];
         const scanPeriod = scanHour >= 12 ? 'PM' : 'AM';
-        const displayScanHour = scanHour === 0 ? 12 : scanHour > 12 ? scanHour - 12 : scanHour;
+        const displayScanHour =
+            scanHour === 0 ? 12 : scanHour > 12 ? scanHour - 12 : scanHour;
         const formattedScanTime = `${displayScanHour.toString().padStart(2, '0')}:${scanMinute} ${scanPeriod}`;
 
         session.students.push({
@@ -637,7 +743,9 @@ export async function getAttendanceLogByDate(date: string): Promise<AttendanceLo
 /**
  * Delete an attendance record by ID
  */
-export async function deleteAttendanceRecord(attendanceId: string): Promise<{ success: boolean; error: string | null }> {
+export async function deleteAttendanceRecord(
+    attendanceId: string
+): Promise<{ success: boolean; error: string | null }> {
     try {
         await db
             .delete(attendanceRecords)
@@ -649,9 +757,15 @@ export async function deleteAttendanceRecord(attendanceId: string): Promise<{ su
         console.error('Failed to delete attendance record:', error);
 
         if (err.code === '23503') {
-            return { success: false, error: 'Cannot delete record due to existing references.' };
+            return {
+                success: false,
+                error: 'Cannot delete record due to existing references.',
+            };
         }
 
-        return { success: false, error: err.message || 'Failed to delete attendance record.' };
+        return {
+            success: false,
+            error: err.message || 'Failed to delete attendance record.',
+        };
     }
 }

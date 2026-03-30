@@ -92,7 +92,11 @@ export default function AttendanceLogPage() {
             console.error('Failed to delete attendance:', error);
             toast.error('Failed to delete attendance record');
         } finally {
-            setDeleteDialog({ isOpen: false, attendanceId: '', studentName: '' });
+            setDeleteDialog({
+                isOpen: false,
+                attendanceId: '',
+                studentName: '',
+            });
         }
     };
 
@@ -120,11 +124,17 @@ export default function AttendanceLogPage() {
             <div className="flex-1">
                 {isLoading ? (
                     <div className="flex h-full items-center justify-center">
-                        <p className="text-muted-foreground">Loading attendance...</p>
+                        <p className="text-muted-foreground">
+                            Loading attendance...
+                        </p>
                     </div>
                 ) : sessions.length > 0 ? (
                     <div className="mx-auto max-w-4xl">
-                        <Accordion type="single" collapsible className="space-y-4">
+                        <Accordion
+                            type="single"
+                            collapsible
+                            className="space-y-4"
+                        >
                             {sessions.map((classSession) => (
                                 <AccordionItem
                                     key={classSession.id}
@@ -145,7 +155,8 @@ export default function AttendanceLogPage() {
                                                 variant="default"
                                                 className="bg-green-500/10 text-green-700 hover:bg-green-500/20 dark:text-green-400"
                                             >
-                                                {classSession.totalPresent} Present
+                                                {classSession.totalPresent}{' '}
+                                                Present
                                             </Badge>
                                         </div>
                                     </AccordionTrigger>
@@ -153,45 +164,65 @@ export default function AttendanceLogPage() {
                                     <AccordionContent className="px-6 pb-4">
                                         <ScrollArea className="h-100">
                                             <div className="space-y-2 pr-4">
-                                                {classSession.students.map((student) => (
-                                                    <div
-                                                        key={student.id}
-                                                        className="flex items-center justify-between rounded-md border bg-card px-4 py-3 transition-colors hover:bg-muted/50"
-                                                    >
-                                                        {/* Scan Time */}
-                                                        <div className="w-20 text-sm text-muted-foreground">
-                                                            {student.scanTime}
-                                                        </div>
-
-                                                        {/* Student Info */}
-                                                        <div className="flex flex-1 items-center gap-3">
-                                                            <Avatar className="h-8 w-8">
-                                                                <AvatarImage src={student.avatarUrl ?? undefined} />
-                                                                <AvatarFallback className="text-xs">
-                                                                    {getInitials(student.name)}
-                                                                </AvatarFallback>
-                                                            </Avatar>
-                                                            <div className="flex flex-col">
-                                                                <span className="text-sm font-medium">
-                                                                    {student.name}
-                                                                </span>
-                                                                <span className="text-xs text-muted-foreground">
-                                                                    {student.studentId}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Delete Button */}
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                                                            onClick={() => handleDeleteClick(student.name, student.id)}
+                                                {classSession.students.map(
+                                                    (student) => (
+                                                        <div
+                                                            key={student.id}
+                                                            className="flex items-center justify-between rounded-md border bg-card px-4 py-3 transition-colors hover:bg-muted/50"
                                                         >
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
-                                                    </div>
-                                                ))}
+                                                            {/* Scan Time */}
+                                                            <div className="w-20 text-sm text-muted-foreground">
+                                                                {
+                                                                    student.scanTime
+                                                                }
+                                                            </div>
+
+                                                            {/* Student Info */}
+                                                            <div className="flex flex-1 items-center gap-3">
+                                                                <Avatar className="h-8 w-8">
+                                                                    <AvatarImage
+                                                                        src={
+                                                                            student.avatarUrl ??
+                                                                            undefined
+                                                                        }
+                                                                    />
+                                                                    <AvatarFallback className="text-xs">
+                                                                        {getInitials(
+                                                                            student.name
+                                                                        )}
+                                                                    </AvatarFallback>
+                                                                </Avatar>
+                                                                <div className="flex flex-col">
+                                                                    <span className="text-sm font-medium">
+                                                                        {
+                                                                            student.name
+                                                                        }
+                                                                    </span>
+                                                                    <span className="text-xs text-muted-foreground">
+                                                                        {
+                                                                            student.studentId
+                                                                        }
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Delete Button */}
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                                                onClick={() =>
+                                                                    handleDeleteClick(
+                                                                        student.name,
+                                                                        student.id
+                                                                    )
+                                                                }
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </Button>
+                                                        </div>
+                                                    )
+                                                )}
                                             </div>
                                         </ScrollArea>
                                     </AccordionContent>
@@ -216,20 +247,28 @@ export default function AttendanceLogPage() {
             </div>
 
             {/* Delete Confirmation Dialog */}
-            <AlertDialog open={deleteDialog.isOpen} onOpenChange={(open) => setDeleteDialog(prev => ({ ...prev, isOpen: open }))}>
+            <AlertDialog
+                open={deleteDialog.isOpen}
+                onOpenChange={(open) =>
+                    setDeleteDialog((prev) => ({ ...prev, isOpen: open }))
+                }
+            >
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Attendance Record?</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            Delete Attendance Record?
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
                             Are you sure you want to delete attendance for{' '}
-                            <strong>{deleteDialog.studentName}</strong>? This action cannot be undone.
+                            <strong>{deleteDialog.studentName}</strong>? This
+                            action cannot be undone.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleDeleteConfirm}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            className="text-destructive-foreground bg-destructive hover:bg-destructive/90"
                         >
                             Delete
                         </AlertDialogAction>

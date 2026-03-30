@@ -49,10 +49,15 @@ export function TeacherListDesktop({
                 </TableHeader>
                 <TableBody>
                     {teachers.map((teacher) => {
-                        const pendingDue = Number(teacher.total_earned) - Number(teacher.amount_paid) || 0;
+                        const pendingDue =
+                            Number(teacher.total_earned) -
+                                Number(teacher.amount_paid) || 0;
                         const isPaidOff = pendingDue === 0;
 
-                        const numClasses = classes?.filter(cls => cls.teacher_id === teacher.id).length || 0;
+                        const numClasses =
+                            classes?.filter(
+                                (cls) => cls.teacher_id === teacher.id
+                            ).length || 0;
 
                         return (
                             <TableRow key={teacher.id}>
@@ -82,10 +87,7 @@ export function TeacherListDesktop({
                                     {teacher.phone}
                                 </TableCell>
                                 <TableCell className="text-sm">
-                                    {String(numClasses).padStart(
-                                        2,
-                                        '0'
-                                    )}{' '}
+                                    {String(numClasses).padStart(2, '0')}{' '}
                                     Classes
                                 </TableCell>
                                 <TableCell>

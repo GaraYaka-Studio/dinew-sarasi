@@ -18,7 +18,11 @@ import type {
     ActivitySession,
     ActivitySummary,
 } from '@/types/reports';
-import { generateCSV, downloadCSV, formatCurrencyForCSV } from '@/lib/utils/csv';
+import {
+    generateCSV,
+    downloadCSV,
+    formatCurrencyForCSV,
+} from '@/lib/utils/csv';
 import {
     getStudentPaymentsForMonth,
     getTeacherPaymentsForMonth,
@@ -31,7 +35,8 @@ import {
 
 export default function ReportsPage() {
     const [reportType, setReportType] = useState<ReportType>('financial');
-    const [financialTab, setFinancialTab] = useState<FinancialTabType>('student');
+    const [financialTab, setFinancialTab] =
+        useState<FinancialTabType>('student');
 
     // Get current date for default month selection
     const now = new Date();
@@ -41,13 +46,22 @@ export default function ReportsPage() {
 
     // Data states
     const [isLoading, setIsLoading] = useState(true);
-    const [studentPayments, setStudentPayments] = useState<StudentPaymentRecord[]>([]);
-    const [teacherPayments, setTeacherPayments] = useState<TeacherPaymentRecord[]>([]);
-    const [financialSummary, setFinancialSummary] = useState<FinancialSummary | null>(null);
-    const [attendanceLog, setAttendanceLog] = useState<AttendanceLogSessionWithDate[]>([]);
-    const [attendanceSummary, setAttendanceSummary] = useState<AttendanceSummary | null>(null);
+    const [studentPayments, setStudentPayments] = useState<
+        StudentPaymentRecord[]
+    >([]);
+    const [teacherPayments, setTeacherPayments] = useState<
+        TeacherPaymentRecord[]
+    >([]);
+    const [financialSummary, setFinancialSummary] =
+        useState<FinancialSummary | null>(null);
+    const [attendanceLog, setAttendanceLog] = useState<
+        AttendanceLogSessionWithDate[]
+    >([]);
+    const [attendanceSummary, setAttendanceSummary] =
+        useState<AttendanceSummary | null>(null);
     const [activityLog, setActivityLog] = useState<ActivitySession[]>([]);
-    const [activitySummary, setActivitySummary] = useState<ActivitySummary | null>(null);
+    const [activitySummary, setActivitySummary] =
+        useState<ActivitySummary | null>(null);
 
     // Month change handler
     const handleMonthChange = (year: number, month: number) => {
@@ -61,11 +75,18 @@ export default function ReportsPage() {
             setIsLoading(true);
             try {
                 if (reportType === 'financial') {
-                    const [studentData, teacherData, summary] = await Promise.all([
-                        getStudentPaymentsForMonth(selectedYear, selectedMonth),
-                        getTeacherPaymentsForMonth(selectedYear, selectedMonth),
-                        getFinancialSummary(selectedYear, selectedMonth),
-                    ]);
+                    const [studentData, teacherData, summary] =
+                        await Promise.all([
+                            getStudentPaymentsForMonth(
+                                selectedYear,
+                                selectedMonth
+                            ),
+                            getTeacherPaymentsForMonth(
+                                selectedYear,
+                                selectedMonth
+                            ),
+                            getFinancialSummary(selectedYear, selectedMonth),
+                        ]);
                     setStudentPayments(studentData);
                     setTeacherPayments(teacherData);
                     setFinancialSummary(summary);
@@ -98,10 +119,10 @@ export default function ReportsPage() {
     const handleExport = async () => {
         setIsExporting(true);
         try {
-            const monthName = new Date(selectedYear, selectedMonth).toLocaleString(
-                'en-US',
-                { month: 'long' }
-            );
+            const monthName = new Date(
+                selectedYear,
+                selectedMonth
+            ).toLocaleString('en-US', { month: 'long' });
 
             if (reportType === 'financial') {
                 if (financialTab === 'student') {
@@ -204,19 +225,16 @@ export default function ReportsPage() {
                 );
             } else if (reportType === 'activity') {
                 // Export Activity Log
-                const csv = generateCSV(
-                    activityLog,
-                    [
-                        { key: 'date', label: 'Date' },
-                        { key: 'time', label: 'Time' },
-                        { key: 'className', label: 'Class' },
-                        { key: 'grade', label: 'Grade' },
-                        { key: 'teacherName', label: 'Teacher' },
-                        { key: 'status', label: 'Status' },
-                        { key: 'attendanceCount', label: 'Attendance' },
-                        { key: 'totalEnrolled', label: 'Enrolled' },
-                    ]
-                );
+                const csv = generateCSV(activityLog, [
+                    { key: 'date', label: 'Date' },
+                    { key: 'time', label: 'Time' },
+                    { key: 'className', label: 'Class' },
+                    { key: 'grade', label: 'Grade' },
+                    { key: 'teacherName', label: 'Teacher' },
+                    { key: 'status', label: 'Status' },
+                    { key: 'attendanceCount', label: 'Attendance' },
+                    { key: 'totalEnrolled', label: 'Enrolled' },
+                ]);
                 downloadCSV(
                     `Activity_Log_${monthName}_${selectedYear}.csv`,
                     csv
@@ -266,10 +284,14 @@ export default function ReportsPage() {
                     )}
 
                     {/* Attendance Report */}
-                    {reportType === 'attendance' && <AttendanceLogTable data={attendanceLog} />}
+                    {reportType === 'attendance' && (
+                        <AttendanceLogTable data={attendanceLog} />
+                    )}
 
                     {/* Activity Report */}
-                    {reportType === 'activity' && <ActivityLogTable data={activityLog} />}
+                    {reportType === 'activity' && (
+                        <ActivityLogTable data={activityLog} />
+                    )}
                 </>
             )}
         </div>

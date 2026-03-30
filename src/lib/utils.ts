@@ -9,7 +9,7 @@ export const getInitials = (fullName: string) => {
     if (!fullName) return '';
 
     const words = fullName.trim().split(/\s+/);
-    const initials = words.map(word => word.charAt(0).toUpperCase());
+    const initials = words.map((word) => word.charAt(0).toUpperCase());
 
     return initials.join('');
 };
@@ -21,7 +21,10 @@ export const getInitials = (fullName: string) => {
  * - Grade 12: Returns A/L year (current + 1)
  * - Grade 13: Returns A/L year (current)
  */
-export function calculateBatchYear(grade: string): { display: string; value: number } {
+export function calculateBatchYear(grade: string): {
+    display: string;
+    value: number;
+} {
     const currentYear = new Date().getFullYear();
     const gradeNum = parseInt(grade.replace(/\D/g, '')) || 0;
 

@@ -72,13 +72,15 @@ export function StudentContext({
                             <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                                 <span className="flex items-center gap-1">
                                     <BookOpen className="h-3 w-3" />
-                                    {totalClasses} Class{totalClasses > 1 ? 'es' : ''}
+                                    {totalClasses} Class
+                                    {totalClasses > 1 ? 'es' : ''}
                                 </span>
                                 {totalUnpaidMonths > 0 && (
                                     <>
                                         <span>•</span>
                                         <span className="font-medium text-foreground">
-                                            {totalUnpaidMonths} Unpaid Month{totalUnpaidMonths > 1 ? 's' : ''}
+                                            {totalUnpaidMonths} Unpaid Month
+                                            {totalUnpaidMonths > 1 ? 's' : ''}
                                         </span>
                                     </>
                                 )}

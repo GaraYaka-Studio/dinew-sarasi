@@ -86,7 +86,9 @@ export function SessionDialog({
 
             setIsCheckingConflicts(true);
             try {
-                const selectedClass = classes.find((c) => c.id === selectedClassId);
+                const selectedClass = classes.find(
+                    (c) => c.id === selectedClassId
+                );
                 if (!selectedClass) {
                     setConflict(null);
                     return;
@@ -102,10 +104,13 @@ export function SessionDialog({
 
                 if (conflicts && conflicts.length > 0) {
                     const c = conflicts[0];
-                    const reason = c.grade === selectedClass.grade
-                        ? `${c.grade} already has '${c.className}'`
-                        : `${c.hallName} is booked for '${c.className}'`;
-                    setConflict(`Conflict Detected: ${reason} from ${c.startTime} - ${c.endTime}.`);
+                    const reason =
+                        c.grade === selectedClass.grade
+                            ? `${c.grade} already has '${c.className}'`
+                            : `${c.hallName} is booked for '${c.className}'`;
+                    setConflict(
+                        `Conflict Detected: ${reason} from ${c.startTime} - ${c.endTime}.`
+                    );
                 } else {
                     setConflict(null);
                 }
@@ -163,7 +168,8 @@ export function SessionDialog({
                 <DialogHeader>
                     <DialogTitle>Add Class Session</DialogTitle>
                     <DialogDescription>
-                        Schedule a new class. Conflicts will be checked automatically.
+                        Schedule a new class. Conflicts will be checked
+                        automatically.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -186,7 +192,8 @@ export function SessionDialog({
                                 <SelectContent>
                                     {classes.map((cls) => (
                                         <SelectItem key={cls.id} value={cls.id}>
-                                            {cls.subjectName} - {cls.grade} ({cls.medium})
+                                            {cls.subjectName} - {cls.grade} (
+                                            {cls.medium})
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -217,7 +224,9 @@ export function SessionDialog({
                                     name="startTime"
                                     type="time"
                                     value={startTime}
-                                    onChange={(e) => setStartTime(e.target.value)}
+                                    onChange={(e) =>
+                                        setStartTime(e.target.value)
+                                    }
                                     required
                                     className="flex-1"
                                 />
@@ -254,7 +263,9 @@ export function SessionDialog({
                                 <div className="flex gap-2">
                                     <AlertCircle className="h-4 w-4 shrink-0 text-red-600 dark:text-red-400" />
                                     <div className="space-y-2">
-                                        <p className="font-medium">{conflict}</p>
+                                        <p className="font-medium">
+                                            {conflict}
+                                        </p>
 
                                         <div className="flex items-center gap-2">
                                             <Checkbox
@@ -268,7 +279,8 @@ export function SessionDialog({
                                                 htmlFor="override"
                                                 className="text-xs leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                                             >
-                                                Allow overlapping (Subject Buckets / Split)
+                                                Allow overlapping (Subject
+                                                Buckets / Split)
                                             </label>
                                         </div>
                                     </div>

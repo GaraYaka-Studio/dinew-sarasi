@@ -10,8 +10,18 @@ import {
     SelectItem,
     SelectTrigger,
 } from '@/components/ui/select';
-import { getClassesWithSessionInfo, type ClassWithSession } from '@/lib/db/attendance';
-import { timeToMinutes, formatTime, getCurrentDate, getCurrentMinutes, getDateOffset, SESSION_BUFFER_MINUTES } from '@/lib/utils/time';
+import {
+    getClassesWithSessionInfo,
+    type ClassWithSession,
+} from '@/lib/db/attendance';
+import {
+    timeToMinutes,
+    formatTime,
+    getCurrentDate,
+    getCurrentMinutes,
+    getDateOffset,
+    SESSION_BUFFER_MINUTES,
+} from '@/lib/utils/time';
 
 interface AttendanceHeaderProps {
     className?: string;
@@ -37,7 +47,8 @@ function getSessionPriority(
     timeBufferMinutes: number
 ): SessionPriority {
     if (isToday) {
-        const isCurrent = startMinutes <= currentMinutes && endMinutes >= timeBufferMinutes;
+        const isCurrent =
+            startMinutes <= currentMinutes && endMinutes >= timeBufferMinutes;
         const isNext = startMinutes > currentMinutes;
         if (isCurrent) return 1; // Today current - highest
         if (isNext) return 2; // Today next
@@ -48,7 +59,11 @@ function getSessionPriority(
     return 6; // Other dates
 }
 
-function sortClassesByPriority(classes: ClassWithSession[], currentMinutes: number, timeBufferMinutes: number): ClassWithSession[] {
+function sortClassesByPriority(
+    classes: ClassWithSession[],
+    currentMinutes: number,
+    timeBufferMinutes: number
+): ClassWithSession[] {
     const todayDate = getCurrentDate();
     const yesterdayDate = getDateOffset(-1);
     const tomorrowDate = getDateOffset(1);
@@ -88,18 +103,30 @@ function sortClassesByPriority(classes: ClassWithSession[], currentMinutes: numb
         // Same priority - sort by time
         if (aPriority === 1) {
             // Current: most recent first, then by grade/name
-            if (bStartMinutes !== aStartMinutes) return bStartMinutes - aStartMinutes;
-            return (a.grade || '').localeCompare(b.grade || '') || (a.name || '').localeCompare(b.name || '');
+            if (bStartMinutes !== aStartMinutes)
+                return bStartMinutes - aStartMinutes;
+            return (
+                (a.grade || '').localeCompare(b.grade || '') ||
+                (a.name || '').localeCompare(b.name || '')
+            );
         }
         if (aPriority === 2 || aPriority === 3) {
             // Upcoming: earlier first, then by grade/name
-            if (aStartMinutes !== bStartMinutes) return aStartMinutes - bStartMinutes;
-            return (a.grade || '').localeCompare(b.grade || '') || (a.name || '').localeCompare(b.name || '');
+            if (aStartMinutes !== bStartMinutes)
+                return aStartMinutes - bStartMinutes;
+            return (
+                (a.grade || '').localeCompare(b.grade || '') ||
+                (a.name || '').localeCompare(b.name || '')
+            );
         }
         if (aPriority === 4 || aPriority === 5) {
             // Past: more recent first, then by grade/name
-            if (bStartMinutes !== aStartMinutes) return bStartMinutes - aStartMinutes;
-            return (a.grade || '').localeCompare(b.grade || '') || (a.name || '').localeCompare(b.name || '');
+            if (bStartMinutes !== aStartMinutes)
+                return bStartMinutes - aStartMinutes;
+            return (
+                (a.grade || '').localeCompare(b.grade || '') ||
+                (a.name || '').localeCompare(b.name || '')
+            );
         }
 
         return 0;
@@ -109,7 +136,10 @@ function sortClassesByPriority(classes: ClassWithSession[], currentMinutes: numb
 function sortClassesByTime(classes: ClassWithSession[]): ClassWithSession[] {
     return [...classes].sort((a, b) => {
         if (!a.sessionId && !b.sessionId) {
-            return (a.grade || '').localeCompare(b.grade || '') || (a.name || '').localeCompare(b.name || '');
+            return (
+                (a.grade || '').localeCompare(b.grade || '') ||
+                (a.name || '').localeCompare(b.name || '')
+            );
         }
         if (!a.sessionId) return 1;
         if (!b.sessionId) return -1;
@@ -117,17 +147,27 @@ function sortClassesByTime(classes: ClassWithSession[]): ClassWithSession[] {
         // Sort by start time, then by grade/name for ties
         const aStartMinutes = timeToMinutes(a.sessionStartTime);
         const bStartMinutes = timeToMinutes(b.sessionStartTime);
-        if (aStartMinutes !== bStartMinutes) return aStartMinutes - bStartMinutes;
-        return (a.grade || '').localeCompare(b.grade || '') || (a.name || '').localeCompare(b.name || '');
+        if (aStartMinutes !== bStartMinutes)
+            return aStartMinutes - bStartMinutes;
+        return (
+            (a.grade || '').localeCompare(b.grade || '') ||
+            (a.name || '').localeCompare(b.name || '')
+        );
     });
 }
 
-function selectDefaultClass(classes: ClassWithSession[]): { classId: string; sessionId: string | null } | null {
+function selectDefaultClass(
+    classes: ClassWithSession[]
+): { classId: string; sessionId: string | null } | null {
     if (classes.length === 0) return null;
 
     const currentMinutes = getCurrentMinutes();
     const timeBufferMinutes = currentMinutes - SESSION_BUFFER_MINUTES;
-    const sorted = sortClassesByPriority(classes, currentMinutes, timeBufferMinutes);
+    const sorted = sortClassesByPriority(
+        classes,
+        currentMinutes,
+        timeBufferMinutes
+    );
 
     return {
         classId: sorted[0].id,
@@ -173,15 +213,18 @@ export function AttendanceHeader({
 
     const handleClassChange = (classId: string) => {
         onClassChange(classId);
-        const classData = classes.find(c => c.id === classId);
+        const classData = classes.find((c) => c.id === classId);
         onSessionChange(classData?.sessionId || null);
     };
 
-    const selectedClass = classes.find(c => c.id === activeClass);
+    const selectedClass = classes.find((c) => c.id === activeClass);
     const hasActiveSession = selectedClass?.sessionId;
-    const sessionTime = hasActiveSession && selectedClass.sessionStartTime && selectedClass.sessionEndTime
-        ? `${formatTime(selectedClass.sessionStartTime)} - ${formatTime(selectedClass.sessionEndTime)}`
-        : null;
+    const sessionTime =
+        hasActiveSession &&
+        selectedClass.sessionStartTime &&
+        selectedClass.sessionEndTime
+            ? `${formatTime(selectedClass.sessionStartTime)} - ${formatTime(selectedClass.sessionEndTime)}`
+            : null;
 
     return (
         <header
@@ -195,9 +238,14 @@ export function AttendanceHeader({
                     </span>
                     <div className="flex items-center gap-2">
                         <h1 className="text-lg leading-none font-bold text-foreground">
-                            {selectedClass?.name || (loading ? 'Loading...' : 'Select Class')}
+                            {selectedClass?.name ||
+                                (loading ? 'Loading...' : 'Select Class')}
                         </h1>
-                        <Select value={activeClass} onValueChange={handleClassChange} disabled={loading}>
+                        <Select
+                            value={activeClass}
+                            onValueChange={handleClassChange}
+                            disabled={loading}
+                        >
                             <SelectTrigger className="h-6 w-6 rounded-full border-none px-0 opacity-50 hover:opacity-100 focus:ring-0">
                                 <span className="sr-only">Change Class</span>
                             </SelectTrigger>

@@ -14,7 +14,18 @@ import {
     auditLogs,
     profiles,
 } from '@/db/schema';
-import { eq, and, gte, lte, isNull, sql, desc, asc, or, inArray } from 'drizzle-orm';
+import {
+    eq,
+    and,
+    gte,
+    lte,
+    isNull,
+    sql,
+    desc,
+    asc,
+    or,
+    inArray,
+} from 'drizzle-orm';
 import { formatDate } from '@/lib/utils/time';
 import type {
     StudentPaymentRecord,
@@ -111,24 +122,28 @@ export async function getTeacherPaymentsForMonth(
 
     // Get all classes for teachers involved
     const teacherIds = [...new Set(paymentsData.map((p) => p.teacherId))];
-    const classesData = teacherIds.length > 0
-        ? await db
-            .select({
-                teacherId: classes.teacher_id,
-                classId: classes.id,
-                className: classes.name,
-                grade: classes.grade,
-            })
-            .from(classes)
-            .where(inArray(classes.teacher_id, teacherIds))
-        : [];
+    const classesData =
+        teacherIds.length > 0
+            ? await db
+                  .select({
+                      teacherId: classes.teacher_id,
+                      classId: classes.id,
+                      className: classes.name,
+                      grade: classes.grade,
+                  })
+                  .from(classes)
+                  .where(inArray(classes.teacher_id, teacherIds))
+            : [];
 
     // Map teacher to their classes
-    const teacherClassesMap = new Map<string, Array<{
-        classId: string;
-        className: string;
-        grade: string;
-    }>>();
+    const teacherClassesMap = new Map<
+        string,
+        Array<{
+            classId: string;
+            className: string;
+            grade: string;
+        }>
+    >();
     for (const c of classesData) {
         const tid = c.teacherId ?? '';
         if (!tid) continue;
@@ -144,22 +159,23 @@ export async function getTeacherPaymentsForMonth(
 
     // Get student counts for each class
     const allClassIds = [...new Set(classesData.map((c) => c.classId))];
-    const enrollmentCounts = allClassIds.length > 0
-        ? await db
-            .select({
-                classId: enrollments.class_id,
-                count: sql<number>`COUNT(*)`,
-            })
-            .from(enrollments)
-            .where(
-                and(
-                    inArray(enrollments.class_id, allClassIds),
-                    eq(enrollments.is_active, true),
-                    isNull(enrollments.deleted_at)
-                )
-            )
-            .groupBy(enrollments.class_id)
-        : [];
+    const enrollmentCounts =
+        allClassIds.length > 0
+            ? await db
+                  .select({
+                      classId: enrollments.class_id,
+                      count: sql<number>`COUNT(*)`,
+                  })
+                  .from(enrollments)
+                  .where(
+                      and(
+                          inArray(enrollments.class_id, allClassIds),
+                          eq(enrollments.is_active, true),
+                          isNull(enrollments.deleted_at)
+                      )
+                  )
+                  .groupBy(enrollments.class_id)
+            : [];
 
     const countMap = new Map(enrollmentCounts.map((e) => [e.classId, e.count]));
 
@@ -190,7 +206,8 @@ export async function getTeacherPaymentsForMonth(
                 className: classInfo.className,
                 grade: classInfo.grade,
                 studentCount,
-                amount: Number(payment.amount) / Math.max(teacherClasses.length, 1),
+                amount:
+                    Number(payment.amount) / Math.max(teacherClasses.length, 1),
             });
         }
     }
@@ -293,11 +310,14 @@ export async function getAttendanceLogForMonth(
         })
         .from(classSessions)
         .innerJoin(classes, eq(classSessions.class_id, classes.id))
-        .innerJoin(attendanceRecords, and(
-            eq(attendanceRecords.session_id, classSessions.id),
-            gte(attendanceRecords.date, startDate),
-            lte(attendanceRecords.date, endDate)
-        ))
+        .innerJoin(
+            attendanceRecords,
+            and(
+                eq(attendanceRecords.session_id, classSessions.id),
+                gte(attendanceRecords.date, startDate),
+                lte(attendanceRecords.date, endDate)
+            )
+        )
         .innerJoin(students, eq(attendanceRecords.student_id, students.id))
         .where(
             and(
@@ -326,8 +346,7 @@ export async function getAttendanceLogForMonth(
             const minute = timeParts[1];
             const period = hour >= 12 ? 'PM' : 'AM';
             const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-            const formattedTime =
-                `${displayHour.toString().padStart(2, '0')}:${minute} ${period}`;
+            const formattedTime = `${displayHour.toString().padStart(2, '0')}:${minute} ${period}`;
 
             sessionMap.set(key, {
                 id: record.sessionId,
@@ -349,8 +368,7 @@ export async function getAttendanceLogForMonth(
         const scanPeriod = scanHour >= 12 ? 'PM' : 'AM';
         const displayScanHour =
             scanHour === 0 ? 12 : scanHour > 12 ? scanHour - 12 : scanHour;
-        const formattedScanTime =
-            `${displayScanHour.toString().padStart(2, '0')}:${scanMinute} ${scanPeriod}`;
+        const formattedScanTime = `${displayScanHour.toString().padStart(2, '0')}:${scanMinute} ${scanPeriod}`;
 
         session.students.push({
             id: record.attendanceId,
@@ -386,10 +404,13 @@ export async function getAttendanceSummary(
             attendanceCount: sql<number>`COUNT(DISTINCT ${attendanceRecords.id})`,
         })
         .from(classSessions)
-        .leftJoin(attendanceRecords, and(
-            eq(attendanceRecords.session_id, classSessions.id),
-            sql`${attendanceRecords.status} IN ('present', 'late')`
-        ))
+        .leftJoin(
+            attendanceRecords,
+            and(
+                eq(attendanceRecords.session_id, classSessions.id),
+                sql`${attendanceRecords.status} IN ('present', 'late')`
+            )
+        )
         .where(
             and(
                 gte(classSessions.date, startDate),
@@ -443,11 +464,13 @@ export async function getAttendanceSummary(
         // We can't easily get max possible per session without querying each class's enrollment
         // So we'll use the total attendance count divided by sessions held
     }
-    totalPossible = sessions.length * totalEnrollments / Math.max(classesHeld, 1);
+    totalPossible =
+        (sessions.length * totalEnrollments) / Math.max(classesHeld, 1);
 
-    const avgAttendance = totalPossible > 0
-        ? Math.round((totalAttendance / totalPossible) * 100)
-        : 0;
+    const avgAttendance =
+        totalPossible > 0
+            ? Math.round((totalAttendance / totalPossible) * 100)
+            : 0;
 
     return {
         classesHeld,
@@ -514,10 +537,13 @@ export async function getActivityLogForMonth(
         .from(classSessions)
         .innerJoin(classes, eq(classSessions.class_id, classes.id))
         .leftJoin(teachers, eq(teachers.id, classes.teacher_id))
-        .leftJoin(attendanceRecords, and(
-            eq(attendanceRecords.session_id, classSessions.id),
-            sql`${attendanceRecords.status} IN ('present', 'late')`
-        ))
+        .leftJoin(
+            attendanceRecords,
+            and(
+                eq(attendanceRecords.session_id, classSessions.id),
+                sql`${attendanceRecords.status} IN ('present', 'late')`
+            )
+        )
         .where(
             and(
                 gte(classSessions.date, startDate),

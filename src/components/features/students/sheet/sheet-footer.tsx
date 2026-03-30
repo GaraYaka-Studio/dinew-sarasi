@@ -60,20 +60,24 @@ export function SheetFooter({
                 <Button onClick={handleEdit}>Edit Profile</Button>
             </div>
 
-            <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+            <AlertDialog
+                open={isDeleteDialogOpen}
+                onOpenChange={setIsDeleteDialogOpen}
+            >
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Deactivate Student?</AlertDialogTitle>
                         <AlertDialogDescription>
                             Are you sure you want to deactivate{' '}
-                            <strong>{student.full_name}</strong>? This action cannot be undone.
+                            <strong>{student.full_name}</strong>? This action
+                            cannot be undone.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={confirmDelete}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            className="text-destructive-foreground bg-destructive hover:bg-destructive/90"
                         >
                             Deactivate
                         </AlertDialogAction>

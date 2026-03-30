@@ -229,7 +229,10 @@ export async function addStudent(
 
         // Generate QR code
         const year = new Date().getFullYear();
-        const randomNum = String(Math.floor(Math.random() * 999) + 1).padStart(3, '0');
+        const randomNum = String(Math.floor(Math.random() * 999) + 1).padStart(
+            3,
+            '0'
+        );
         const qrCode = `QR-SRS-${year}-${randomNum}`;
 
         // Determine admission status based on payment mode
@@ -241,10 +244,14 @@ export async function addStudent(
         }
 
         // Insert student and return the created record
-        const [newStudent] = await db.insert(students)
+        const [newStudent] = await db
+            .insert(students)
             .values({
                 full_name: personalInfo.fullName.trim(),
-                initials: personalInfo.fullName.split(' ').map(n => n[0]).join(''),
+                initials: personalInfo.fullName
+                    .split(' ')
+                    .map((n) => n[0])
+                    .join(''),
                 phone: cleanPhone,
                 dob: personalInfo.dob,
                 gender: personalInfo.gender as 'male' | 'female',
@@ -257,7 +264,8 @@ export async function addStudent(
                 batch_year: batchYearValue,
                 current_grade: academicInfo.grade,
                 admission_status: admissionStatus,
-                admission_fee: paymentData?.paymentMode === 'now' ? '1000' : null,
+                admission_fee:
+                    paymentData?.paymentMode === 'now' ? '1000' : null,
                 qr_code: qrCode,
                 status: 'active',
             })
@@ -266,7 +274,7 @@ export async function addStudent(
         // Create enrollments if classes were selected
         if (enrollmentData?.classIds && enrollmentData.classIds.length > 0) {
             const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-            const enrollmentValues = enrollmentData.classIds.map(classId => ({
+            const enrollmentValues = enrollmentData.classIds.map((classId) => ({
                 student_id: newStudent.id,
                 class_id: classId,
                 enrolled_at: today,
@@ -288,7 +296,10 @@ export async function addStudent(
                         method: 'cash',
                         payment_date: getCurrentSriLankaTimestamp(),
                     })
-                    .returning({ id: payments.id, receiptNumber: payments.receipt_number });
+                    .returning({
+                        id: payments.id,
+                        receiptNumber: payments.receipt_number,
+                    });
 
                 // Create payment item for admission fee
                 await db.insert(paymentItems).values({
@@ -302,14 +313,24 @@ export async function addStudent(
             }
 
             // Process monthly fee payments if any were selected
-            if (paymentData?.selectedMonths && paymentData.selectedMonths.size > 0) {
+            if (
+                paymentData?.selectedMonths &&
+                paymentData.selectedMonths.size > 0
+            ) {
                 const currentYear = new Date().getFullYear();
                 const currentMonth = new Date().getMonth();
 
                 // Collect all monthly payments
-                const monthlyPaymentItems: Array<{ classId: string; monthIndex: number; amount: number }> = [];
+                const monthlyPaymentItems: Array<{
+                    classId: string;
+                    monthIndex: number;
+                    amount: number;
+                }> = [];
 
-                for (const [classId, months] of paymentData.selectedMonths.entries()) {
+                for (const [
+                    classId,
+                    months,
+                ] of paymentData.selectedMonths.entries()) {
                     // Get the class fee
                     const classData = await db
                         .select({ monthlyFee: classes.monthly_fee })
@@ -334,24 +355,39 @@ export async function addStudent(
                                     .from(studentFees)
                                     .where(
                                         and(
-                                            eq(studentFees.student_id, newStudent.id),
+                                            eq(
+                                                studentFees.student_id,
+                                                newStudent.id
+                                            ),
                                             eq(studentFees.class_id, classId),
                                             eq(studentFees.year, currentYear),
-                                            eq(studentFees.month_index, monthIndex)
+                                            eq(
+                                                studentFees.month_index,
+                                                monthIndex
+                                            )
                                         )
                                     );
 
                                 if (existingFee.length > 0) {
                                     // Update existing
-                                    const newPaidAmount = Number(existingFee[0].paid_amount) + feeAmount;
+                                    const newPaidAmount =
+                                        Number(existingFee[0].paid_amount) +
+                                        feeAmount;
                                     await db
                                         .update(studentFees)
                                         .set({
-                                            paid_amount: newPaidAmount.toString(),
+                                            paid_amount:
+                                                newPaidAmount.toString(),
                                             status: 'paid',
-                                            updated_at: getCurrentSriLankaTimestamp(),
+                                            updated_at:
+                                                getCurrentSriLankaTimestamp(),
                                         })
-                                        .where(eq(studentFees.id, existingFee[0].id));
+                                        .where(
+                                            eq(
+                                                studentFees.id,
+                                                existingFee[0].id
+                                            )
+                                        );
                                 } else {
                                     // Insert new
                                     await db.insert(studentFees).values({
@@ -371,7 +407,10 @@ export async function addStudent(
 
                 // If there are monthly payments, create a payment record
                 if (monthlyPaymentItems.length > 0) {
-                    const totalMonthlyAmount = monthlyPaymentItems.reduce((sum, item) => sum + item.amount, 0);
+                    const totalMonthlyAmount = monthlyPaymentItems.reduce(
+                        (sum, item) => sum + item.amount,
+                        0
+                    );
 
                     const [payment] = await db
                         .insert(payments)
@@ -381,7 +420,10 @@ export async function addStudent(
                             method: 'cash', // Default to cash for registration
                             payment_date: getCurrentSriLankaTimestamp(),
                         })
-                        .returning({ id: payments.id, receiptNumber: payments.receipt_number });
+                        .returning({
+                            id: payments.id,
+                            receiptNumber: payments.receipt_number,
+                        });
 
                     // Create payment items
                     for (const item of monthlyPaymentItems) {
@@ -416,7 +458,10 @@ export async function addStudent(
         return {
             success: false,
             status: 500,
-            error: error instanceof Error ? error.message : 'Failed to create student. Please try again.',
+            error:
+                error instanceof Error
+                    ? error.message
+                    : 'Failed to create student. Please try again.',
         };
     }
 }
@@ -458,7 +503,7 @@ export async function enrollStudent(
             return {
                 success: false,
                 status: 409,
-                error: 'Student is already enrolled in this class'
+                error: 'Student is already enrolled in this class',
             };
         }
 
@@ -562,8 +607,20 @@ export interface PaymentCartItem {
 }
 
 // Month labels for error messages
-const MONTH_LABELS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
-                      'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+const MONTH_LABELS = [
+    'JAN',
+    'FEB',
+    'MAR',
+    'APR',
+    'MAY',
+    'JUN',
+    'JUL',
+    'AUG',
+    'SEP',
+    'OCT',
+    'NOV',
+    'DEC',
+];
 
 /**
  * Record a payment with items and update fee records
@@ -598,7 +655,7 @@ export async function recordPayment(
                 return {
                     success: false,
                     status: 400,
-                    error: `Cannot pay for future months. ${MONTH_LABELS[item.monthIndex]} ${item.year || new Date().getFullYear()} is in the future. You can only pay up to the current month.`
+                    error: `Cannot pay for future months. ${MONTH_LABELS[item.monthIndex]} ${item.year || new Date().getFullYear()} is in the future. You can only pay up to the current month.`,
                 };
             }
         }
@@ -666,8 +723,8 @@ export async function recordPayment(
                     newPaidAmount >= feeAmount
                         ? 'paid'
                         : newPaidAmount > 0
-                            ? 'partial'
-                            : 'pending';
+                          ? 'partial'
+                          : 'pending';
 
                 if (existingFee[0]) {
                     // Update existing fee record
@@ -743,7 +800,11 @@ export async function createSession(
     }
 
     if (!startTime || !endTime) {
-        return { success: false, status: 422, error: 'Start and end times are required' };
+        return {
+            success: false,
+            status: 422,
+            error: 'Start and end times are required',
+        };
     }
 
     try {

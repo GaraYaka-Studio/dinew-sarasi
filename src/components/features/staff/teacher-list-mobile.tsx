@@ -26,10 +26,14 @@ export function TeacherListMobile({
     return (
         <div className="grid gap-4 lg:hidden">
             {teachers.map((teacher) => {
-                const pendingDue = Number(teacher.total_earned) - Number(teacher.amount_paid) || 0;
+                const pendingDue =
+                    Number(teacher.total_earned) -
+                        Number(teacher.amount_paid) || 0;
                 const isPaidOff = pendingDue === 0;
 
-                const numClasses = classes?.filter(cls => cls.teacher_id === teacher.id).length || 0;
+                const numClasses =
+                    classes?.filter((cls) => cls.teacher_id === teacher.id)
+                        .length || 0;
 
                 return (
                     <div
@@ -87,9 +91,7 @@ export function TeacherListMobile({
                                 {/* Classes */}
                                 <div className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
                                     <BookOpen className="h-3.5 w-3.5" />
-                                    <span>
-                                        {numClasses} Classes Assigned
-                                    </span>
+                                    <span>{numClasses} Classes Assigned</span>
                                 </div>
 
                                 {/* Pending Due */}

@@ -2,7 +2,12 @@
 
 import { useState, useMemo, useEffect } from 'react';
 
-import { getClasses, getTeacherClasses, getTeacherPayments, getTeachers } from '@/lib/db/select';
+import {
+    getClasses,
+    getTeacherClasses,
+    getTeacherPayments,
+    getTeachers,
+} from '@/lib/db/select';
 
 import { Plus, Download } from 'lucide-react';
 
@@ -20,14 +25,18 @@ import { Class } from '@/types/schema.types';
 export default function TeachersPage() {
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
-    const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
+    const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(
+        null
+    );
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedSubject, setSelectedSubject] = useState('all');
 
     const [teachers, setTeachers] = useState<Teacher[]>([]);
     const [classes, setClasses] = useState<Class[]>([]);
     const [teacherClasses, setTeacherClasses] = useState<Class[]>([]);
-    const [teacherPayments, setTeacherPayments] = useState<TeacherPayment[]>([]);
+    const [teacherPayments, setTeacherPayments] = useState<TeacherPayment[]>(
+        []
+    );
 
     // Filter teachers based on search and subject
     const filteredTeachers = useMemo(() => {
@@ -37,7 +46,9 @@ export default function TeachersPage() {
                 teacher.name
                     .toLowerCase()
                     .includes(searchQuery.toLowerCase()) ||
-                teacher.nic?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                teacher.nic
+                    ?.toLowerCase()
+                    .includes(searchQuery.toLowerCase()) ||
                 teacher.phone?.includes(searchQuery);
 
             const matchesSubject =

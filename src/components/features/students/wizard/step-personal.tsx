@@ -95,13 +95,18 @@ export function StepPersonal({ formData, onUpdate }: StepPersonalProps) {
                             pattern="^07[0-9]{8}$"
                             maxLength={10}
                             onInvalid={(e) => {
-                                e.currentTarget.setCustomValidity('Please enter a valid Sri Lankan phone number (07X-XXXXXXX)');
+                                e.currentTarget.setCustomValidity(
+                                    'Please enter a valid Sri Lankan phone number (07X-XXXXXXX)'
+                                );
                             }}
                             onInput={(e) => {
                                 e.currentTarget.setCustomValidity('');
                                 // Only allow numbers
                                 const value = e.currentTarget.value;
-                                const numericOnly = value.replace(/[^0-9]/g, '');
+                                const numericOnly = value.replace(
+                                    /[^0-9]/g,
+                                    ''
+                                );
                                 if (value !== numericOnly) {
                                     onUpdate('mobile', numericOnly);
                                 }
@@ -195,20 +200,27 @@ export function StepPersonal({ formData, onUpdate }: StepPersonalProps) {
                             pattern="^07[0-9]{8}$"
                             maxLength={10}
                             onInvalid={(e) => {
-                                e.currentTarget.setCustomValidity('Please enter a valid Sri Lankan phone number (07X-XXXXXXX)');
+                                e.currentTarget.setCustomValidity(
+                                    'Please enter a valid Sri Lankan phone number (07X-XXXXXXX)'
+                                );
                             }}
                             onInput={(e) => {
                                 e.currentTarget.setCustomValidity('');
                                 // Only allow numbers
                                 const value = e.currentTarget.value;
-                                const numericOnly = value.replace(/[^0-9]/g, '');
+                                const numericOnly = value.replace(
+                                    /[^0-9]/g,
+                                    ''
+                                );
                                 if (value !== numericOnly) {
                                     onUpdate('guardianPhone', numericOnly);
                                 }
                             }}
                         />
                         {guardianPhoneError && (
-                            <p className="text-xs text-red-500">{guardianPhoneError}</p>
+                            <p className="text-xs text-red-500">
+                                {guardianPhoneError}
+                            </p>
                         )}
                     </div>
                     <div className="space-y-2">

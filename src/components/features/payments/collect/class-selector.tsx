@@ -13,12 +13,18 @@ interface ClassSelectorProps {
     onSelectClass: (classId: string) => void;
 }
 
-export function ClassSelector({ classes, selectedClassId, onSelectClass }: ClassSelectorProps) {
+export function ClassSelector({
+    classes,
+    selectedClassId,
+    onSelectClass,
+}: ClassSelectorProps) {
     if (classes.length === 0) {
         return (
             <div className="flex h-40 flex-col items-center justify-center rounded-lg border border-dashed text-muted-foreground">
-                <AlertCircle className="h-8 w-8 mb-2 opacity-50" />
-                <span className="text-sm font-medium">No enrolled classes found</span>
+                <AlertCircle className="mb-2 h-8 w-8 opacity-50" />
+                <span className="text-sm font-medium">
+                    No enrolled classes found
+                </span>
             </div>
         );
     }
@@ -38,7 +44,7 @@ export function ClassSelector({ classes, selectedClassId, onSelectClass }: Class
                         <Card
                             key={cls.classId}
                             className={cn(
-                                'transition-all cursor-pointer hover:shadow-md',
+                                'cursor-pointer transition-all hover:shadow-md',
                                 isSelected
                                     ? 'border-primary bg-primary/5 shadow-md'
                                     : 'hover:border-primary/50'
@@ -53,32 +59,45 @@ export function ClassSelector({ classes, selectedClassId, onSelectClass }: Class
                                                 {cls.className}
                                             </h4>
                                             {isAllPaid ? (
-                                                <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-200">
-                                                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                                                <Badge
+                                                    variant="secondary"
+                                                    className="border-green-200 bg-green-100 text-green-700"
+                                                >
+                                                    <CheckCircle2 className="mr-1 h-3 w-3" />
                                                     Fully Paid
                                                 </Badge>
                                             ) : hasUnpaid ? (
-                                                <Badge variant="outline" className="border-orange-200 bg-orange-50 text-orange-700">
-                                                    <AlertCircle className="h-3 w-3 mr-1" />
+                                                <Badge
+                                                    variant="outline"
+                                                    className="border-orange-200 bg-orange-50 text-orange-700"
+                                                >
+                                                    <AlertCircle className="mr-1 h-3 w-3" />
                                                     {cls.totalUnpaid} Unpaid
                                                 </Badge>
                                             ) : null}
                                         </div>
                                         <div className="mt-2 flex items-center gap-4 text-sm text-muted-foreground">
-                                            <span>Monthly Fee: LKR {cls.monthlyFee.toLocaleString()}</span>
+                                            <span>
+                                                Monthly Fee: LKR{' '}
+                                                {cls.monthlyFee.toLocaleString()}
+                                            </span>
                                             {hasUnpaid && (
                                                 <span className="font-medium text-foreground">
-                                                    Due: LKR {cls.totalDue.toLocaleString()}
+                                                    Due: LKR{' '}
+                                                    {cls.totalDue.toLocaleString()}
                                                 </span>
                                             )}
                                         </div>
                                     </div>
                                     <Button
-                                        variant={isSelected ? 'default' : 'ghost'}
+                                        variant={
+                                            isSelected ? 'default' : 'ghost'
+                                        }
                                         size="icon"
                                         className={cn(
                                             'shrink-0',
-                                            isSelected && 'bg-primary text-primary-foreground'
+                                            isSelected &&
+                                                'bg-primary text-primary-foreground'
                                         )}
                                     >
                                         <ChevronRight className="h-5 w-5" />

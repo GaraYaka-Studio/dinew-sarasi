@@ -61,7 +61,8 @@ export async function GET(request: NextRequest) {
         // Return limited student information - NO sensitive data
         return NextResponse.json({
             message: 'Official Use Only',
-            description: 'This QR code is for official institute identification purposes only.',
+            description:
+                'This QR code is for official institute identification purposes only.',
             student: {
                 name: student[0].fullName,
                 id: `SRS-${new Date().getFullYear()}-${String(student[0].studentId).padStart(3, '0')}`,

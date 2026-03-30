@@ -19,7 +19,10 @@ import {
 } from '@/components/ui/sheet';
 import { Search, Filter } from 'lucide-react';
 import { useRef } from 'react';
-import { QRScanner, useHardwareScanner } from '@/components/features/qr-scanner';
+import {
+    QRScanner,
+    useHardwareScanner,
+} from '@/components/features/qr-scanner';
 
 interface StudentFiltersProps {
     onSearchChange?: (query: string) => void;
@@ -57,18 +60,21 @@ const FilterContent = ({
     const inputRef = useRef<HTMLInputElement>(null);
 
     // Global hardware scanner - works anywhere on page
-    useHardwareScanner(
-        (result) => {
-            onSearchChange?.(result);
-            inputRef.current?.focus();
-        },
-        enableScanner
-    );
+    useHardwareScanner((result) => {
+        onSearchChange?.(result);
+        inputRef.current?.focus();
+    }, enableScanner);
 
     // Beep sound function
     const playBeep = () => {
         try {
-            const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+            const AudioContextClass =
+                window.AudioContext ||
+                (
+                    window as unknown as {
+                        webkitAudioContext: typeof AudioContext;
+                    }
+                ).webkitAudioContext;
             const audioContext = new AudioContextClass();
             const oscillator = audioContext.createOscillator();
             const gainNode = audioContext.createGain();
@@ -80,7 +86,10 @@ const FilterContent = ({
             oscillator.type = 'sine';
 
             gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+            gainNode.gain.exponentialRampToValueAtTime(
+                0.01,
+                audioContext.currentTime + 0.1
+            );
 
             oscillator.start(audioContext.currentTime);
             oscillator.stop(audioContext.currentTime + 0.1);
@@ -117,7 +126,10 @@ const FilterContent = ({
                     />
                 )}
 
-                <Select value={selectedGrade || 'all'} onValueChange={onGradeChange}>
+                <Select
+                    value={selectedGrade || 'all'}
+                    onValueChange={onGradeChange}
+                >
                     <SelectTrigger className="w-full md:w-40">
                         <SelectValue placeholder="Grade" />
                     </SelectTrigger>
@@ -130,7 +142,10 @@ const FilterContent = ({
                         ))}
                     </SelectContent>
                 </Select>
-                <Select value={selectedBatch || 'all'} onValueChange={onBatchChange}>
+                <Select
+                    value={selectedBatch || 'all'}
+                    onValueChange={onBatchChange}
+                >
                     <SelectTrigger className="w-full md:w-40">
                         <SelectValue placeholder="Batch" />
                     </SelectTrigger>
@@ -142,7 +157,10 @@ const FilterContent = ({
                         <SelectItem value="general">General</SelectItem>
                     </SelectContent>
                 </Select>
-                <Select value={selectedStatus || 'all'} onValueChange={onStatusChange}>
+                <Select
+                    value={selectedStatus || 'all'}
+                    onValueChange={onStatusChange}
+                >
                     <SelectTrigger className="w-full md:w-40">
                         <SelectValue placeholder="Status" />
                     </SelectTrigger>

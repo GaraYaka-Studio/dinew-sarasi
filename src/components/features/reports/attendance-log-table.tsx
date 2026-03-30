@@ -21,16 +21,21 @@ export function AttendanceLogTable({ data }: AttendanceLogTableProps) {
     }
 
     // Group sessions by date
-    const groupedByDate = data.reduce((acc, session) => {
-        if (!acc[session.date]) {
-            acc[session.date] = [];
-        }
-        acc[session.date].push(session);
-        return acc;
-    }, {} as Record<string, AttendanceLogSessionWithDate[]>);
+    const groupedByDate = data.reduce(
+        (acc, session) => {
+            if (!acc[session.date]) {
+                acc[session.date] = [];
+            }
+            acc[session.date].push(session);
+            return acc;
+        },
+        {} as Record<string, AttendanceLogSessionWithDate[]>
+    );
 
     // Sort dates in descending order (newest first)
-    const sortedDates = Object.keys(groupedByDate).sort((a, b) => b.localeCompare(a));
+    const sortedDates = Object.keys(groupedByDate).sort((a, b) =>
+        b.localeCompare(a)
+    );
 
     return (
         <div className="space-y-6">
@@ -81,11 +86,14 @@ function DateGroup({
                         <ChevronRight className="h-4 w-4 text-muted-foreground" />
                     )}
                     <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">{formatDateDisplay(date)}</span>
+                    <span className="font-medium">
+                        {formatDateDisplay(date)}
+                    </span>
                 </div>
                 <div className="flex items-center gap-3">
                     <Badge variant="outline" className="text-xs">
-                        {sessions.length} session{sessions.length !== 1 ? 's' : ''}
+                        {sessions.length} session
+                        {sessions.length !== 1 ? 's' : ''}
                     </Badge>
                     <Badge
                         variant="default"
@@ -128,13 +136,17 @@ function SessionCard({ session }: { session: AttendanceLogSessionWithDate }) {
                 className="flex w-full items-center justify-between px-4 py-3 transition-colors hover:bg-muted/50"
             >
                 <div className="flex flex-col items-start gap-1">
-                    <span className="text-sm font-semibold">{session.className}</span>
-                    <span className="text-xs text-muted-foreground">{session.time}</span>
+                    <span className="text-sm font-semibold">
+                        {session.className}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                        {session.time}
+                    </span>
                 </div>
                 <div className="flex items-center gap-2">
                     <Badge
                         variant="default"
-                        className="bg-green-500/10 text-green-700 text-xs dark:text-green-400"
+                        className="bg-green-500/10 text-xs text-green-700 dark:text-green-400"
                     >
                         {session.totalPresent} present
                     </Badge>
@@ -148,7 +160,7 @@ function SessionCard({ session }: { session: AttendanceLogSessionWithDate }) {
 
             {isExpanded && (
                 <div className="border-t bg-muted/20 p-3">
-                    <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
+                    <p className="mb-2 text-xs font-semibold text-muted-foreground uppercase">
                         Students ({session.totalPresent})
                     </p>
                     <div className="space-y-2">
@@ -159,7 +171,9 @@ function SessionCard({ session }: { session: AttendanceLogSessionWithDate }) {
                             >
                                 <div className="flex items-center gap-3">
                                     <Avatar className="h-7 w-7">
-                                        <AvatarImage src={student.avatarUrl ?? undefined} />
+                                        <AvatarImage
+                                            src={student.avatarUrl ?? undefined}
+                                        />
                                         <AvatarFallback className="text-xs">
                                             {getInitials(student.name)}
                                         </AvatarFallback>

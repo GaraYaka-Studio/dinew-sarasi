@@ -55,9 +55,10 @@ export function MonthPicker({
 
     // Use provided max or default to current
     const effectiveMaxYear = maxYear ?? currentYear;
-    const effectiveMaxMonth = maxYear !== undefined && maxYear === currentYear
-        ? (maxMonth ?? currentMonth)
-        : 11;
+    const effectiveMaxMonth =
+        maxYear !== undefined && maxYear === currentYear
+            ? (maxMonth ?? currentMonth)
+            : 11;
 
     const handlePrevMonth = () => {
         let newMonth = selectedMonth - 1;
@@ -97,8 +98,7 @@ export function MonthPicker({
 
     // Disable next button if at max month
     const isNextDisabled =
-        selectedYear >= effectiveMaxYear &&
-        selectedMonth >= effectiveMaxMonth;
+        selectedYear >= effectiveMaxYear && selectedMonth >= effectiveMaxMonth;
 
     return (
         <div className="flex items-center justify-center gap-2">
@@ -115,7 +115,13 @@ export function MonthPicker({
 
                 <div className="flex min-w-[140px] items-center justify-center gap-2 px-2 text-sm font-medium">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className={isCurrentMonth(selectedYear, selectedMonth) ? 'font-semibold' : ''}>
+                    <span
+                        className={
+                            isCurrentMonth(selectedYear, selectedMonth)
+                                ? 'font-semibold'
+                                : ''
+                        }
+                    >
                         {formatMonthYear(selectedYear, selectedMonth)}
                     </span>
                 </div>

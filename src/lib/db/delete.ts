@@ -16,13 +16,15 @@ export async function deleteSubject(subject: Subject) {
 }
 
 export async function deleteStudent(student: Student) {
-    await db.update(students)
+    await db
+        .update(students)
         .set({ deleted_at: new Date() })
         .where(eq(students.id, student.id));
 }
 
 export async function deleteClass(classData: Class) {
-    await db.update(classes)
+    await db
+        .update(classes)
         .set({ deleted_at: new Date() })
         .where(eq(classes.id, classData.id));
 }

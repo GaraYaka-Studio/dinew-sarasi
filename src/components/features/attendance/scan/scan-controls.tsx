@@ -5,7 +5,10 @@ import { useRef, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { QRScanner, useHardwareScanner } from '@/components/features/qr-scanner';
+import {
+    QRScanner,
+    useHardwareScanner,
+} from '@/components/features/qr-scanner';
 
 interface ScanControlsProps {
     isRapidMode: boolean;
@@ -32,7 +35,7 @@ export function ScanControls({
             inputRef.current?.focus();
         },
         enableScanner,
-        undefined  // Will use default beep from QRScanner
+        undefined // Will use default beep from QRScanner
     );
 
     // Auto-focus input when entering Rapid Mode or on mount
@@ -45,7 +48,13 @@ export function ScanControls({
     // Beep sound function
     const playBeep = () => {
         try {
-            const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+            const AudioContextClass =
+                window.AudioContext ||
+                (
+                    window as unknown as {
+                        webkitAudioContext: typeof AudioContext;
+                    }
+                ).webkitAudioContext;
             const audioContext = new AudioContextClass();
             const oscillator = audioContext.createOscillator();
             const gainNode = audioContext.createGain();
@@ -57,7 +66,10 @@ export function ScanControls({
             oscillator.type = 'sine';
 
             gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+            gainNode.gain.exponentialRampToValueAtTime(
+                0.01,
+                audioContext.currentTime + 0.1
+            );
 
             oscillator.start(audioContext.currentTime);
             oscillator.stop(audioContext.currentTime + 0.1);
@@ -113,7 +125,10 @@ export function ScanControls({
 
                 {isRapidMode && (
                     <p className="mt-2 text-xs text-muted-foreground">
-                        <span className="font-semibold text-primary">Scanner active</span> • Hardware scanner or camera • Beep on success
+                        <span className="font-semibold text-primary">
+                            Scanner active
+                        </span>{' '}
+                        • Hardware scanner or camera • Beep on success
                     </p>
                 )}
             </div>

@@ -39,8 +39,14 @@ export function RecordPaymentDialog({
         notes: '',
     });
 
-    const recordTeacherPaymentWithId = recordTeacherPayment.bind(null, teacher.id);
-    const [state, formAction, pending] = useActionState(recordTeacherPaymentWithId, { success: false, status: 0, error: null });
+    const recordTeacherPaymentWithId = recordTeacherPayment.bind(
+        null,
+        teacher.id
+    );
+    const [state, formAction, pending] = useActionState(
+        recordTeacherPaymentWithId,
+        { success: false, status: 0, error: null }
+    );
 
     const clearForm = useEffectEvent(() => {
         setFormValues({
@@ -135,7 +141,9 @@ export function RecordPaymentDialog({
                             onClick={() => {
                                 setFormValues({
                                     amount: '',
-                                    date: new Date().toISOString().split('T')[0],
+                                    date: new Date()
+                                        .toISOString()
+                                        .split('T')[0],
                                     notes: '',
                                 });
                                 onOpenChange(false);

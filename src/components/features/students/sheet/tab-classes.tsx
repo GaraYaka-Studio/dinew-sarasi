@@ -76,7 +76,8 @@ export function TabClasses({ student }: TabClassesProps) {
         if (!enrollment.day || !enrollment.startTime || !enrollment.endTime) {
             return 'Schedule TBD';
         }
-        const dayName = enrollment.day.charAt(0).toUpperCase() + enrollment.day.slice(1);
+        const dayName =
+            enrollment.day.charAt(0).toUpperCase() + enrollment.day.slice(1);
         const time = `${formatTime(enrollment.startTime)} - ${formatTime(enrollment.endTime)}`;
         return `${dayName}, ${time}`;
     };
@@ -91,20 +92,21 @@ export function TabClasses({ student }: TabClassesProps) {
 
                 {isLoading ? (
                     <div className="flex items-center justify-center p-12 text-muted-foreground">
-                        <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                        <Loader2 className="mr-2 h-6 w-6 animate-spin" />
                         Loading enrollments...
                     </div>
                 ) : enrollments.length === 0 ? (
                     <Card>
                         <CardContent className="flex flex-col items-center justify-center p-8 text-center">
-                            <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-4">
+                            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
                                 <Users className="h-6 w-6 text-muted-foreground" />
                             </div>
                             <p className="text-sm text-muted-foreground">
                                 No classes enrolled yet
                             </p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                                Enroll this student in classes to track their progress
+                            <p className="mt-1 text-xs text-muted-foreground">
+                                Enroll this student in classes to track their
+                                progress
                             </p>
                         </CardContent>
                     </Card>
@@ -115,20 +117,26 @@ export function TabClasses({ student }: TabClassesProps) {
                                 key={enrollment.enrollmentId}
                                 className={cn(
                                     'transition-colors',
-                                    enrollment.isActive === false && 'opacity-60'
+                                    enrollment.isActive === false &&
+                                        'opacity-60'
                                 )}
                             >
                                 <CardContent className="p-4">
                                     <div className="flex items-start justify-between">
                                         <div className="flex-1">
-                                            <div className="flex items-center gap-2 mb-2">
+                                            <div className="mb-2 flex items-center gap-2">
                                                 <p className="font-medium">
                                                     {enrollment.className}
                                                 </p>
                                                 {enrollment.type && (
                                                     <Badge
                                                         variant="outline"
-                                                        className={cn('text-xs', typeColors[enrollment.type])}
+                                                        className={cn(
+                                                            'text-xs',
+                                                            typeColors[
+                                                                enrollment.type
+                                                            ]
+                                                        )}
                                                     >
                                                         {enrollment.type}
                                                     </Badge>
@@ -136,13 +144,23 @@ export function TabClasses({ student }: TabClassesProps) {
                                                 {enrollment.medium && (
                                                     <Badge
                                                         variant="outline"
-                                                        className={cn('text-xs capitalize', mediumColors[enrollment.medium])}
+                                                        className={cn(
+                                                            'text-xs capitalize',
+                                                            mediumColors[
+                                                                enrollment
+                                                                    .medium
+                                                            ]
+                                                        )}
                                                     >
                                                         {enrollment.medium}
                                                     </Badge>
                                                 )}
-                                                {enrollment.isActive === false && (
-                                                    <Badge variant="outline" className="text-xs">
+                                                {enrollment.isActive ===
+                                                    false && (
+                                                    <Badge
+                                                        variant="outline"
+                                                        className="text-xs"
+                                                    >
                                                         Inactive
                                                     </Badge>
                                                 )}
@@ -154,15 +172,20 @@ export function TabClasses({ student }: TabClassesProps) {
                                                 </span>
                                                 <span className="flex items-center gap-1">
                                                     <Users className="h-3.5 w-3.5" />
-                                                    {enrollment.teacherName || 'No teacher'}
+                                                    {enrollment.teacherName ||
+                                                        'No teacher'}
                                                 </span>
                                                 <span>•</span>
                                                 <span className="font-medium text-foreground">
-                                                    Rs. {Number(enrollment.monthlyFee).toLocaleString()}/month
+                                                    Rs.{' '}
+                                                    {Number(
+                                                        enrollment.monthlyFee
+                                                    ).toLocaleString()}
+                                                    /month
                                                 </span>
                                             </div>
                                             {enrollment.hallName && (
-                                                <p className="text-xs text-muted-foreground mt-1">
+                                                <p className="mt-1 text-xs text-muted-foreground">
                                                     Hall: {enrollment.hallName}
                                                 </p>
                                             )}

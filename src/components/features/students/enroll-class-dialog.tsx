@@ -85,12 +85,14 @@ export function EnrollClassDialog({
                         if (isMounted) {
                             const transformed = classes.map((cls) => {
                                 const dayName = cls.day
-                                    ? cls.day.charAt(0).toUpperCase() + cls.day.slice(1)
+                                    ? cls.day.charAt(0).toUpperCase() +
+                                      cls.day.slice(1)
                                     : 'TBD';
 
-                                const time = cls.startTime && cls.endTime
-                                    ? `${formatTime(cls.startTime)} - ${formatTime(cls.endTime)}`
-                                    : 'TBD';
+                                const time =
+                                    cls.startTime && cls.endTime
+                                        ? `${formatTime(cls.startTime)} - ${formatTime(cls.endTime)}`
+                                        : 'TBD';
 
                                 return {
                                     id: cls.id,
@@ -104,7 +106,8 @@ export function EnrollClassDialog({
                                     endTime: cls.endTime,
                                     hallName: cls.hallName,
                                     subjectName: cls.subjectName,
-                                    teacherName: cls.teacherName || 'Not Assigned',
+                                    teacherName:
+                                        cls.teacherName || 'Not Assigned',
                                     schedule: `${dayName}, ${time}`,
                                 };
                             });
@@ -151,7 +154,9 @@ export function EnrollClassDialog({
     const filteredClasses = availableClasses.filter(
         (cls) =>
             cls.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            cls.subjectName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            cls.subjectName
+                ?.toLowerCase()
+                .includes(searchQuery.toLowerCase()) ||
             cls.teacherName?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
@@ -162,14 +167,19 @@ export function EnrollClassDialog({
                     <DialogHeader>
                         <DialogTitle>Enroll in Class</DialogTitle>
                         <DialogDescription>
-                            Select a class to enroll <strong>{student.full_name}</strong> in.
-                            Showing classes for <strong>{student.current_grade}</strong>
+                            Select a class to enroll{' '}
+                            <strong>{student.full_name}</strong> in. Showing
+                            classes for <strong>{student.current_grade}</strong>
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="space-y-4 py-4">
                         {/* Hidden input for selected class ID */}
-                        <input type="hidden" name="classId" value={selectedClassId || ''} />
+                        <input
+                            type="hidden"
+                            name="classId"
+                            value={selectedClassId || ''}
+                        />
 
                         {/* Search */}
                         <div className="relative">
@@ -185,12 +195,12 @@ export function EnrollClassDialog({
                         {/* Class List */}
                         {isLoading ? (
                             <div className="flex items-center justify-center p-12 text-muted-foreground">
-                                <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                                <Loader2 className="mr-2 h-6 w-6 animate-spin" />
                                 Loading classes...
                             </div>
                         ) : filteredClasses.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center p-12 border border-dashed rounded-lg">
-                                <Users className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                            <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12">
+                                <Users className="mb-4 h-12 w-12 text-muted-foreground/50" />
                                 <p className="text-center text-muted-foreground">
                                     {searchQuery
                                         ? 'No classes match your search'
@@ -198,24 +208,30 @@ export function EnrollClassDialog({
                                 </p>
                             </div>
                         ) : (
-                            <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                            <div className="max-h-[300px] space-y-2 overflow-y-auto">
                                 {filteredClasses.map((cls: ClassOption) => (
                                     <div
                                         key={cls.id}
                                         className={cn(
-                                            'flex items-center justify-between rounded-lg border p-4 transition-colors cursor-pointer',
+                                            'flex cursor-pointer items-center justify-between rounded-lg border p-4 transition-colors',
                                             selectedClassId === cls.id
                                                 ? 'border-primary bg-primary/5'
                                                 : 'hover:bg-muted/50'
                                         )}
-                                        onClick={() => setSelectedClassId(cls.id)}
+                                        onClick={() =>
+                                            setSelectedClassId(cls.id)
+                                        }
                                     >
                                         <div className="flex items-center gap-3">
                                             <input
                                                 type="radio"
                                                 name="class"
-                                                checked={selectedClassId === cls.id}
-                                                onChange={() => setSelectedClassId(cls.id)}
+                                                checked={
+                                                    selectedClassId === cls.id
+                                                }
+                                                onChange={() =>
+                                                    setSelectedClassId(cls.id)
+                                                }
                                                 className="h-4 w-4"
                                             />
                                             <div className="flex-1">
@@ -225,18 +241,26 @@ export function EnrollClassDialog({
                                                     </p>
                                                     <Badge
                                                         variant="outline"
-                                                        className={cn('text-xs', typeColors[cls.type])}
+                                                        className={cn(
+                                                            'text-xs',
+                                                            typeColors[cls.type]
+                                                        )}
                                                     >
                                                         {cls.type}
                                                     </Badge>
                                                     <Badge
                                                         variant="outline"
-                                                        className={cn('text-xs capitalize', mediumColors[cls.medium])}
+                                                        className={cn(
+                                                            'text-xs capitalize',
+                                                            mediumColors[
+                                                                cls.medium
+                                                            ]
+                                                        )}
                                                     >
                                                         {cls.medium}
                                                     </Badge>
                                                 </div>
-                                                <div className="flex flex-wrap items-center gap-x-3 text-xs text-muted-foreground mt-1">
+                                                <div className="mt-1 flex flex-wrap items-center gap-x-3 text-xs text-muted-foreground">
                                                     <span className="flex items-center gap-1">
                                                         <Calendar className="h-3 w-3" />
                                                         {cls.schedule}
@@ -247,7 +271,8 @@ export function EnrollClassDialog({
                                                     </span>
                                                     <span>•</span>
                                                     <span className="font-medium text-foreground">
-                                                        Rs. {cls.monthlyFee.toLocaleString()}
+                                                        Rs.{' '}
+                                                        {cls.monthlyFee.toLocaleString()}
                                                     </span>
                                                 </div>
                                             </div>
@@ -259,7 +284,9 @@ export function EnrollClassDialog({
 
                         {/* Error Message */}
                         {state.error && (
-                            <p className="text-sm text-destructive">{state.error as string}</p>
+                            <p className="text-sm text-destructive">
+                                {state.error as string}
+                            </p>
                         )}
                     </div>
 

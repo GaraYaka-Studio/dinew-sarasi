@@ -1,6 +1,12 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback, useActionState } from 'react';
+import {
+    useState,
+    useRef,
+    useEffect,
+    useCallback,
+    useActionState,
+} from 'react';
 import { toast } from 'sonner';
 import {
     Dialog,
@@ -42,7 +48,11 @@ interface FormData {
 
 const TOTAL_STEPS = 3;
 
-export function StudentDialog({ isOpen, onOpenChange, onStudentAdded }: StudentDialogProps) {
+export function StudentDialog({
+    isOpen,
+    onOpenChange,
+    onStudentAdded,
+}: StudentDialogProps) {
     const [currentStep, setCurrentStep] = useState(1);
     const [formData, setFormData] = useState<FormData>({
         name: '',
@@ -81,7 +91,9 @@ export function StudentDialog({ isOpen, onOpenChange, onStudentAdded }: StudentD
         if (formData.grade && formData.grade !== prevGradeRef.current) {
             if (prevGradeRef.current !== '') {
                 // Grade changed, clear selections
-                console.log('[StudentDialog] Grade changed, resetting class selections');
+                console.log(
+                    '[StudentDialog] Grade changed, resetting class selections'
+                );
                 setFormData((prev) => ({
                     ...prev,
                     selectedClasses: [],
@@ -91,64 +103,80 @@ export function StudentDialog({ isOpen, onOpenChange, onStudentAdded }: StudentD
         }
     }, [formData.grade]);
 
-    const [state, formAction, pending] = useActionState(async (_prevState: unknown, formFormData: globalThis.FormData) => {
-        // Prevent duplicate submissions
-        if (hasSubmitted.current) {
-            return {
-                success: false,
-                status: 429,
-                error: 'Submission already in progress',
+    const [state, formAction, pending] = useActionState(
+        async (_prevState: unknown, formFormData: globalThis.FormData) => {
+            // Prevent duplicate submissions
+            if (hasSubmitted.current) {
+                return {
+                    success: false,
+                    status: 429,
+                    error: 'Submission already in progress',
+                };
+            }
+
+            // Build personal info from form data
+            const personalInfo = {
+                fullName: formData.name,
+                phone: formData.mobile,
+                guardianName: formData.guardianName,
+                guardianPhone: formData.guardianPhone,
+                relationship: formData.relationship,
+                school: formData.school,
+                dob: formData.dob,
+                address: formData.address,
+                gender: formData.gender,
             };
-        }
 
-        // Build personal info from form data
-        const personalInfo = {
-            fullName: formData.name,
-            phone: formData.mobile,
-            guardianName: formData.guardianName,
-            guardianPhone: formData.guardianPhone,
-            relationship: formData.relationship,
-            school: formData.school,
-            dob: formData.dob,
-            address: formData.address,
-            gender: formData.gender,
-        };
+            const academicInfo = {
+                grade: formData.grade,
+                batch: formData.batch,
+            };
 
-        const academicInfo = {
-            grade: formData.grade,
-            batch: formData.batch,
-        };
+            const enrollmentData =
+                selectedClassesRef.current.length > 0
+                    ? { classIds: selectedClassesRef.current }
+                    : null;
 
-        const enrollmentData = selectedClassesRef.current.length > 0
-            ? { classIds: selectedClassesRef.current }
-            : null;
-
-        console.log('[StudentDialog] Starting submission, hasSubmitted was:', hasSubmitted.current);
-        hasSubmitted.current = true;
-        try {
-            const result = await addStudent(personalInfo, academicInfo, enrollmentData, null, _prevState, formFormData);
-            console.log('[StudentDialog] Submission result:', result);
-            return result;
-        } catch (error) {
-            console.error('[StudentDialog] Submission error:', error);
-            // Reset on error to allow retry
-            hasSubmitted.current = false;
-            throw error;
-        } finally {
-            // Always reset after completion (success or error)
-            // The success state will be handled by the useEffect above
-            console.log('[StudentDialog] Submission finished, pending should be false now');
-        }
-    }, {
-        success: false,
-        status: 0,
-        error: null,
-        data: {
-            studentId: '',
-            serialId: 0,
-            qrCode: '',
+            console.log(
+                '[StudentDialog] Starting submission, hasSubmitted was:',
+                hasSubmitted.current
+            );
+            hasSubmitted.current = true;
+            try {
+                const result = await addStudent(
+                    personalInfo,
+                    academicInfo,
+                    enrollmentData,
+                    null,
+                    _prevState,
+                    formFormData
+                );
+                console.log('[StudentDialog] Submission result:', result);
+                return result;
+            } catch (error) {
+                console.error('[StudentDialog] Submission error:', error);
+                // Reset on error to allow retry
+                hasSubmitted.current = false;
+                throw error;
+            } finally {
+                // Always reset after completion (success or error)
+                // The success state will be handled by the useEffect above
+                console.log(
+                    '[StudentDialog] Submission finished, pending should be false now'
+                );
+            }
         },
-    });
+        {
+            success: false,
+            status: 0,
+            error: null,
+            data: {
+                studentId: '',
+                serialId: 0,
+                qrCode: '',
+            },
+        }
+    );
 
     // Scroll to top when step changes
     useEffect(() => {
@@ -161,32 +189,65 @@ export function StudentDialog({ isOpen, onOpenChange, onStudentAdded }: StudentD
     useEffect(() => {
         console.log('[StudentDialog] Step changed to:', currentStep);
         if (currentStep === 2) {
-            console.log('[StudentDialog] Resetting submission flags for step 2');
+            console.log(
+                '[StudentDialog] Resetting submission flags for step 2'
+            );
             hasSubmitted.current = false;
             isSubmittingFromStep2.current = false;
         }
     }, [currentStep]);
 
-    const updateFormData = useCallback((field: string, value: string | string[]) => {
-        setFormData((prev) => ({ ...prev, [field]: value }));
-    }, []);
+    const updateFormData = useCallback(
+        (field: string, value: string | string[]) => {
+            setFormData((prev) => ({ ...prev, [field]: value }));
+        },
+        []
+    );
 
-    const validateStep = (step: number): { valid: boolean; message?: string } => {
+    const validateStep = (
+        step: number
+    ): { valid: boolean; message?: string } => {
         switch (step) {
             case 1:
-                if (!formData.name?.trim()) return { valid: false, message: 'Name is required' };
-                if (!formData.mobile?.trim()) return { valid: false, message: 'Mobile number is required' };
-                if (!formData.guardianName?.trim()) return { valid: false, message: 'Guardian name is required' };
-                if (!formData.guardianPhone?.trim()) return { valid: false, message: 'Guardian phone is required' };
-                if (!formData.relationship?.trim()) return { valid: false, message: 'Relationship is required' };
-                if (!formData.school?.trim()) return { valid: false, message: 'School is required' };
-                if (!formData.dob?.trim()) return { valid: false, message: 'Date of birth is required' };
-                if (!formData.address?.trim()) return { valid: false, message: 'Address is required' };
-                if (!formData.gender?.trim()) return { valid: false, message: 'Gender is required' };
+                if (!formData.name?.trim())
+                    return { valid: false, message: 'Name is required' };
+                if (!formData.mobile?.trim())
+                    return {
+                        valid: false,
+                        message: 'Mobile number is required',
+                    };
+                if (!formData.guardianName?.trim())
+                    return {
+                        valid: false,
+                        message: 'Guardian name is required',
+                    };
+                if (!formData.guardianPhone?.trim())
+                    return {
+                        valid: false,
+                        message: 'Guardian phone is required',
+                    };
+                if (!formData.relationship?.trim())
+                    return {
+                        valid: false,
+                        message: 'Relationship is required',
+                    };
+                if (!formData.school?.trim())
+                    return { valid: false, message: 'School is required' };
+                if (!formData.dob?.trim())
+                    return {
+                        valid: false,
+                        message: 'Date of birth is required',
+                    };
+                if (!formData.address?.trim())
+                    return { valid: false, message: 'Address is required' };
+                if (!formData.gender?.trim())
+                    return { valid: false, message: 'Gender is required' };
                 return { valid: true };
             case 2:
-                if (!formData.grade?.trim()) return { valid: false, message: 'Grade is required' };
-                if (!formData.batch?.trim()) return { valid: false, message: 'Batch is required' };
+                if (!formData.grade?.trim())
+                    return { valid: false, message: 'Grade is required' };
+                if (!formData.batch?.trim())
+                    return { valid: false, message: 'Batch is required' };
                 return { valid: true };
             default:
                 return { valid: true };
@@ -225,7 +286,9 @@ export function StudentDialog({ isOpen, onOpenChange, onStudentAdded }: StudentD
     const handleNext = () => {
         const validation = validateStep(currentStep);
         if (!validation.valid) {
-            toast.error(validation.message || 'Please fill all required fields');
+            toast.error(
+                validation.message || 'Please fill all required fields'
+            );
             return;
         }
         if (currentStep < 2) {
@@ -239,12 +302,16 @@ export function StudentDialog({ isOpen, onOpenChange, onStudentAdded }: StudentD
     const handleSubmit = () => {
         const validation = validateStep(2);
         if (!validation.valid) {
-            toast.error(validation.message || 'Please fix errors before submitting');
+            toast.error(
+                validation.message || 'Please fix errors before submitting'
+            );
             return;
         }
         isSubmittingFromStep2.current = true;
         // Trigger the form submission programmatically
-        const form = document.getElementById('add-student-form') as HTMLFormElement;
+        const form = document.getElementById(
+            'add-student-form'
+        ) as HTMLFormElement;
         if (form) {
             form.requestSubmit();
         }
@@ -265,14 +332,20 @@ export function StudentDialog({ isOpen, onOpenChange, onStudentAdded }: StudentD
 
     // Handle success/error state
     useEffect(() => {
-        console.log('[StudentDialog] State changed:', { success: state.success, error: state.error, pending });
+        console.log('[StudentDialog] State changed:', {
+            success: state.success,
+            error: state.error,
+            pending,
+        });
 
         if (state.error) {
             toast.error(state.error);
             hasSubmitted.current = false;
         } else if (state.success && isSubmittingFromStep2.current) {
             // Extract student data from response
-            const data = (state.success === true ? state.data : undefined) as { studentId?: string; qrCode?: string; serialId?: number } | undefined;
+            const data = (state.success === true ? state.data : undefined) as
+                | { studentId?: string; qrCode?: string; serialId?: number }
+                | undefined;
             if (data) {
                 setCreatedStudentId(data.studentId || '');
                 setCreatedQrCode(data.qrCode || '');
@@ -329,53 +402,53 @@ export function StudentDialog({ isOpen, onOpenChange, onStudentAdded }: StudentD
                         <div className="flex items-center justify-between">
                             {/* Desktop: Full Stepper */}
                             <div className="hidden w-full gap-2 sm:flex">
-                                {[
-                                    'Personal',
-                                    'Academic',
-                                    'Success',
-                                ].map((label, idx) => {
-                                    const stepNum = idx + 1;
-                                    const isActive = currentStep === stepNum;
-                                    const isCompleted = currentStep > stepNum;
+                                {['Personal', 'Academic', 'Success'].map(
+                                    (label, idx) => {
+                                        const stepNum = idx + 1;
+                                        const isActive =
+                                            currentStep === stepNum;
+                                        const isCompleted =
+                                            currentStep > stepNum;
 
-                                    return (
-                                        <div
-                                            key={stepNum}
-                                            className="flex flex-1 items-center"
-                                        >
-                                            <div className="flex items-center gap-2">
-                                                <div
-                                                    className={cn(
-                                                        'flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition-colors',
-                                                        isCompleted &&
-                                                            'bg-green-500 text-white',
-                                                        isActive &&
-                                                            'bg-primary text-primary-foreground',
-                                                        !isActive &&
-                                                            !isCompleted &&
-                                                            'bg-muted text-muted-foreground'
-                                                    )}
-                                                >
-                                                    {stepNum}
+                                        return (
+                                            <div
+                                                key={stepNum}
+                                                className="flex flex-1 items-center"
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <div
+                                                        className={cn(
+                                                            'flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition-colors',
+                                                            isCompleted &&
+                                                                'bg-green-500 text-white',
+                                                            isActive &&
+                                                                'bg-primary text-primary-foreground',
+                                                            !isActive &&
+                                                                !isCompleted &&
+                                                                'bg-muted text-muted-foreground'
+                                                        )}
+                                                    >
+                                                        {stepNum}
+                                                    </div>
+                                                    <span
+                                                        className={cn(
+                                                            'text-sm font-medium',
+                                                            isActive &&
+                                                                'text-foreground',
+                                                            !isActive &&
+                                                                'text-muted-foreground'
+                                                        )}
+                                                    >
+                                                        {label}
+                                                    </span>
                                                 </div>
-                                                <span
-                                                    className={cn(
-                                                        'text-sm font-medium',
-                                                        isActive &&
-                                                            'text-foreground',
-                                                        !isActive &&
-                                                            'text-muted-foreground'
-                                                    )}
-                                                >
-                                                    {label}
-                                                </span>
+                                                {stepNum < 3 && (
+                                                    <div className="mx-2 h-[2px] flex-1 bg-muted" />
+                                                )}
                                             </div>
-                                            {stepNum < 3 && (
-                                                <div className="mx-2 h-[2px] flex-1 bg-muted" />
-                                            )}
-                                        </div>
-                                    );
-                                })}
+                                        );
+                                    }
+                                )}
                             </div>
 
                             {/* Mobile: Simple Progress */}
@@ -415,7 +488,11 @@ export function StudentDialog({ isOpen, onOpenChange, onStudentAdded }: StudentD
 
                     {/* Step 2: Academic - Form wrapper for submission */}
                     {currentStep === 2 && (
-                        <form id="add-student-form" action={formAction} className="p-6">
+                        <form
+                            id="add-student-form"
+                            action={formAction}
+                            className="p-6"
+                        >
                             <StepAcademic
                                 formData={formData}
                                 onUpdate={updateFormData}
@@ -474,18 +551,30 @@ export function StudentDialog({ isOpen, onOpenChange, onStudentAdded }: StudentD
                                         disabled={isNextDisabled}
                                         onClick={(e) => {
                                             e.preventDefault();
-                                            console.log('[StudentDialog] Finish clicked - hasSubmitted:', hasSubmitted.current, 'pending:', pending);
+                                            console.log(
+                                                '[StudentDialog] Finish clicked - hasSubmitted:',
+                                                hasSubmitted.current,
+                                                'pending:',
+                                                pending
+                                            );
                                             if (!pending) {
-                                                const validation = validateStep(2);
+                                                const validation =
+                                                    validateStep(2);
                                                 if (validation.valid) {
                                                     isSubmittingFromStep2.current = true;
                                                     // Trigger the form submission programmatically
-                                                    const form = document.getElementById('add-student-form') as HTMLFormElement;
+                                                    const form =
+                                                        document.getElementById(
+                                                            'add-student-form'
+                                                        ) as HTMLFormElement;
                                                     if (form) {
                                                         form.requestSubmit();
                                                     }
                                                 } else {
-                                                    toast.error(validation.message || 'Please fix errors before submitting');
+                                                    toast.error(
+                                                        validation.message ||
+                                                            'Please fix errors before submitting'
+                                                    );
                                                 }
                                             }
                                         }}
@@ -493,7 +582,11 @@ export function StudentDialog({ isOpen, onOpenChange, onStudentAdded }: StudentD
                                         {pending ? 'Saving...' : 'Finish'}
                                     </Button>
                                 ) : (
-                                    <Button onClick={handleNext} disabled={isNextDisabled} type="button">
+                                    <Button
+                                        onClick={handleNext}
+                                        disabled={isNextDisabled}
+                                        type="button"
+                                    >
                                         Next
                                         <ChevronRight className="ml-2 h-4 w-4" />
                                     </Button>

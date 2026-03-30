@@ -92,21 +92,26 @@ export function ClassSheetFooter({
                 <Button onClick={handleEdit}>Edit Profile</Button>
             </div>
 
-            <AlertDialog open={isArchiveDialogOpen} onOpenChange={setIsArchiveDialogOpen}>
+            <AlertDialog
+                open={isArchiveDialogOpen}
+                onOpenChange={setIsArchiveDialogOpen}
+            >
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Archive Class?</AlertDialogTitle>
                         <AlertDialogDescription>
                             Are you sure you want to archive{' '}
-                            <strong>{classItem.subject} - {classItem.grade}</strong>?
-                            This can be undone later.
+                            <strong>
+                                {classItem.subject} - {classItem.grade}
+                            </strong>
+                            ? This can be undone later.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={confirmArchive}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            className="text-destructive-foreground bg-destructive hover:bg-destructive/90"
                         >
                             Archive
                         </AlertDialogAction>

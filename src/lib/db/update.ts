@@ -25,15 +25,27 @@ export async function updateStudent(
 ) {
     // Validation
     if (!personalInfo.fullName || !personalInfo.phone) {
-        return { success: false, status: 422, error: 'Name and phone are required' };
+        return {
+            success: false,
+            status: 422,
+            error: 'Name and phone are required',
+        };
     }
 
     if (!personalInfo.guardianName || !personalInfo.guardianPhone) {
-        return { success: false, status: 422, error: 'Guardian information is required' };
+        return {
+            success: false,
+            status: 422,
+            error: 'Guardian information is required',
+        };
     }
 
     if (!academicInfo.grade || !academicInfo.batch) {
-        return { success: false, status: 422, error: 'Grade and batch are required' };
+        return {
+            success: false,
+            status: 422,
+            error: 'Grade and batch are required',
+        };
     }
 
     try {
@@ -44,7 +56,10 @@ export async function updateStudent(
             .update(students)
             .set({
                 full_name: personalInfo.fullName,
-                initials: personalInfo.fullName.split(' ').map((n) => n[0]).join(''),
+                initials: personalInfo.fullName
+                    .split(' ')
+                    .map((n) => n[0])
+                    .join(''),
                 phone: personalInfo.phone,
                 dob: personalInfo.dob,
                 gender: personalInfo.gender as 'male' | 'female',
@@ -181,7 +196,8 @@ export async function updateSession(
         if (startTime) updateData.start_time = startTime;
         if (endTime) updateData.end_time = endTime;
         if (hallName !== undefined) updateData.hall_name = hallName || null;
-        if (status) updateData.status = status as 'scheduled' | 'cancelled' | 'extra';
+        if (status)
+            updateData.status = status as 'scheduled' | 'cancelled' | 'extra';
         if (notes !== undefined) updateData.notes = notes || null;
 
         await db

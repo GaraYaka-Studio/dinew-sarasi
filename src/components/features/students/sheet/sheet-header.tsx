@@ -49,7 +49,9 @@ export function SheetHeader({ student }: SheetHeaderProps) {
                                 : 'secondary'
                         }
                     >
-                        {student.status === 'active' ? '● Active' : `● ${student.status}`}
+                        {student.status === 'active'
+                            ? '● Active'
+                            : `● ${student.status}`}
                     </Badge>
                     {student.admission_status === 'pending' && (
                         <Badge variant="destructive">Adm. Pending</Badge>

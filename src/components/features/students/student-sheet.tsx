@@ -60,7 +60,9 @@ export function StudentSheet({
                         <TabsList className="w-full shrink-0 justify-start rounded-none border-b px-6">
                             <TabsTrigger value="profile">Profile</TabsTrigger>
                             <TabsTrigger value="payments">Payments</TabsTrigger>
-                            <TabsTrigger value="attendance">Attendance</TabsTrigger>
+                            <TabsTrigger value="attendance">
+                                Attendance
+                            </TabsTrigger>
                             <TabsTrigger value="classes">Classes</TabsTrigger>
                         </TabsList>
 
@@ -74,7 +76,10 @@ export function StudentSheet({
                                     <TabPayments student={student} />
                                 </TabsContent>
 
-                                <TabsContent value="attendance" className="mt-0">
+                                <TabsContent
+                                    value="attendance"
+                                    className="mt-0"
+                                >
                                     <TabAttendance student={student} />
                                 </TabsContent>
 

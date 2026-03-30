@@ -8,8 +8,8 @@ interface StepSuccessProps {
     studentData: {
         name: string;
         studentId: string; // UUID
-        serialId: number;  // Serial number from database
-        qrCode: string;    // QR code string
+        serialId: number; // Serial number from database
+        qrCode: string; // QR code string
     };
     onPrintId?: () => void;
     onAddAnother: () => void;
@@ -48,7 +48,11 @@ export function StepSuccess({
 
             {/* Action Buttons */}
             <div className="flex w-full max-w-sm flex-col gap-2 sm:flex-row">
-                <Button onClick={onAddAnother} variant="outline" className="flex-1">
+                <Button
+                    onClick={onAddAnother}
+                    variant="outline"
+                    className="flex-1"
+                >
                     <UserPlus className="mr-2 h-4 w-4" />
                     Add Another
                 </Button>

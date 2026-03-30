@@ -53,7 +53,13 @@ interface SortButtonProps {
     sortIcon: React.ReactNode;
 }
 
-function SortButton({ field, children, onSort, isActive, sortIcon }: SortButtonProps) {
+function SortButton({
+    field,
+    children,
+    onSort,
+    isActive,
+    sortIcon,
+}: SortButtonProps) {
     if (!onSort) return <TableHead>{children}</TableHead>;
 
     return (
@@ -71,11 +77,24 @@ function SortButton({ field, children, onSort, isActive, sortIcon }: SortButtonP
     );
 }
 
-export function StudentList({ students, onViewStudent, onSort, sortField, sortOrder }: StudentListProps) {
-
+export function StudentList({
+    students,
+    onViewStudent,
+    onSort,
+    sortField,
+    sortOrder,
+}: StudentListProps) {
     const getSortIcon = (field: SortField) => {
         const isActive = sortField === field;
-        return isActive ? (sortOrder === 'asc' ? <ChevronUp className="ml-1 h-3 w-3" /> : <ChevronDown className="ml-1 h-3 w-3" />) : <ChevronsUpDown className="ml-1 h-3 w-3 opacity-50" />;
+        return isActive ? (
+            sortOrder === 'asc' ? (
+                <ChevronUp className="ml-1 h-3 w-3" />
+            ) : (
+                <ChevronDown className="ml-1 h-3 w-3" />
+            )
+        ) : (
+            <ChevronsUpDown className="ml-1 h-3 w-3 opacity-50" />
+        );
     };
     return (
         <>
@@ -84,9 +103,23 @@ export function StudentList({ students, onViewStudent, onSort, sortField, sortOr
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <SortButton field="name" onSort={onSort} isActive={sortField === 'name'} sortIcon={getSortIcon('name')}>Student</SortButton>
+                            <SortButton
+                                field="name"
+                                onSort={onSort}
+                                isActive={sortField === 'name'}
+                                sortIcon={getSortIcon('name')}
+                            >
+                                Student
+                            </SortButton>
                             <TableHead>Contact</TableHead>
-                            <SortButton field="grade" onSort={onSort} isActive={sortField === 'grade'} sortIcon={getSortIcon('grade')}>Academic</SortButton>
+                            <SortButton
+                                field="grade"
+                                onSort={onSort}
+                                isActive={sortField === 'grade'}
+                                sortIcon={getSortIcon('grade')}
+                            >
+                                Academic
+                            </SortButton>
                             <TableHead>Status</TableHead>
                             <TableHead className="text-right">
                                 Actions
@@ -104,7 +137,9 @@ export function StudentList({ students, onViewStudent, onSort, sortField, sortOr
                                         <div className="flex items-center gap-3">
                                             <Avatar className="h-9 w-9">
                                                 <AvatarFallback className="bg-primary/10 text-xs text-primary">
-                                                    {getInitials(student.full_name)}
+                                                    {getInitials(
+                                                        student.full_name
+                                                    )}
                                                 </AvatarFallback>
                                             </Avatar>
                                             <div>
@@ -145,7 +180,9 @@ export function StudentList({ students, onViewStudent, onSort, sortField, sortOr
                                         <Button
                                             variant="ghost"
                                             size="sm"
-                                            onClick={() => onViewStudent(student)}
+                                            onClick={() =>
+                                                onViewStudent(student)
+                                            }
                                         >
                                             <Eye className="h-4 w-4" />
                                         </Button>
@@ -184,7 +221,9 @@ export function StudentList({ students, onViewStudent, onSort, sortField, sortOr
                                         <Button
                                             variant="ghost"
                                             size="sm"
-                                            onClick={() => onViewStudent(student)}
+                                            onClick={() =>
+                                                onViewStudent(student)
+                                            }
                                         >
                                             <Eye className="h-4 w-4" />
                                         </Button>

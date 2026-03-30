@@ -41,7 +41,9 @@ const formatDateHeader = (dateStr: string): string => {
     });
 };
 
-const groupLogsByDate = (logs: AuditLogRecord[]): Record<string, AuditLogRecord[]> => {
+const groupLogsByDate = (
+    logs: AuditLogRecord[]
+): Record<string, AuditLogRecord[]> => {
     return logs.reduce(
         (acc, log) => {
             const dateKey = getDateKey(log.timestamp);
@@ -57,8 +59,12 @@ const groupLogsByDate = (logs: AuditLogRecord[]): Record<string, AuditLogRecord[
 
 export default function AuditLogsPage() {
     const [searchQuery, setSearchQuery] = useState('');
-    const [actionFilter, setActionFilter] = useState<AuditAction | 'ALL'>('ALL');
-    const [moduleFilter, setModuleFilter] = useState<AuditModule | 'ALL'>('ALL');
+    const [actionFilter, setActionFilter] = useState<AuditAction | 'ALL'>(
+        'ALL'
+    );
+    const [moduleFilter, setModuleFilter] = useState<AuditModule | 'ALL'>(
+        'ALL'
+    );
 
     // Data loading state
     const [auditLogs, setAuditLogs] = useState<AuditLogRecord[]>([]);
@@ -91,7 +97,9 @@ export default function AuditLogsPage() {
         return auditLogs.filter((log) => {
             const matchesSearch =
                 searchQuery === '' ||
-                log.user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                log.user.name
+                    .toLowerCase()
+                    .includes(searchQuery.toLowerCase()) ||
                 log.action.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 log.context.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 log.details.toLowerCase().includes(searchQuery.toLowerCase());
