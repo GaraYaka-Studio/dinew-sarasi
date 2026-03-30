@@ -7,7 +7,17 @@ import { FinancialTabs } from '@/components/features/reports/financial-tabs';
 import { AttendanceLogTable } from '@/components/features/reports/attendance-log-table';
 import { ActivityLogTable } from '@/components/features/reports/activity-log-table';
 import { FileDown } from 'lucide-react';
-import type { ReportType, FinancialTabType } from '@/types/reports';
+import type {
+    ReportType,
+    FinancialTabType,
+    StudentPaymentRecord,
+    TeacherPaymentRecord,
+    FinancialSummary,
+    AttendanceLogSessionWithDate,
+    AttendanceSummary,
+    ActivitySession,
+    ActivitySummary,
+} from '@/types/reports';
 import { generateCSV, downloadCSV, formatCurrencyForCSV } from '@/lib/utils/csv';
 import {
     getStudentPaymentsForMonth,
@@ -31,26 +41,13 @@ export default function ReportsPage() {
 
     // Data states
     const [isLoading, setIsLoading] = useState(true);
-    const [studentPayments, setStudentPayments] = useState<any[]>([]);
-    const [teacherPayments, setTeacherPayments] = useState<any[]>([]);
-    const [financialSummary, setFinancialSummary] = useState<{
-        totalIncome: number;
-        totalExpenses: number;
-        netProfit: number;
-    } | null>(null);
-    const [attendanceLog, setAttendanceLog] = useState<any[]>([]);
-    const [attendanceSummary, setAttendanceSummary] = useState<{
-        classesHeld: number;
-        totalEnrollments: number;
-        avgAttendance: number;
-    } | null>(null);
-    const [activityLog, setActivityLog] = useState<any[]>([]);
-    const [activitySummary, setActivitySummary] = useState<{
-        totalScheduled: number;
-        completed: number;
-        cancelled: number;
-        extra: number;
-    } | null>(null);
+    const [studentPayments, setStudentPayments] = useState<StudentPaymentRecord[]>([]);
+    const [teacherPayments, setTeacherPayments] = useState<TeacherPaymentRecord[]>([]);
+    const [financialSummary, setFinancialSummary] = useState<FinancialSummary | null>(null);
+    const [attendanceLog, setAttendanceLog] = useState<AttendanceLogSessionWithDate[]>([]);
+    const [attendanceSummary, setAttendanceSummary] = useState<AttendanceSummary | null>(null);
+    const [activityLog, setActivityLog] = useState<ActivitySession[]>([]);
+    const [activitySummary, setActivitySummary] = useState<ActivitySummary | null>(null);
 
     // Month change handler
     const handleMonthChange = (year: number, month: number) => {

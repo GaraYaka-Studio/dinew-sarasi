@@ -57,7 +57,7 @@ async function createSuperAdmin() {
 		email,
 		full_name: fullName,
 		role: 'admin',
-	} as any);
+	});
 
 	console.log('✅ Super admin profile created successfully!');
 	console.log('');

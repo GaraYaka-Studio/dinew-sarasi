@@ -11,7 +11,6 @@ import {
     getStudentForAttendance,
     markAttendance,
     getSessionAttendanceCount,
-    type StudentAttendanceData,
 } from '@/lib/db/attendance';
 import { getCurrentDate } from '@/lib/utils/time';
 
@@ -40,7 +39,8 @@ type BeepType = 'success' | 'warning' | 'error';
 
 function playBeep(type: BeepType): void {
     try {
-        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        const audioContext = new AudioContextClass();
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
 
@@ -116,12 +116,6 @@ export default function AttendanceScanPage() {
     }, []);
 
     // Load attendance count when session changes
-    useEffect(() => {
-        if (activeSession) {
-            loadAttendanceCount();
-        }
-    }, [activeSession]);
-
     const loadAttendanceCount = async () => {
         if (!activeSession) return;
         try {
@@ -132,12 +126,71 @@ export default function AttendanceScanPage() {
         }
     };
 
+    useEffect(() => {
+        if (activeSession) {
+            loadAttendanceCount();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeSession]);
+
     const clearStudentAfterDelay = useCallback((delay: number) => {
         setTimeout(() => {
             setStudent(undefined);
             setStatus('idle');
         }, delay);
     }, []);
+
+    const handleMarkAttendanceInternal = async (studentId: string, studentName: string) => {
+        const currentClass = activeClassRef.current;
+        const currentSession = activeSessionRef.current;
+        const currentMode = scanModeRef.current;
+
+        if (!currentClass || !currentSession) {
+            toast.error('Please select a class and session first');
+            return;
+        }
+
+        try {
+            const result = await markAttendance({
+                studentId,
+                classId: currentClass,
+                sessionId: currentSession,
+                date: getCurrentDate(),
+                status: 'present',
+            });
+
+            if (result.success) {
+                playBeep('success');
+                toast.success('Attendance Marked!', {
+                    description: `${studentName} - Present`,
+                    duration: 2000,
+                });
+                setCurrentCount(prev => prev + 1);
+
+                if (currentMode === 'rapid') {
+                    clearStudentAfterDelay(2500);
+                }
+            } else if (result.alreadyMarked) {
+                playBeep('warning');
+                toast.warning('Already Marked', {
+                    description: `Attendance for ${studentName} has already been recorded`,
+                    duration: 3000,
+                });
+
+                if (currentMode === 'rapid') {
+                    clearStudentAfterDelay(3000);
+                }
+            } else {
+                playBeep('error');
+                toast.error('Failed to Mark', {
+                    description: result.error || 'An error occurred',
+                });
+            }
+        } catch {
+            playBeep('error');
+            toast.error('Failed to Mark Attendance', { description: 'An error occurred' });
+        }
+    };
 
     const handleModeToggle = useCallback(() => {
         setScanMode(prev => prev === 'normal' ? 'rapid' : 'normal');
@@ -220,58 +273,6 @@ export default function AttendanceScanPage() {
             }
         }, 300);
     }, []);
-
-    const handleMarkAttendanceInternal = async (studentId: string, studentName: string) => {
-        const currentClass = activeClassRef.current;
-        const currentSession = activeSessionRef.current;
-        const currentMode = scanModeRef.current;
-
-        if (!currentClass || !currentSession) {
-            toast.error('Please select a class and session first');
-            return;
-        }
-
-        try {
-            const result = await markAttendance({
-                studentId,
-                classId: currentClass,
-                sessionId: currentSession,
-                date: getCurrentDate(),
-                status: 'present',
-            });
-
-            if (result.success) {
-                playBeep('success');
-                toast.success('Attendance Marked!', {
-                    description: `${studentName} - Present`,
-                    duration: 2000,
-                });
-                setCurrentCount(prev => prev + 1);
-
-                if (currentMode === 'rapid') {
-                    clearStudentAfterDelay(2500);
-                }
-            } else if (result.alreadyMarked) {
-                playBeep('warning');
-                toast.warning('Already Marked', {
-                    description: `Attendance for ${studentName} has already been recorded`,
-                    duration: 3000,
-                });
-
-                if (currentMode === 'rapid') {
-                    clearStudentAfterDelay(3000);
-                }
-            } else {
-                playBeep('error');
-                toast.error('Failed to Mark', {
-                    description: result.error || 'An error occurred',
-                });
-            }
-        } catch {
-            playBeep('error');
-            toast.error('Failed to Mark Attendance', { description: 'An error occurred' });
-        }
-    };
 
     const handleMarkPresent = useCallback(async () => {
         if (student?.uuid) {

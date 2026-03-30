@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { AuditFilters } from '@/components/features/reports/audit-filters';
 import { AuditTimeline } from '@/components/features/reports/audit-timeline';
 import { getAuditLogs } from '@/lib/db/reports';
-import type { AuditAction, AuditModule } from '@/types/reports';
+import type { AuditAction, AuditModule, AuditLogRecord } from '@/types/reports';
 import { Shield, Loader2 } from 'lucide-react';
 
 // Helper functions (moved from mock-data-audit.ts)
@@ -41,7 +41,7 @@ const formatDateHeader = (dateStr: string): string => {
     });
 };
 
-const groupLogsByDate = (logs: any[]): Record<string, any[]> => {
+const groupLogsByDate = (logs: AuditLogRecord[]): Record<string, AuditLogRecord[]> => {
     return logs.reduce(
         (acc, log) => {
             const dateKey = getDateKey(log.timestamp);
@@ -51,7 +51,7 @@ const groupLogsByDate = (logs: any[]): Record<string, any[]> => {
             acc[dateKey].push(log);
             return acc;
         },
-        {} as Record<string, any[]>
+        {} as Record<string, AuditLogRecord[]>
     );
 };
 
@@ -61,7 +61,7 @@ export default function AuditLogsPage() {
     const [moduleFilter, setModuleFilter] = useState<AuditModule | 'ALL'>('ALL');
 
     // Data loading state
-    const [auditLogs, setAuditLogs] = useState<any[]>([]);
+    const [auditLogs, setAuditLogs] = useState<AuditLogRecord[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 

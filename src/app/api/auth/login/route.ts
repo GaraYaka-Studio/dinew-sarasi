@@ -64,8 +64,8 @@ export async function POST(request: NextRequest) {
 				email: profile[0].email,
 				role: profile[0].role,
 				timestamp: new Date().toISOString(),
-			},
-		} as any);
+			} satisfies Record<string, unknown>,
+		});
 
 		return NextResponse.json({
 			success: true,

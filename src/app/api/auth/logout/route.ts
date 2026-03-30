@@ -22,8 +22,8 @@ export async function POST() {
 				details: `User ${user.email} logged out`,
 				email: user.email,
 				timestamp: new Date().toISOString(),
-			},
-		} as any);
+			} satisfies Record<string, unknown>,
+		});
 	}
 
 	return NextResponse.json({ success: true });

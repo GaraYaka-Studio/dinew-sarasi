@@ -78,7 +78,8 @@ export default function StudentsPage() {
 
         // Apply sorting
         filtered = [...filtered].sort((a, b) => {
-            let aVal: any, bVal: any;
+            let aVal: string | number;
+            let bVal: string | number;
 
             switch (sortField) {
                 case 'name':

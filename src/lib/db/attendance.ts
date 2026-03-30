@@ -48,15 +48,28 @@ export interface StudentAttendanceData {
     gender: 'male' | 'female';
     isEnrolled: boolean;
     attendanceHistory: boolean[];
-    paymentStatus: PaymentStatus | null;
+    paymentStatus?: {
+        hasPaid: boolean;
+        arrears: number;
+    };
 }
 
-interface PaymentStatus {
-    hasPaid: boolean;
-    arrears: number;
-    feeAmount: number | null;
-    paidAmount: number;
+// Session types for internal use
+interface SessionData {
+    sessionId: string;
+    classId: string;
+    date: string;
+    startTime: string;
+    endTime: string;
     status: string;
+}
+
+interface ClassData {
+    id: string;
+    name: string;
+    grade: string;
+    medium: string | null;
+    type: string | null;
 }
 
 interface AttendanceResult {
@@ -468,8 +481,8 @@ async function fetchSessionsForDate(date: string) {
 }
 
 function selectBestSessionForClass(
-    cls: any,
-    allSessions: any[],
+    cls: ClassData,
+    allSessions: SessionData[],
     todayDate: string,
     currentMinutes: number,
     timeBufferMinutes: number
@@ -487,10 +500,10 @@ function selectBestSessionForClass(
 }
 
 function findBestSession(
-    sessions: any[],
+    sessions: SessionData[],
     currentMinutes: number,
     timeBufferMinutes: number
-): any | null {
+): SessionData | null {
     // Priority 1: Current session (happening now)
     const currentSession = sessions.find(s => {
         const start = timeToMinutes(s.startTime);
@@ -514,7 +527,7 @@ function findBestSession(
     return null;
 }
 
-function createClassWithSession(cls: any, session: any | null): ClassWithSession {
+function createClassWithSession(cls: ClassData, session: SessionData | null): ClassWithSession {
     return session ? {
         ...cls,
         sessionId: session.sessionId,

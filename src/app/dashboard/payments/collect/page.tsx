@@ -56,7 +56,7 @@ interface ReceiptData {
 export default function FeesCollectionPage() {
     // State
     const [pageState, setPageState] = useState<PageState>('search');
-    const [student, setStudent] = useState<any | null>(null);
+    const [student, setStudent] = useState<StudentSearchResult | null>(null);
     const [feeClasses, setFeeClasses] = useState<ClassFeeStructure[]>([]);
     const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
     const [cart, setCart] = useState<CartItem[]>([]);
