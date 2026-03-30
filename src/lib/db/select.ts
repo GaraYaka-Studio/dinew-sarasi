@@ -371,6 +371,61 @@ export async function getStudentFeeStructure(studentId: string) {
  * Get all payments for a specific student with payment item details
  * Returns payments ordered by payment date (newest first)
  */
+/**
+ * Get all unique grades from BOTH students and classes tables
+ * Returns sorted list of grade values (deduplicated)
+ * This ensures grades appear even if no students enrolled yet
+ */
+export async function getUniqueGrades(): Promise<string[]> {
+    // Get grades from students table
+    const studentGrades = await db
+        .selectDistinct({ grade: students.current_grade })
+        .from(students)
+        .where(
+            and(
+                isNull(students.deleted_at),
+                sql`${students.current_grade} IS NOT NULL`
+            )
+        );
+
+    // Get grades from classes table
+    const classGrades = await db
+        .selectDistinct({ grade: classes.grade })
+        .from(classes)
+        .where(isNull(classes.deleted_at));
+
+    // Combine and deduplicate (filter out nulls)
+    const allGrades = new Set<string>();
+    for (const g of studentGrades) {
+        if (g.grade) allGrades.add(g.grade);
+    }
+    for (const g of classGrades) {
+        if (g.grade) allGrades.add(g.grade);
+    }
+
+    // Sort naturally (Grade 6, Grade 7, ..., Grade 13)
+    return Array.from(allGrades).sort((a, b) => {
+        // Extract number for sorting: "Grade 10" → 10
+        const aNum = parseInt(a.replace(/\D/g, '')) || 0;
+        const bNum = parseInt(b.replace(/\D/g, '')) || 0;
+        return aNum - bNum;
+    });
+}
+
+/**
+ * Get all unique grades from classes table
+ * Returns sorted list of grade values
+ */
+export async function getUniqueClassGrades() {
+    const result = await db
+        .selectDistinct({ grade: classes.grade })
+        .from(classes)
+        .where(isNull(classes.deleted_at))
+        .orderBy(classes.grade);
+
+    return result.map((r) => r.grade);
+}
+
 export async function getStudentPayments(studentId: string) {
     const result = await db
         .select({

@@ -74,7 +74,6 @@ export default function PublicScanPage() {
                     {/* Scanner */}
                     <QRScanner
                         onScan={handleScan}
-                        placeholder="Point camera at student QR code"
                     />
 
                     {/* Loading State */}

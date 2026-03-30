@@ -11,12 +11,14 @@ interface StepSuccessProps {
         serialId: number;  // Serial number from database
         qrCode: string;    // QR code string
     };
+    onPrintId?: () => void;
     onAddAnother: () => void;
     onClose: () => void;
 }
 
 export function StepSuccess({
     studentData,
+    onPrintId,
     onAddAnother,
     onClose,
 }: StepSuccessProps) {

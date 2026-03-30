@@ -12,13 +12,19 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Eye } from 'lucide-react';
+import { Eye, ChevronsUpDown, ChevronUp, ChevronDown } from 'lucide-react';
 import { Student } from '@/types/schema.types';
 import { cn, getInitials } from '@/lib/utils';
+
+type SortField = 'name' | 'id' | 'grade' | 'batch';
+type SortOrder = 'asc' | 'desc';
 
 interface StudentListProps {
     students: Student[];
     onViewStudent: (student: Student) => void;
+    onSort?: (field: SortField) => void;
+    sortField?: SortField;
+    sortOrder?: SortOrder;
 }
 
 const getPaymentBadge = (status: string) => {
@@ -39,7 +45,28 @@ const getPaymentBadge = (status: string) => {
     return variants[status] || variants.pending;
 };
 
-export function StudentList({ students, onViewStudent }: StudentListProps) {
+export function StudentList({ students, onViewStudent, onSort, sortField, sortOrder }: StudentListProps) {
+
+    const SortButton = ({ field, children }: { field: SortField; children: React.ReactNode }) => {
+        if (!onSort) return <TableHead>{children}</TableHead>;
+
+        const isActive = sortField === field;
+        const sortIcon = isActive ? (sortOrder === 'asc' ? <ChevronUp className="ml-1 h-3 w-3" /> : <ChevronDown className="ml-1 h-3 w-3" />) : <ChevronsUpDown className="ml-1 h-3 w-3 opacity-50" />;
+
+        return (
+            <TableHead>
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    className="-ml-3 h-8 font-medium hover:bg-muted/50"
+                    onClick={() => onSort(field)}
+                >
+                    {children}
+                    {sortIcon}
+                </Button>
+            </TableHead>
+        );
+    };
     return (
         <>
             {/* Desktop Table View */}
@@ -47,9 +74,9 @@ export function StudentList({ students, onViewStudent }: StudentListProps) {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Student</TableHead>
+                            <SortButton field="name">Student</SortButton>
                             <TableHead>Contact</TableHead>
-                            <TableHead>Academic</TableHead>
+                            <SortButton field="grade">Academic</SortButton>
                             <TableHead>Status</TableHead>
                             <TableHead className="text-right">
                                 Actions

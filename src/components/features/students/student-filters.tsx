@@ -20,19 +20,39 @@ import {
 import { Search, Filter } from 'lucide-react';
 import { useRef } from 'react';
 import { QRScanner, useHardwareScanner } from '@/components/features/qr-scanner';
-import { cn } from '@/lib/utils';
 
 interface StudentFiltersProps {
     onSearchChange?: (query: string) => void;
     enableScanner?: boolean;
+    onGradeChange?: (grade: string) => void;
+    onBatchChange?: (batch: string) => void;
+    onStatusChange?: (status: string) => void;
+    selectedGrade?: string;
+    selectedBatch?: string;
+    selectedStatus?: string;
+    grades?: string[]; // Dynamic grades from database
 }
 
 const FilterContent = ({
     onSearchChange,
     enableScanner = true,
+    onGradeChange,
+    onBatchChange,
+    onStatusChange,
+    selectedGrade,
+    selectedBatch,
+    selectedStatus,
+    grades = [],
 }: {
     onSearchChange?: (query: string) => void;
     enableScanner?: boolean;
+    onGradeChange?: (grade: string) => void;
+    onBatchChange?: (batch: string) => void;
+    onStatusChange?: (status: string) => void;
+    selectedGrade?: string;
+    selectedBatch?: string;
+    selectedStatus?: string;
+    grades?: string[];
 }) => {
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -96,19 +116,20 @@ const FilterContent = ({
                     />
                 )}
 
-                <Select>
+                <Select value={selectedGrade || 'all'} onValueChange={onGradeChange}>
                     <SelectTrigger className="w-full md:w-40">
                         <SelectValue placeholder="Grade" />
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="all">All Grades</SelectItem>
-                        <SelectItem value="9">Grade 9</SelectItem>
-                        <SelectItem value="10">Grade 10</SelectItem>
-                        <SelectItem value="11">Grade 11</SelectItem>
-                        <SelectItem value="12">Grade 12</SelectItem>
+                        {grades.map((grade) => (
+                            <SelectItem key={grade} value={grade}>
+                                {grade}
+                            </SelectItem>
+                        ))}
                     </SelectContent>
                 </Select>
-                <Select>
+                <Select value={selectedBatch || 'all'} onValueChange={onBatchChange}>
                     <SelectTrigger className="w-full md:w-40">
                         <SelectValue placeholder="Batch" />
                     </SelectTrigger>
@@ -120,7 +141,7 @@ const FilterContent = ({
                         <SelectItem value="general">General</SelectItem>
                     </SelectContent>
                 </Select>
-                <Select>
+                <Select value={selectedStatus || 'all'} onValueChange={onStatusChange}>
                     <SelectTrigger className="w-full md:w-40">
                         <SelectValue placeholder="Status" />
                     </SelectTrigger>
@@ -146,6 +167,13 @@ const FilterContent = ({
 export function StudentFilters({
     onSearchChange,
     enableScanner = true,
+    onGradeChange,
+    onBatchChange,
+    onStatusChange,
+    selectedGrade,
+    selectedBatch,
+    selectedStatus,
+    grades,
 }: StudentFiltersProps) {
     return (
         <div className="w-full">
@@ -154,6 +182,13 @@ export function StudentFilters({
                 <FilterContent
                     onSearchChange={onSearchChange}
                     enableScanner={enableScanner}
+                    onGradeChange={onGradeChange}
+                    onBatchChange={onBatchChange}
+                    onStatusChange={onStatusChange}
+                    selectedGrade={selectedGrade}
+                    selectedBatch={selectedBatch}
+                    selectedStatus={selectedStatus}
+                    grades={grades}
                 />
             </div>
 
@@ -177,6 +212,13 @@ export function StudentFilters({
                             <FilterContent
                                 onSearchChange={onSearchChange}
                                 enableScanner={enableScanner}
+                                onGradeChange={onGradeChange}
+                                onBatchChange={onBatchChange}
+                                onStatusChange={onStatusChange}
+                                selectedGrade={selectedGrade}
+                                selectedBatch={selectedBatch}
+                                selectedStatus={selectedStatus}
+                                grades={grades}
                             />
                         </div>
                     </SheetContent>

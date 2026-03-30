@@ -298,7 +298,7 @@ export default function FeesCollectionPage() {
             if (result.success) {
                 // Create receipt data
                 const receipt: ReceiptData = {
-                    receiptNumber: result.receiptNumber || '',
+                    receiptNumber: String(result.receiptNumber || ''),
                     studentName: student.name,
                     studentId: student.studentId,
                     grade: student.grade,

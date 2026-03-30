@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import {
     Sheet,
@@ -17,17 +17,106 @@ import { StudentDialog } from '@/components/features/students/student-dialog';
 import { StudentSheet } from '@/components/features/students/student-sheet';
 import { Plus, BarChart3, Upload, Download } from 'lucide-react';
 import { Student } from '@/types/schema.types';
-import { getStudents } from '@/lib/db/select';
+import { getStudents, getUniqueGrades } from '@/lib/db/select';
+
+type SortField = 'name' | 'id' | 'grade' | 'batch';
+type SortOrder = 'asc' | 'desc';
 
 export default function StudentsPage() {
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
     const [students, setStudents] = useState<Student[]>([]);
+    const [grades, setGrades] = useState<string[]>([]);
+
+    // Filter and sort state
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedGrade, setSelectedGrade] = useState<string>('all');
+    const [selectedBatch, setSelectedBatch] = useState<string>('all');
+    const [selectedStatus, setSelectedStatus] = useState<string>('all');
+    const [sortField, setSortField] = useState<SortField>('name');
+    const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
 
     useEffect(() => {
         getStudents().then(setStudents);
+        getUniqueGrades().then(setGrades);
     }, []);
+
+    // Filter and sort students
+    const filteredStudents = useMemo(() => {
+        let filtered = students;
+
+        // Apply search filter
+        if (searchQuery.trim()) {
+            const query = searchQuery.toLowerCase();
+            filtered = filtered.filter((student) =>
+                student.full_name.toLowerCase().includes(query) ||
+                student.student_id.toString().includes(query) ||
+                student.phone.includes(query) ||
+                (student.qr_code && student.qr_code.toLowerCase().includes(query))
+            );
+        }
+
+        // Apply grade filter
+        if (selectedGrade !== 'all') {
+            filtered = filtered.filter((student) => student.current_grade === selectedGrade);
+        }
+
+        // Apply batch filter
+        if (selectedBatch !== 'all') {
+            if (selectedBatch === 'general') {
+                filtered = filtered.filter((student) => !student.batch_year);
+            } else {
+                filtered = filtered.filter((student) => student.batch_year?.toString() === selectedBatch);
+            }
+        }
+
+        // Apply status filter
+        if (selectedStatus !== 'all') {
+            filtered = filtered.filter((student) => student.status === selectedStatus);
+        }
+
+        // Apply sorting
+        filtered = [...filtered].sort((a, b) => {
+            let aVal: any, bVal: any;
+
+            switch (sortField) {
+                case 'name':
+                    aVal = a.full_name.toLowerCase();
+                    bVal = b.full_name.toLowerCase();
+                    break;
+                case 'id':
+                    aVal = a.student_id;
+                    bVal = b.student_id;
+                    break;
+                case 'grade':
+                    aVal = a.current_grade || '';
+                    bVal = b.current_grade || '';
+                    break;
+                case 'batch':
+                    aVal = a.batch_year || 0;
+                    bVal = b.batch_year || 0;
+                    break;
+                default:
+                    return 0;
+            }
+
+            if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1;
+            if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1;
+            return 0;
+        });
+
+        return filtered;
+    }, [students, searchQuery, selectedGrade, selectedBatch, selectedStatus, sortField, sortOrder]);
+
+    const handleSort = (field: SortField) => {
+        if (sortField === field) {
+            setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortField(field);
+            setSortOrder('asc');
+        }
+    };
 
     const handleViewStudent = (student: Student) => {
         setSelectedStudent(student);
@@ -136,10 +225,19 @@ export default function StudentsPage() {
             </div>
 
             {/* Search & Filter Bar */}
-            <StudentFilters />
+            <StudentFilters
+                onSearchChange={setSearchQuery}
+                onGradeChange={setSelectedGrade}
+                onBatchChange={setSelectedBatch}
+                onStatusChange={setSelectedStatus}
+                selectedGrade={selectedGrade}
+                selectedBatch={selectedBatch}
+                selectedStatus={selectedStatus}
+                grades={grades}
+            />
 
             {/* Main Student List */}
-            <StudentList students={students} onViewStudent={handleViewStudent} />
+            <StudentList students={filteredStudents} onViewStudent={handleViewStudent} onSort={handleSort} sortField={sortField} sortOrder={sortOrder} />
 
             {/* Add Student Dialog */}
             <StudentDialog

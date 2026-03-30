@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
 
 		// Check if user is admin or staff (can login)
 		const allowedRoles = ['admin', 'staff', 'teacher'];
-		if (!allowedRoles.includes(profile[0].role)) {
+		if (!profile[0].role || !allowedRoles.includes(profile[0].role)) {
 			return NextResponse.json(
 				{ error: 'Unauthorized access' },
 				{ status: 403 }

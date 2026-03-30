@@ -728,6 +728,8 @@ export const MOCK_FEE_STRUCTURE: {
                     paidAmount: 2500,
                     isFuture: false,
                     isEligibleForPayment: true,
+                    isBeforeEnrollment: false,
+                    isFirstEnrollmentMonth: false,
                 },
                 {
                     month: 'FEB',
@@ -737,6 +739,8 @@ export const MOCK_FEE_STRUCTURE: {
                     amount: 2500,
                     isFuture: false,
                     isEligibleForPayment: true,
+                    isBeforeEnrollment: false,
+                    isFirstEnrollmentMonth: false,
                 },
                 {
                     month: 'MAR',
@@ -746,6 +750,8 @@ export const MOCK_FEE_STRUCTURE: {
                     amount: 2500,
                     isFuture: false,
                     isEligibleForPayment: true,
+                    isBeforeEnrollment: false,
+                    isFirstEnrollmentMonth: false,
                 },
                 {
                     month: 'APR',
@@ -755,6 +761,8 @@ export const MOCK_FEE_STRUCTURE: {
                     amount: 2500,
                     isFuture: false,
                     isEligibleForPayment: true,
+                    isBeforeEnrollment: false,
+                    isFirstEnrollmentMonth: false,
                 },
                 {
                     month: 'MAY',
@@ -764,6 +772,8 @@ export const MOCK_FEE_STRUCTURE: {
                     amount: 2500,
                     isFuture: false,
                     isEligibleForPayment: true,
+                    isBeforeEnrollment: false,
+                    isFirstEnrollmentMonth: false,
                 },
                 {
                     month: 'JUN',
@@ -773,6 +783,8 @@ export const MOCK_FEE_STRUCTURE: {
                     amount: 2500,
                     isFuture: false,
                     isEligibleForPayment: true,
+                    isBeforeEnrollment: false,
+                    isFirstEnrollmentMonth: false,
                 },
             ],
         },
@@ -793,6 +805,8 @@ export const MOCK_FEE_STRUCTURE: {
                     paidAmount: 2000,
                     isFuture: false,
                     isEligibleForPayment: true,
+                    isBeforeEnrollment: false,
+                    isFirstEnrollmentMonth: false,
                 },
                 {
                     month: 'FEB',
@@ -803,6 +817,8 @@ export const MOCK_FEE_STRUCTURE: {
                     paidAmount: 1000,
                     isFuture: false,
                     isEligibleForPayment: true,
+                    isBeforeEnrollment: false,
+                    isFirstEnrollmentMonth: false,
                 },
                 {
                     month: 'MAR',
@@ -812,6 +828,8 @@ export const MOCK_FEE_STRUCTURE: {
                     amount: 2000,
                     isFuture: false,
                     isEligibleForPayment: true,
+                    isBeforeEnrollment: false,
+                    isFirstEnrollmentMonth: false,
                 },
                 {
                     month: 'APR',
@@ -821,6 +839,8 @@ export const MOCK_FEE_STRUCTURE: {
                     amount: 2000,
                     isFuture: false,
                     isEligibleForPayment: true,
+                    isBeforeEnrollment: false,
+                    isFirstEnrollmentMonth: false,
                 },
                 {
                     month: 'MAY',
@@ -830,6 +850,8 @@ export const MOCK_FEE_STRUCTURE: {
                     amount: 2000,
                     isFuture: false,
                     isEligibleForPayment: true,
+                    isBeforeEnrollment: false,
+                    isFirstEnrollmentMonth: false,
                 },
                 {
                     month: 'JUN',
@@ -839,6 +861,8 @@ export const MOCK_FEE_STRUCTURE: {
                     amount: 2000,
                     isFuture: false,
                     isEligibleForPayment: true,
+                    isBeforeEnrollment: false,
+                    isFirstEnrollmentMonth: false,
                 },
             ],
         },
