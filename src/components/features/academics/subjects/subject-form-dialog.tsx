@@ -1,6 +1,20 @@
-import { useState, useMemo } from 'react';
-import { Button } from '@/components/ui/button';
+import {
+    useState,
+    useMemo,
+    useEffect,
+    useEffectEvent,
+    useActionState,
+} from 'react';
+
+import { toast } from 'sonner';
+
+import { addSubject } from '@/lib/db/insert';
+import { cn } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/use-media-query';
+
+import { GRADES, SECTIONS } from '@/lib/constants';
+
+import { Button } from '@/components/ui/button';
 import {
     Dialog,
     DialogContent,
@@ -26,33 +40,25 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { cn } from '@/lib/utils';
 
 interface SubjectFormDialogProps {
     trigger: React.ReactNode;
 }
 
-const GRADES = Array.from({ length: 13 }, (_, i) => `Grade ${i + 1}`);
-
-const SECTIONS = [
-    { value: 'primary', label: 'Primary (1-5)' },
-    { value: 'junior', label: 'Junior (6-9)' },
-    { value: 'ol', label: 'Ordinary Level (10-11)' },
-    { value: 'al', label: 'Advanced Level (12-13)' },
-];
-
 export function SubjectFormDialog({ trigger }: SubjectFormDialogProps) {
     const [open, setOpen] = useState(false);
     const isDesktop = useMediaQuery('(min-width: 1024px)');
 
-    const [subjectName, setSubjectName] = useState('');
-    const [section, setSection] = useState('');
+    const [formValues, setFormValues] = useState({
+        subjectName: '',
+        section: '',
+    });
     const [selectedGrades, setSelectedGrades] = useState<string[]>([]);
 
     // Auto-generate subject code from name using useMemo
     const subjectCode = useMemo(() => {
-        if (subjectName.trim()) {
-            const code = subjectName
+        if (formValues.subjectName.trim()) {
+            const code = formValues.subjectName
                 .toUpperCase()
                 .split(' ')
                 .map((word) => word.charAt(0))
@@ -61,11 +67,24 @@ export function SubjectFormDialog({ trigger }: SubjectFormDialogProps) {
             return (
                 code +
                 '-' +
-                (section ? section.toUpperCase().slice(0, 2) : 'GEN')
+                (formValues.section
+                    ? formValues.section.toUpperCase().slice(0, 2)
+                    : 'GEN')
             );
         }
         return '';
-    }, [subjectName, section]);
+    }, [formValues.subjectName, formValues.section]);
+
+    const addSubjectWithCodes = addSubject.bind(
+        null,
+        selectedGrades,
+        subjectCode
+    );
+    const [state, formAction, pending] = useActionState(addSubjectWithCodes, {
+        success: false,
+        status: 0,
+        error: null,
+    });
 
     const toggleGrade = (grade: string) => {
         setSelectedGrades((prev) =>
@@ -75,29 +94,49 @@ export function SubjectFormDialog({ trigger }: SubjectFormDialogProps) {
         );
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        // TODO: Handle form submission
-        console.log({ subjectName, subjectCode, section, selectedGrades });
+    const closeForm = useEffectEvent(() => {
         setOpen(false);
-        // Reset form
-        setSubjectName('');
-        setSection('');
+    });
+
+    const clearForm = useEffectEvent(() => {
+        setFormValues({
+            subjectName: '',
+            section: '',
+        });
         setSelectedGrades([]);
-    };
+    });
+
+    useEffect(() => {
+        if (!open) clearForm();
+    }, [open]);
+
+    useEffect(() => {
+        if (state.error) {
+            toast.error(state.error);
+        } else if (state.success) {
+            toast.success('Subject added successfully!');
+            closeForm();
+        }
+    }, [state]);
 
     const formContent = (
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form action={formAction} className="space-y-6">
             {/* Subject Name */}
             <div className="space-y-2">
                 <Label htmlFor="subject-name">
                     Subject Name <span className="text-red-500">*</span>
                 </Label>
                 <Input
-                    id="subject-name"
+                    id="subjectName"
+                    name="subjectName"
+                    defaultValue={formValues.subjectName}
+                    onChange={(e) =>
+                        setFormValues({
+                            ...formValues,
+                            subjectName: e.target.value,
+                        })
+                    }
                     placeholder="e.g., Mathematics"
-                    value={subjectName}
-                    onChange={(e) => setSubjectName(e.target.value)}
                     required
                 />
             </div>
@@ -106,7 +145,8 @@ export function SubjectFormDialog({ trigger }: SubjectFormDialogProps) {
             <div className="space-y-2">
                 <Label htmlFor="subject-code">Subject Code</Label>
                 <Input
-                    id="subject-code"
+                    id="subjectCode"
+                    name="subjectCode"
                     value={subjectCode}
                     disabled
                     className="bg-muted"
@@ -120,7 +160,16 @@ export function SubjectFormDialog({ trigger }: SubjectFormDialogProps) {
             {/* Section (Optional) */}
             <div className="space-y-2">
                 <Label htmlFor="section">Section (Optional)</Label>
-                <Select value={section} onValueChange={setSection}>
+                <Select
+                    name="section"
+                    defaultValue={formValues.section}
+                    onValueChange={(v) =>
+                        setFormValues({
+                            ...formValues,
+                            section: v,
+                        })
+                    }
+                >
                     <SelectTrigger id="section">
                         <SelectValue placeholder="Select a section" />
                     </SelectTrigger>
@@ -171,6 +220,7 @@ export function SubjectFormDialog({ trigger }: SubjectFormDialogProps) {
                 <Button
                     type="button"
                     variant="ghost"
+                    disabled={pending}
                     onClick={() => setOpen(false)}
                 >
                     Cancel
@@ -178,10 +228,12 @@ export function SubjectFormDialog({ trigger }: SubjectFormDialogProps) {
                 <Button
                     type="submit"
                     disabled={
-                        !subjectName.trim() || selectedGrades.length === 0
+                        pending ||
+                        !formValues.subjectName.trim() ||
+                        selectedGrades.length === 0
                     }
                 >
-                    Save Subject
+                    {pending ? 'Saving...' : 'Save Subject'}
                 </Button>
             </div>
         </form>

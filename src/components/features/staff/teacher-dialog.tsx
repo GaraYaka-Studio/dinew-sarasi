@@ -1,6 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useActionState, useEffect, useEffectEvent, useState } from 'react';
+
+import { toast } from 'sonner';
+
+import { User, GraduationCap } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
@@ -12,9 +16,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { User, GraduationCap } from 'lucide-react';
-import { TEACHER_SUBJECTS } from '@/lib/mock-data-teachers';
+
+import { TEACHING_SUBJECTS } from '@/lib/constants';
+import { addTeacher } from '@/lib/db/insert';
 
 interface TeacherDialogProps {
     isOpen: boolean;
@@ -22,8 +26,19 @@ interface TeacherDialogProps {
 }
 
 export function TeacherDialog({ isOpen, onOpenChange }: TeacherDialogProps) {
-    const [isLoading, setIsLoading] = useState(false);
+    const [formValues, setFormValues] = useState({
+        fullName: '',
+        displayName: '',
+        nic: '',
+        phone: '',
+    });
     const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
+
+    const addTeacherWithSubjects = addTeacher.bind(null, selectedSubjects);
+    const [state, formAction, pending] = useActionState(
+        addTeacherWithSubjects,
+        { success: false, status: 0, error: null }
+    );
 
     const toggleSubject = (subject: string) => {
         setSelectedSubjects((prev) =>
@@ -33,19 +48,32 @@ export function TeacherDialog({ isOpen, onOpenChange }: TeacherDialogProps) {
         );
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsLoading(true);
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        setIsLoading(false);
+    const clearForm = useEffectEvent(() => {
+        setFormValues({
+            fullName: '',
+            displayName: '',
+            nic: '',
+            phone: '',
+        });
         setSelectedSubjects([]);
-        onOpenChange(false);
-    };
+    });
+
+    useEffect(() => {
+        if (state.error) {
+            toast.error(state.error);
+        } else if (state.success) {
+            toast.success('Teacher added successfully!');
+            onOpenChange(false);
+            clearForm();
+        }
+    }, [state, onOpenChange]);
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="flex h-[95vh] max-h-[900px] w-full max-w-lg flex-col p-0 sm:h-auto">
+            <DialogContent
+                className="flex h-[95vh] max-h-[900px] w-full max-w-lg flex-col p-0 sm:h-auto"
+                showCloseButton={false}
+            >
                 <DialogHeader className="border-b px-6 py-4">
                     <DialogTitle>Add New Teacher</DialogTitle>
                     <DialogDescription>
@@ -56,7 +84,7 @@ export function TeacherDialog({ isOpen, onOpenChange }: TeacherDialogProps) {
                 <div className="flex-1 overflow-y-auto px-6 py-4">
                     <form
                         id="add-teacher-form"
-                        onSubmit={handleSubmit}
+                        action={formAction}
                         className="space-y-6"
                     >
                         {/* Personal Information Section */}
@@ -70,6 +98,14 @@ export function TeacherDialog({ isOpen, onOpenChange }: TeacherDialogProps) {
                                     <Label htmlFor="fullName">Full Name</Label>
                                     <Input
                                         id="fullName"
+                                        name="fullName"
+                                        defaultValue={formValues.fullName}
+                                        onChange={(e) => {
+                                            setFormValues({
+                                                ...formValues,
+                                                fullName: e.target.value,
+                                            });
+                                        }}
                                         placeholder="e.g., Kamal Perera"
                                         required
                                     />
@@ -81,6 +117,14 @@ export function TeacherDialog({ isOpen, onOpenChange }: TeacherDialogProps) {
                                     </Label>
                                     <Input
                                         id="displayName"
+                                        name="displayName"
+                                        defaultValue={formValues.displayName}
+                                        onChange={(e) => {
+                                            setFormValues({
+                                                ...formValues,
+                                                displayName: e.target.value,
+                                            });
+                                        }}
                                         placeholder="e.g., Mr. Kamal"
                                         required
                                     />
@@ -91,6 +135,14 @@ export function TeacherDialog({ isOpen, onOpenChange }: TeacherDialogProps) {
                                         <Label htmlFor="nic">NIC</Label>
                                         <Input
                                             id="nic"
+                                            name="nic"
+                                            defaultValue={formValues.nic}
+                                            onChange={(e) => {
+                                                setFormValues({
+                                                    ...formValues,
+                                                    nic: e.target.value,
+                                                });
+                                            }}
                                             placeholder="123456789V"
                                             required
                                         />
@@ -100,19 +152,18 @@ export function TeacherDialog({ isOpen, onOpenChange }: TeacherDialogProps) {
                                         <Input
                                             id="phone"
                                             type="tel"
+                                            name="phone"
+                                            defaultValue={formValues.phone}
+                                            onChange={(e) => {
+                                                setFormValues({
+                                                    ...formValues,
+                                                    phone: e.target.value,
+                                                });
+                                            }}
                                             placeholder="077-1234567"
                                             required
                                         />
                                     </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="address">Address</Label>
-                                    <Textarea
-                                        id="address"
-                                        placeholder="Home address..."
-                                        rows={3}
-                                    />
                                 </div>
                             </div>
                         </div>
@@ -128,24 +179,28 @@ export function TeacherDialog({ isOpen, onOpenChange }: TeacherDialogProps) {
                                     <Label htmlFor="subjects">Subjects</Label>
                                     <div className="rounded-md border p-3">
                                         <div className="flex flex-wrap gap-2">
-                                            {TEACHER_SUBJECTS.map((subject) => (
-                                                <button
-                                                    key={subject}
-                                                    type="button"
-                                                    onClick={() =>
-                                                        toggleSubject(subject)
-                                                    }
-                                                    className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                                                        selectedSubjects.includes(
-                                                            subject
-                                                        )
-                                                            ? 'bg-primary text-primary-foreground'
-                                                            : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                                                    }`}
-                                                >
-                                                    {subject}
-                                                </button>
-                                            ))}
+                                            {TEACHING_SUBJECTS.map(
+                                                (subject) => (
+                                                    <button
+                                                        key={subject}
+                                                        type="button"
+                                                        onClick={() =>
+                                                            toggleSubject(
+                                                                subject
+                                                            )
+                                                        }
+                                                        className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                                                            selectedSubjects.includes(
+                                                                subject
+                                                            )
+                                                                ? 'bg-primary text-primary-foreground'
+                                                                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                                                        }`}
+                                                    >
+                                                        {subject}
+                                                    </button>
+                                                )
+                                            )}
                                         </div>
                                         {selectedSubjects.length === 0 && (
                                             <p className="mt-2 text-xs text-muted-foreground">
@@ -163,8 +218,15 @@ export function TeacherDialog({ isOpen, onOpenChange }: TeacherDialogProps) {
                     <Button
                         type="button"
                         variant="outline"
+                        disabled={pending}
                         onClick={() => {
                             onOpenChange(false);
+                            setFormValues({
+                                fullName: '',
+                                displayName: '',
+                                nic: '',
+                                phone: '',
+                            });
                             setSelectedSubjects([]);
                         }}
                     >
@@ -173,10 +235,10 @@ export function TeacherDialog({ isOpen, onOpenChange }: TeacherDialogProps) {
                     <Button
                         type="submit"
                         form="add-teacher-form"
-                        disabled={isLoading}
+                        disabled={pending}
                         className="bg-black text-white hover:bg-black/90"
                     >
-                        {isLoading ? 'Saving...' : 'Save Teacher'}
+                        {pending ? 'Saving...' : 'Save Teacher'}
                     </Button>
                 </DialogFooter>
             </DialogContent>

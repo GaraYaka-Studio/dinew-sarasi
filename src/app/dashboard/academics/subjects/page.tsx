@@ -1,31 +1,33 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+
+import { getSubjects } from '@/lib/db/select';
+import { Subject } from '@/types/schema.types';
+import { SubjectCategory } from '@/types/constants.types';
+
+import { CATEGORIES } from '@/lib/constants';
+
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SubjectTable } from '@/components/features/academics/subjects/subject-table';
 import { SubjectListMobile } from '@/components/features/academics/subjects/subject-list-mobile';
 import { SubjectFormDialog } from '@/components/features/academics/subjects/subject-form-dialog';
-import { SUBJECT_DATA, SubjectCategory } from '@/lib/mock-data-subjects';
-
-const CATEGORIES: SubjectCategory[] = [
-    'All',
-    'Primary',
-    'Junior',
-    'Ordinary Level',
-    'Advanced Level',
-    'Other',
-];
 
 export default function SubjectsPage() {
+    const [subjects, setSubjects] = useState<Subject[]>([]);
     const [activeTab, setActiveTab] = useState<SubjectCategory>('All');
 
     // Filter logic
-    const filteredSubjects = SUBJECT_DATA.filter((subject) => {
+    const filteredSubjects = subjects.filter((subject) => {
         if (activeTab === 'All') return true;
         return subject.category === activeTab;
     });
+
+    useEffect(() => {
+        getSubjects().then(setSubjects);
+    }, []);
 
     return (
         <div className="flex h-full flex-col space-y-6 p-4 md:p-8">
@@ -67,7 +69,7 @@ export default function SubjectsPage() {
                 {/* Mobile View (< lg) */}
                 <div className="lg:hidden">
                     {filteredSubjects.length > 0 ? (
-                        <SubjectListMobile data={filteredSubjects} />
+                        <SubjectListMobile subjects={subjects} />
                     ) : (
                         <div className="py-10 text-center text-muted-foreground">
                             No subjects found for this category.
@@ -78,7 +80,7 @@ export default function SubjectsPage() {
                 {/* Desktop View (>= lg) */}
                 <div className="hidden lg:block">
                     {filteredSubjects.length > 0 ? (
-                        <SubjectTable data={filteredSubjects} />
+                        <SubjectTable subjects={filteredSubjects} />
                     ) : (
                         <div className="rounded-md border bg-muted/20 p-10 text-center text-muted-foreground">
                             No subjects found for {activeTab}.

@@ -1,16 +1,26 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { Button } from '@/components/ui/button';
+import { useState, useMemo, useEffect } from 'react';
+
+import {
+    getClasses,
+    getTeacherClasses,
+    getTeacherPayments,
+    getTeachers,
+} from '@/lib/db/select';
+
 import { Plus, Download } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
 import { TeacherStats } from '@/components/features/staff/teacher-stats';
 import { TeacherFilters } from '@/components/features/staff/teacher-filters';
 import { TeacherListDesktop } from '@/components/features/staff/teacher-list-desktop';
 import { TeacherListMobile } from '@/components/features/staff/teacher-list-mobile';
 import { TeacherDialog } from '@/components/features/staff/teacher-dialog';
 import { TeacherSheet } from '@/components/features/staff/teacher-sheet';
-import { MOCK_TEACHERS } from '@/lib/mock-data-teachers';
-import { Teacher } from '@/types/teacher.types';
+
+import { Teacher, TeacherPayment } from '@/types/schema.types';
+import { Class } from '@/types/schema.types';
 
 export default function TeachersPage() {
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -21,29 +31,48 @@ export default function TeachersPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedSubject, setSelectedSubject] = useState('all');
 
+    const [teachers, setTeachers] = useState<Teacher[]>([]);
+    const [classes, setClasses] = useState<Class[]>([]);
+    const [teacherClasses, setTeacherClasses] = useState<Class[]>([]);
+    const [teacherPayments, setTeacherPayments] = useState<TeacherPayment[]>(
+        []
+    );
+
     // Filter teachers based on search and subject
     const filteredTeachers = useMemo(() => {
-        return MOCK_TEACHERS.filter((teacher) => {
+        return teachers.filter((teacher) => {
             const matchesSearch =
                 !searchQuery ||
                 teacher.name
                     .toLowerCase()
                     .includes(searchQuery.toLowerCase()) ||
-                teacher.nic.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                teacher.phone.includes(searchQuery);
+                teacher.nic
+                    ?.toLowerCase()
+                    .includes(searchQuery.toLowerCase()) ||
+                teacher.phone?.includes(searchQuery);
 
             const matchesSubject =
                 selectedSubject === 'all' ||
-                teacher.subjects.includes(selectedSubject);
+                teacher.subjects?.includes(selectedSubject);
 
             return matchesSearch && matchesSubject;
         });
-    }, [searchQuery, selectedSubject]);
+    }, [teachers, searchQuery, selectedSubject]);
 
     const handleViewTeacher = (teacher: Teacher) => {
         setSelectedTeacher(teacher);
         setIsSheetOpen(true);
     };
+
+    useEffect(() => {
+        getTeachers().then(setTeachers);
+        getClasses().then(setClasses);
+
+        if (selectedTeacher !== null) {
+            getTeacherClasses(selectedTeacher).then(setTeacherClasses);
+            getTeacherPayments(selectedTeacher).then(setTeacherPayments);
+        }
+    }, [selectedTeacher]);
 
     return (
         <div className="space-y-6">
@@ -51,7 +80,7 @@ export default function TeachersPage() {
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
                 {/* Left: Mini Stats Grid (75% on Desktop) */}
                 <div className="hidden lg:col-span-3 lg:block">
-                    <TeacherStats />
+                    <TeacherStats teachers={teachers} classes={classes} />
                 </div>
 
                 {/* Right: Action Buttons (25% on Desktop) */}
@@ -88,7 +117,7 @@ export default function TeachersPage() {
                     </Button>
 
                     {/* Stats Cards */}
-                    <TeacherStats />
+                    <TeacherStats teachers={teachers} classes={classes} />
                 </div>
             </div>
 
@@ -103,12 +132,14 @@ export default function TeachersPage() {
             {/* Desktop Table */}
             <TeacherListDesktop
                 teachers={filteredTeachers}
+                classes={classes}
                 onViewTeacher={handleViewTeacher}
             />
 
             {/* Mobile Cards */}
             <TeacherListMobile
                 teachers={filteredTeachers}
+                classes={classes}
                 onViewTeacher={handleViewTeacher}
             />
 
@@ -121,6 +152,8 @@ export default function TeachersPage() {
             {/* View Teacher Sheet */}
             <TeacherSheet
                 teacher={selectedTeacher}
+                classes={teacherClasses}
+                payments={teacherPayments}
                 isOpen={isSheetOpen}
                 onOpenChange={setIsSheetOpen}
             />

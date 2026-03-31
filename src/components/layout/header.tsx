@@ -1,4 +1,7 @@
+'use client';
+
 import { Menu } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -9,8 +12,23 @@ import {
     SheetDescription,
 } from '@/components/ui/sheet';
 import { MobileNav } from '@/components/layout/mobile-nav';
+import { UserMenu } from '@/components/user-menu';
+import type { AuthUser } from '@/lib/auth';
 
 export function Header() {
+    const [user, setUser] = useState<AuthUser | null>(null);
+
+    useEffect(() => {
+        async function fetchUser() {
+            const res = await fetch('/api/auth/me');
+            if (res.ok) {
+                const data = await res.json();
+                setUser(data.user);
+            }
+        }
+        fetchUser();
+    }, []);
+
     return (
         <header className="sticky top-0 z-40 flex h-16 w-full items-center border-b bg-background px-4 md:px-6">
             {/* Mobile Menu Trigger */}
@@ -43,8 +61,12 @@ export function Header() {
                 {/* Placeholder for Breadcrumbs / Title */}
                 <div className="h-4 w-32 animate-pulse rounded bg-muted" />
 
-                {/* Placeholder for User Nav / Actions */}
-                <div className="h-8 w-8 animate-pulse rounded-full bg-muted" />
+                {/* User Menu / Actions */}
+                {user ? (
+                    <UserMenu user={user} />
+                ) : (
+                    <div className="h-8 w-8 animate-pulse rounded-full bg-muted" />
+                )}
             </div>
         </header>
     );

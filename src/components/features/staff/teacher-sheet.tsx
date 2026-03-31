@@ -1,6 +1,16 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
+
+import {
+    Edit,
+    Trash2,
+    ChevronRight,
+    Calendar,
+    Plus,
+    Wallet,
+} from 'lucide-react';
 import {
     Sheet,
     SheetContent,
@@ -12,27 +22,25 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import {
-    Edit,
-    Trash2,
-    ChevronRight,
-    Calendar,
-    Plus,
-    Wallet,
-} from 'lucide-react';
-import Link from 'next/link';
-import { Teacher } from '@/types/teacher.types';
-import { cn } from '@/lib/utils';
 import { RecordPaymentDialog } from './record-payment-dialog';
+
+import { Class, Teacher, TeacherPayment } from '@/types/schema.types';
+
+import { cn, getInitials } from '@/lib/utils';
+import { deleteTeacher } from '@/lib/db/delete';
 
 interface TeacherSheetProps {
     teacher: Teacher | null;
+    classes: Class[];
+    payments: TeacherPayment[];
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
 }
 
 export function TeacherSheet({
     teacher,
+    classes,
+    payments,
     isOpen,
     onOpenChange,
 }: TeacherSheetProps) {
@@ -44,11 +52,10 @@ export function TeacherSheet({
         return `LKR ${amount.toLocaleString()}`;
     };
 
-    const paymentInfo = teacher.paymentInfo || {
-        totalEarned: 0,
-        amountPaid: 0,
-        balanceDue: 0,
-        paymentHistory: [],
+    const paymentInfo = {
+        totalEarned: Number(teacher.total_earned),
+        amountPaid: Number(teacher.amount_paid),
+        balanceDue: Number(teacher.total_earned) - Number(teacher.amount_paid),
     };
 
     return (
@@ -68,7 +75,7 @@ export function TeacherSheet({
                     <div className="flex items-start gap-4">
                         <Avatar className="h-16 w-16">
                             <AvatarFallback className="bg-primary/10 text-lg text-primary">
-                                {teacher.initials}
+                                {getInitials(teacher.name)}
                             </AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
@@ -89,7 +96,7 @@ export function TeacherSheet({
                                     {teacher.status}
                                 </Badge>
                                 <Badge variant="outline">
-                                    {teacher.subjects.length} Subjects
+                                    {teacher.subjects?.length} Subjects
                                 </Badge>
                             </div>
                         </div>
@@ -133,17 +140,11 @@ export function TeacherSheet({
                                         </span>
                                     </div>
                                     <div className="flex items-center justify-between">
-                                        <span className="text-sm">Address</span>
-                                        <span className="max-w-[60%] text-right text-sm font-medium">
-                                            {teacher.address}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
                                         <span className="text-sm">
                                             Joined Date
                                         </span>
                                         <span className="text-sm font-medium">
-                                            {teacher.joinedDate}
+                                            {teacher.created_at?.toString()}
                                         </span>
                                     </div>
                                 </div>
@@ -155,7 +156,7 @@ export function TeacherSheet({
                                     Teaching Subjects
                                 </h3>
                                 <div className="flex flex-wrap gap-2">
-                                    {teacher.subjects.map((subject) => (
+                                    {teacher.subjects?.map((subject) => (
                                         <Badge
                                             key={subject}
                                             variant="secondary"
@@ -169,9 +170,8 @@ export function TeacherSheet({
 
                         {/* Classes Tab */}
                         <TabsContent value="classes" className="mt-0 space-y-3">
-                            {teacher.assignedClasses &&
-                            teacher.assignedClasses.length > 0 ? (
-                                teacher.assignedClasses.map((cls) => (
+                            {classes && classes.length > 0 ? (
+                                classes.map((cls) => (
                                     <Link
                                         key={cls.id}
                                         href="/dashboard/academics/classes"
@@ -269,32 +269,32 @@ export function TeacherSheet({
                                 <h3 className="mb-3 text-sm font-medium text-muted-foreground">
                                     Payment History
                                 </h3>
-                                {paymentInfo.paymentHistory.length > 0 ? (
+                                {payments.length > 0 ? (
                                     <div className="space-y-2">
-                                        {paymentInfo.paymentHistory.map(
-                                            (record) => (
-                                                <Card
-                                                    key={record.id}
-                                                    className="p-3"
-                                                >
-                                                    <div className="flex items-center justify-between">
-                                                        <div>
-                                                            <p className="text-sm font-medium">
-                                                                {formatCurrency(
-                                                                    record.amount
-                                                                )}
-                                                            </p>
-                                                            <p className="text-xs text-muted-foreground">
-                                                                {record.date}
-                                                            </p>
-                                                        </div>
-                                                        <p className="max-w-[50%] text-right text-sm text-muted-foreground">
-                                                            {record.note}
+                                        {payments.map((payment) => (
+                                            <Card
+                                                key={payment.id}
+                                                className="p-3"
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <p className="text-sm font-medium">
+                                                            {formatCurrency(
+                                                                Number(
+                                                                    payment.amount
+                                                                )
+                                                            )}
+                                                        </p>
+                                                        <p className="text-xs text-muted-foreground">
+                                                            {payment.date}
                                                         </p>
                                                     </div>
-                                                </Card>
-                                            )
-                                        )}
+                                                    <p className="max-w-[50%] text-right text-sm text-muted-foreground">
+                                                        {payment.notes}
+                                                    </p>
+                                                </div>
+                                            </Card>
+                                        ))}
                                     </div>
                                 ) : (
                                     <div className="py-8 text-center text-muted-foreground">
@@ -327,6 +327,10 @@ export function TeacherSheet({
                         <Button
                             variant="outline"
                             className="flex-1 text-destructive hover:text-destructive"
+                            onClick={() => {
+                                deleteTeacher(teacher);
+                                isOpen = false;
+                            }}
                         >
                             <Trash2 className="mr-2 h-4 w-4" />
                             Remove
@@ -339,7 +343,7 @@ export function TeacherSheet({
             <RecordPaymentDialog
                 isOpen={isRecordPaymentOpen}
                 onOpenChange={setIsRecordPaymentOpen}
-                teacherName={teacher.name}
+                teacher={teacher}
             />
         </Sheet>
     );

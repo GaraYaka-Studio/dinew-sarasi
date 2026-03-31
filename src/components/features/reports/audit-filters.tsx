@@ -9,7 +9,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Search, Filter } from 'lucide-react';
-import { type AuditAction, type AuditModule } from '@/lib/mock-data-audit';
+import { type AuditAction, type AuditModule } from '@/types/reports';
 
 interface AuditFiltersProps {
     searchQuery: string;

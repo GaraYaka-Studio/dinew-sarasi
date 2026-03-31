@@ -680,10 +680,15 @@ export const MOCK_SELECTED_STUDENT: StudentDetail = {
 // Fee Collection Page Mocks
 export interface FeeMonth {
     month: string;
-    status: 'paid' | 'unpaid' | 'partial' | 'selected';
+    status: 'paid' | 'unpaid' | 'partial' | 'selected' | 'skipped';
     amount: number;
     paidAmount?: number;
     year: number;
+    monthIndex: number;
+    isFuture: boolean;
+    isEligibleForPayment: boolean;
+    isBeforeEnrollment: boolean;
+    isFirstEnrollmentMonth: boolean;
 }
 
 export interface ClassFeeStructure {
@@ -691,6 +696,9 @@ export interface ClassFeeStructure {
     className: string;
     monthlyFee: number;
     months: FeeMonth[];
+    totalUnpaid: number;
+    totalPaid: number;
+    totalDue: number;
 }
 
 export const MOCK_FEE_STRUCTURE: {
@@ -707,44 +715,155 @@ export const MOCK_FEE_STRUCTURE: {
             classId: 'c1',
             className: 'Combined Maths - 2026 A/L',
             monthlyFee: 2500,
+            totalUnpaid: 5,
+            totalPaid: 1,
+            totalDue: 12500,
             months: [
                 {
                     month: 'JAN',
+                    monthIndex: 0,
                     year: 2026,
                     status: 'paid',
                     amount: 2500,
                     paidAmount: 2500,
+                    isFuture: false,
+                    isEligibleForPayment: true,
+                    isBeforeEnrollment: false,
+                    isFirstEnrollmentMonth: false,
                 },
-                { month: 'FEB', year: 2026, status: 'unpaid', amount: 2500 },
-                { month: 'MAR', year: 2026, status: 'unpaid', amount: 2500 },
-                { month: 'APR', year: 2026, status: 'unpaid', amount: 2500 },
-                { month: 'MAY', year: 2026, status: 'unpaid', amount: 2500 },
-                { month: 'JUN', year: 2026, status: 'unpaid', amount: 2500 },
+                {
+                    month: 'FEB',
+                    monthIndex: 1,
+                    year: 2026,
+                    status: 'unpaid',
+                    amount: 2500,
+                    isFuture: false,
+                    isEligibleForPayment: true,
+                    isBeforeEnrollment: false,
+                    isFirstEnrollmentMonth: false,
+                },
+                {
+                    month: 'MAR',
+                    monthIndex: 2,
+                    year: 2026,
+                    status: 'unpaid',
+                    amount: 2500,
+                    isFuture: false,
+                    isEligibleForPayment: true,
+                    isBeforeEnrollment: false,
+                    isFirstEnrollmentMonth: false,
+                },
+                {
+                    month: 'APR',
+                    monthIndex: 3,
+                    year: 2026,
+                    status: 'unpaid',
+                    amount: 2500,
+                    isFuture: false,
+                    isEligibleForPayment: true,
+                    isBeforeEnrollment: false,
+                    isFirstEnrollmentMonth: false,
+                },
+                {
+                    month: 'MAY',
+                    monthIndex: 4,
+                    year: 2026,
+                    status: 'unpaid',
+                    amount: 2500,
+                    isFuture: false,
+                    isEligibleForPayment: true,
+                    isBeforeEnrollment: false,
+                    isFirstEnrollmentMonth: false,
+                },
+                {
+                    month: 'JUN',
+                    monthIndex: 5,
+                    year: 2026,
+                    status: 'unpaid',
+                    amount: 2500,
+                    isFuture: false,
+                    isEligibleForPayment: true,
+                    isBeforeEnrollment: false,
+                    isFirstEnrollmentMonth: false,
+                },
             ],
         },
         {
             classId: 'c2',
             className: 'Physics - 2026 A/L',
             monthlyFee: 2000,
+            totalUnpaid: 4,
+            totalPaid: 1,
+            totalDue: 7000,
             months: [
                 {
                     month: 'JAN',
+                    monthIndex: 0,
                     year: 2026,
                     status: 'paid',
                     amount: 2000,
                     paidAmount: 2000,
+                    isFuture: false,
+                    isEligibleForPayment: true,
+                    isBeforeEnrollment: false,
+                    isFirstEnrollmentMonth: false,
                 },
                 {
                     month: 'FEB',
+                    monthIndex: 1,
                     year: 2026,
                     status: 'partial',
                     amount: 2000,
                     paidAmount: 1000,
+                    isFuture: false,
+                    isEligibleForPayment: true,
+                    isBeforeEnrollment: false,
+                    isFirstEnrollmentMonth: false,
                 },
-                { month: 'MAR', year: 2026, status: 'unpaid', amount: 2000 },
-                { month: 'APR', year: 2026, status: 'unpaid', amount: 2000 },
-                { month: 'MAY', year: 2026, status: 'unpaid', amount: 2000 },
-                { month: 'JUN', year: 2026, status: 'unpaid', amount: 2000 },
+                {
+                    month: 'MAR',
+                    monthIndex: 2,
+                    year: 2026,
+                    status: 'unpaid',
+                    amount: 2000,
+                    isFuture: false,
+                    isEligibleForPayment: true,
+                    isBeforeEnrollment: false,
+                    isFirstEnrollmentMonth: false,
+                },
+                {
+                    month: 'APR',
+                    monthIndex: 3,
+                    year: 2026,
+                    status: 'unpaid',
+                    amount: 2000,
+                    isFuture: false,
+                    isEligibleForPayment: true,
+                    isBeforeEnrollment: false,
+                    isFirstEnrollmentMonth: false,
+                },
+                {
+                    month: 'MAY',
+                    monthIndex: 4,
+                    year: 2026,
+                    status: 'unpaid',
+                    amount: 2000,
+                    isFuture: false,
+                    isEligibleForPayment: true,
+                    isBeforeEnrollment: false,
+                    isFirstEnrollmentMonth: false,
+                },
+                {
+                    month: 'JUN',
+                    monthIndex: 5,
+                    year: 2026,
+                    status: 'unpaid',
+                    amount: 2000,
+                    isFuture: false,
+                    isEligibleForPayment: true,
+                    isBeforeEnrollment: false,
+                    isFirstEnrollmentMonth: false,
+                },
             ],
         },
     ],
