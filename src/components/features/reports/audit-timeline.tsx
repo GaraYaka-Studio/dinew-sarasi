@@ -3,15 +3,42 @@
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import {
-    type AuditLog,
-    formatTime,
-    formatDateHeader,
-    type AuditAction,
-} from '@/lib/mock-data-audit';
+import type { AuditLogRecord as AuditLog, AuditAction } from '@/types/reports';
+
+// Helper functions
+const formatTime = (timestamp: string): string => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+    });
+};
+
+const formatDateHeader = (dateStr: string): string => {
+    const date = new Date(dateStr);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const getDateKey = (ts: string) => ts.split('T')[0];
+
+    if (getDateKey(today.toISOString()) === dateStr) {
+        return `Today - ${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+    }
+    if (getDateKey(yesterday.toISOString()) === dateStr) {
+        return `Yesterday - ${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+    }
+    return date.toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+    });
+};
 
 const getActionBadge = (action: AuditAction) => {
-    const variants = {
+    const variants: Record<string, { label: string; className: string }> = {
         CREATE: {
             label: 'CREATE',
             className: 'bg-green-100 text-green-800 border-green-200',
@@ -26,6 +53,10 @@ const getActionBadge = (action: AuditAction) => {
         },
         LOGIN: {
             label: 'LOGIN',
+            className: 'bg-green-100 text-green-800 border-green-200',
+        },
+        LOGOUT: {
+            label: 'LOGOUT',
             className: 'bg-gray-100 text-gray-800 border-gray-200',
         },
         EXPORT: {
@@ -33,7 +64,12 @@ const getActionBadge = (action: AuditAction) => {
             className: 'bg-blue-100 text-blue-800 border-blue-200',
         },
     };
-    return variants[action];
+    return (
+        variants[action] || {
+            label: action,
+            className: 'bg-gray-100 text-gray-800 border-gray-200',
+        }
+    );
 };
 
 // Helper to get initials

@@ -2,10 +2,10 @@
 
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import type { StudentDetail } from '@/lib/mock-data';
+import { Student } from '@/types/schema.types';
 
 interface TabProfileProps {
-    student: StudentDetail;
+    student: Student;
 }
 
 export function TabProfile({ student }: TabProfileProps) {
@@ -19,32 +19,20 @@ export function TabProfile({ student }: TabProfileProps) {
                 <div className="grid grid-cols-2 gap-3">
                     <div>
                         <p className="text-xs text-muted-foreground">School</p>
-                        <p className="font-medium">{student.school}</p>
+                        <p className="font-medium">{student.school || '-'}</p>
                     </div>
                     <div>
                         <p className="text-xs text-muted-foreground">Grade</p>
-                        <p className="font-medium">{student.grade}</p>
+                        <p className="font-medium">
+                            {student.current_grade || '-'}
+                        </p>
                     </div>
                     <div>
                         <p className="text-xs text-muted-foreground">Batch</p>
-                        <p className="font-medium">{student.batch}</p>
+                        <p className="font-medium">
+                            {student.batch_year || '-'}
+                        </p>
                     </div>
-                    {student.olYear && (
-                        <div>
-                            <p className="text-xs text-muted-foreground">
-                                O/L Year
-                            </p>
-                            <p className="font-medium">{student.olYear}</p>
-                        </div>
-                    )}
-                    {student.alYear && (
-                        <div>
-                            <p className="text-xs text-muted-foreground">
-                                A/L Year
-                            </p>
-                            <p className="font-medium">{student.alYear}</p>
-                        </div>
-                    )}
                 </div>
             </div>
 
@@ -58,15 +46,17 @@ export function TabProfile({ student }: TabProfileProps) {
                         <p className="text-xs text-muted-foreground">
                             Date of Birth
                         </p>
-                        <p className="font-medium">{student.dateOfBirth}</p>
+                        <p className="font-medium">{student.dob || '-'}</p>
                     </div>
                     <div>
                         <p className="text-xs text-muted-foreground">Gender</p>
-                        <p className="font-medium">{student.gender}</p>
+                        <p className="font-medium capitalize">
+                            {student.gender}
+                        </p>
                     </div>
                     <div className="col-span-2">
                         <p className="text-xs text-muted-foreground">Address</p>
-                        <p className="font-medium">{student.address}</p>
+                        <p className="font-medium">{student.address || '-'}</p>
                     </div>
                 </div>
             </div>
@@ -80,17 +70,17 @@ export function TabProfile({ student }: TabProfileProps) {
                     <div>
                         <p className="text-xs text-muted-foreground">Name</p>
                         <p className="font-medium">
-                            {student.guardian.name} (
-                            {student.guardian.relationship})
+                            {student.guardian_name} (
+                            {student.guardian_relationship})
                         </p>
                     </div>
                     <div>
                         <p className="text-xs text-muted-foreground">Phone</p>
                         <a
-                            href={`tel:${student.guardian.phone}`}
+                            href={`tel:${student.guardian_phone}`}
                             className="font-medium text-primary hover:underline"
                         >
-                            {student.guardian.phone}
+                            {student.guardian_phone}
                         </a>
                     </div>
                     <div className="flex items-center gap-2">
@@ -99,12 +89,12 @@ export function TabProfile({ student }: TabProfileProps) {
                         </p>
                         <Badge
                             variant={
-                                student.guardian.isEmergencyContact
+                                student.is_emergency_contact
                                     ? 'success'
                                     : 'secondary'
                             }
                         >
-                            {student.guardian.isEmergencyContact ? 'Yes' : 'No'}
+                            {student.is_emergency_contact ? 'Yes' : 'No'}
                         </Badge>
                     </div>
                 </div>

@@ -1,8 +1,13 @@
-import { Eye } from 'lucide-react';
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+
+import { deleteSubject } from '@/lib/db/delete';
+import { getInitials } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/use-media-query';
 
+import { Subject, Teacher } from '@/types/schema.types';
+
+import { Eye } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
     Dialog,
     DialogContent,
@@ -22,15 +27,16 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
-import { SubjectItem } from '@/lib/mock-data-subjects';
 
 interface SubjectDetailsProps {
-    subject: SubjectItem;
+    subject: Subject;
+    teachers: Teacher[];
     variant?: 'icon' | 'button';
 }
 
 export function SubjectDetails({
     subject,
+    teachers,
     variant = 'icon',
 }: SubjectDetailsProps) {
     const [open, setOpen] = useState(false);
@@ -68,11 +74,11 @@ export function SubjectDetails({
             <div className="space-y-3">
                 <h4 className="text-sm font-semibold">Assigned Teachers</h4>
                 <div className="space-y-2">
-                    {subject.teachers.map((teacher, index) => (
+                    {teachers.map((teacher, index) => (
                         <div key={index} className="flex items-center gap-3">
                             <Avatar className="h-8 w-8">
                                 <AvatarFallback className="text-xs">
-                                    {teacher.initials}
+                                    {getInitials(teacher.name)}
                                 </AvatarFallback>
                             </Avatar>
                             <span className="text-sm">{teacher.name}</span>
@@ -105,7 +111,10 @@ export function SubjectDetails({
                 <Button
                     variant="destructive"
                     className="bg-red-600 text-white hover:bg-red-700"
-                    onClick={() => setOpen(false)}
+                    onClick={() => {
+                        deleteSubject(subject);
+                        setOpen(false);
+                    }}
                 >
                     Delete
                 </Button>

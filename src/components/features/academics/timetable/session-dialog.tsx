@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -21,99 +21,146 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { AlertCircle } from 'lucide-react';
-import { MOCK_TIMETABLE } from '@/lib/mock-data';
+import { getActiveClassesForSession, checkConflicts } from '@/lib/db/timetable';
+import { createSession } from '@/lib/db/insert';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 
 interface SessionDialogProps {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
     currentDate: Date;
+    onSessionCreated?: () => void;
 }
+
+type ClassOption = {
+    id: string;
+    name: string;
+    grade: string;
+    medium: string;
+    type: string;
+    subjectName: string;
+    teacherName: string;
+};
 
 export function SessionDialog({
     isOpen,
     onOpenChange,
     currentDate,
+    onSessionCreated,
 }: SessionDialogProps) {
-    const [selectedSubject, setSelectedSubject] = useState('');
+    const [classes, setClasses] = useState<ClassOption[]>([]);
+    const [selectedClassId, setSelectedClassId] = useState('');
     const [startTime, setStartTime] = useState('08:00');
     const [endTime, setEndTime] = useState('10:00');
-    const [hall, setHall] = useState('Hall A');
-
-    // Derived state for mock conflict detection
-    // In a real app, this would be a server action or async query
+    const [hallName, setHallName] = useState('Hall A');
+    const [conflict, setConflict] = useState<string | null>(null);
     const [allowOverride, setAllowOverride] = useState(false);
+    const [isCheckingConflicts, setIsCheckingConflicts] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Format helper for mock data time strings "08:00 AM" to 24h min
-    const parseMinutes24 = (timeStr: string) => {
-        const [t, p] = timeStr.split(' ');
-        const [hStr, mStr] = t.split(':');
-        let h = Number(hStr);
-        const m = Number(mStr);
-        if (p === 'PM' && h !== 12) h += 12;
-        if (p === 'AM' && h === 12) h = 0;
-        return h * 60 + m;
+    // Load active classes when dialog opens
+    useEffect(() => {
+        if (isOpen) {
+            loadClasses();
+        }
+    }, [isOpen]);
+
+    const loadClasses = async () => {
+        try {
+            const data = await getActiveClassesForSession();
+            setClasses(data as ClassOption[]);
+        } catch (error) {
+            console.error('Failed to load classes:', error);
+            toast.error('Failed to load classes');
+        }
     };
 
-    const subjects = [
-        { id: 'sub1', name: 'Combined Maths', grade: 'Grade 12' },
-        { id: 'sub2', name: 'Physics', grade: 'Grade 13' },
-        { id: 'sub3', name: 'Chemistry', grade: 'Grade 12' },
-        { id: 'sub4', name: 'Biology', grade: 'Grade 11' },
-    ];
+    // Check for conflicts when inputs change
+    useEffect(() => {
+        const checkForConflicts = async () => {
+            if (!selectedClassId || !startTime || !endTime) {
+                setConflict(null);
+                return;
+            }
 
-    // Conflict Calculation (Derived State)
-    // We calculate this during render. It's fast enough.
-    const conflict = (() => {
-        if (!selectedSubject || !startTime || !endTime) return null;
+            setIsCheckingConflicts(true);
+            try {
+                const selectedClass = classes.find(
+                    (c) => c.id === selectedClassId
+                );
+                if (!selectedClass) {
+                    setConflict(null);
+                    return;
+                }
 
-        const subject = subjects.find((s) => s.id === selectedSubject);
-        if (!subject) return null;
+                const conflicts = await checkConflicts({
+                    classId: selectedClassId,
+                    date: format(currentDate, 'yyyy-MM-dd'),
+                    startTime,
+                    endTime,
+                    hallName,
+                });
 
-        // Convert times to minutes for comparison
-        const parseMinutes = (t: string) => {
-            const [h, m] = t.split(':').map(Number);
-            return h * 60 + m;
+                if (conflicts && conflicts.length > 0) {
+                    const c = conflicts[0];
+                    const reason =
+                        c.grade === selectedClass.grade
+                            ? `${c.grade} already has '${c.className}'`
+                            : `${c.hallName} is booked for '${c.className}'`;
+                    setConflict(
+                        `Conflict Detected: ${reason} from ${c.startTime} - ${c.endTime}.`
+                    );
+                } else {
+                    setConflict(null);
+                }
+            } catch (error) {
+                console.error('Failed to check conflicts:', error);
+            } finally {
+                setIsCheckingConflicts(false);
+            }
         };
 
-        const startMins = parseMinutes(startTime);
-        const endMins = parseMinutes(endTime);
-        const dateStr = format(currentDate, 'yyyy-MM-dd');
+        const timeoutId = setTimeout(checkForConflicts, 300);
+        return () => clearTimeout(timeoutId);
+    }, [selectedClassId, startTime, endTime, hallName, classes, currentDate]);
 
-        // Check against MOCK_TIMETABLE
-        const conflicts = MOCK_TIMETABLE.filter((session) => {
-            if (session.date !== dateStr) return false;
-
-            const sessionStart = parseMinutes24(session.startTime);
-            const sessionEnd = parseMinutes24(session.endTime);
-
-            const isTimeOverlap =
-                startMins < sessionEnd && endMins > sessionStart;
-
-            if (!isTimeOverlap) return false;
-            // Check Grade or Location
-            if (session.grade === subject.grade) return true;
-            if (session.location === hall) return true;
-
-            return false;
-        });
-
-        if (conflicts.length > 0) {
-            const c = conflicts[0];
-            const reason =
-                c.grade === subject.grade
-                    ? `${c.grade} already has '${c.subject}'`
-                    : `${c.location} is booked for '${c.subject}'`;
-            return `Conflict Detected: ${reason} from ${c.startTime} - ${c.endTime}.`;
+    const handleSubmit = async (formData: FormData) => {
+        if (!selectedClassId) {
+            toast.error('Please select a class');
+            return;
         }
-        return null;
-    })();
 
-    const handleSave = () => {
-        // Here we would call an action to save
-        console.log('Saved session');
-        onOpenChange(false);
+        if (conflict && !allowOverride) {
+            toast.error('Please resolve conflicts or allow overlapping');
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            const result = await createSession(null, null, formData);
+
+            if (result.success) {
+                toast.success('Session created successfully');
+                // Reset form
+                setSelectedClassId('');
+                setStartTime('08:00');
+                setEndTime('10:00');
+                setHallName('Hall A');
+                setConflict(null);
+                setAllowOverride(false);
+                // Close dialog and refresh
+                onOpenChange(false);
+                onSessionCreated?.();
+            } else {
+                toast.error(result.error || 'Failed to create session');
+            }
+        } finally {
+            setIsSubmitting(false);
+        }
     };
+
+    const selectedClass = classes.find((c) => c.id === selectedClassId);
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -126,124 +173,145 @@ export function SessionDialog({
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="grid gap-4 py-4">
-                    {/* Class Select */}
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="subject" className="text-right">
-                            Class
-                        </Label>
-                        <Select
-                            onValueChange={setSelectedSubject}
-                            value={selectedSubject}
-                        >
-                            <SelectTrigger className="col-span-3">
-                                <SelectValue placeholder="Select class..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {subjects.map((sub) => (
-                                    <SelectItem key={sub.id} value={sub.id}>
-                                        {sub.name} - {sub.grade}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
+                <form action={handleSubmit}>
+                    <div className="grid gap-4 py-4">
+                        {/* Class Select */}
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="classId" className="text-right">
+                                Class
+                            </Label>
+                            <Select
+                                name="classId"
+                                value={selectedClassId}
+                                onValueChange={setSelectedClassId}
+                                required
+                            >
+                                <SelectTrigger className="col-span-3">
+                                    <SelectValue placeholder="Select class..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {classes.map((cls) => (
+                                        <SelectItem key={cls.id} value={cls.id}>
+                                            {cls.subjectName} - {cls.grade} (
+                                            {cls.medium})
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
 
-                    {/* Date (Read Only) */}
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label className="text-right">Date</Label>
-                        <Input
-                            value={format(currentDate, 'EEEE, MMM d, yyyy')}
-                            disabled
-                            className="col-span-3"
-                        />
-                    </div>
-
-                    {/* Time Range */}
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label className="text-right">Time</Label>
-                        <div className="col-span-3 flex items-center gap-2">
+                        {/* Date (Read Only) */}
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label className="text-right">Date</Label>
                             <Input
-                                type="time"
-                                value={startTime}
-                                onChange={(e) => setStartTime(e.target.value)}
-                                className="flex-1"
+                                value={format(currentDate, 'EEEE, MMM d, yyyy')}
+                                disabled
+                                className="col-span-3"
                             />
-                            <span className="text-muted-foreground">-</span>
-                            <Input
-                                type="time"
-                                value={endTime}
-                                onChange={(e) => setEndTime(e.target.value)}
-                                className="flex-1"
+                            {/* Hidden input with actual date value for form submission */}
+                            <input
+                                type="hidden"
+                                name="date"
+                                value={format(currentDate, 'yyyy-MM-dd')}
                             />
                         </div>
-                    </div>
 
-                    {/* Hall */}
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="hall" className="text-right">
-                            Hall
-                        </Label>
-                        <Select onValueChange={setHall} value={hall}>
-                            <SelectTrigger className="col-span-3">
-                                <SelectValue placeholder="Select hall" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="Hall A">
-                                    Hall A (Main)
-                                </SelectItem>
-                                <SelectItem value="Hall B">
-                                    Hall B (Science)
-                                </SelectItem>
-                                <SelectItem value="Hall C">Hall C</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
+                        {/* Time Range */}
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label className="text-right">Time</Label>
+                            <div className="col-span-3 flex items-center gap-2">
+                                <Input
+                                    name="startTime"
+                                    type="time"
+                                    value={startTime}
+                                    onChange={(e) =>
+                                        setStartTime(e.target.value)
+                                    }
+                                    required
+                                    className="flex-1"
+                                />
+                                <span className="text-muted-foreground">-</span>
+                                <Input
+                                    name="endTime"
+                                    type="time"
+                                    value={endTime}
+                                    onChange={(e) => setEndTime(e.target.value)}
+                                    required
+                                    className="flex-1"
+                                />
+                            </div>
+                        </div>
 
-                    {/* Conflict Alert */}
-                    {conflict && (
-                        <div className="col-span-4 mt-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-900 dark:border-red-900/30 dark:bg-red-900/20 dark:text-red-200">
-                            <div className="flex gap-2">
-                                <AlertCircle className="h-4 w-4 shrink-0 text-red-600 dark:text-red-400" />
-                                <div className="space-y-2">
-                                    <p className="font-medium">{conflict}</p>
+                        {/* Hall */}
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="hallName" className="text-right">
+                                Hall
+                            </Label>
+                            <Input
+                                id="hallName"
+                                name="hallName"
+                                value={hallName}
+                                onChange={(e) => setHallName(e.target.value)}
+                                placeholder="e.g., Hall A, Main Hall, Room 101"
+                                className="col-span-3"
+                            />
+                        </div>
 
-                                    <div className="flex items-center gap-2">
-                                        <Checkbox
-                                            id="override"
-                                            checked={allowOverride}
-                                            onCheckedChange={(c) =>
-                                                setAllowOverride(!!c)
-                                            }
-                                        />
-                                        <label
-                                            htmlFor="override"
-                                            className="text-xs leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                        >
-                                            Allow overlapping (Subject Buckets /
-                                            Split)
-                                        </label>
+                        {/* Conflict Alert */}
+                        {conflict && (
+                            <div className="col-span-4 mt-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-900 dark:border-red-900/30 dark:bg-red-900/20 dark:text-red-200">
+                                <div className="flex gap-2">
+                                    <AlertCircle className="h-4 w-4 shrink-0 text-red-600 dark:text-red-400" />
+                                    <div className="space-y-2">
+                                        <p className="font-medium">
+                                            {conflict}
+                                        </p>
+
+                                        <div className="flex items-center gap-2">
+                                            <Checkbox
+                                                id="override"
+                                                checked={allowOverride}
+                                                onCheckedChange={(c) =>
+                                                    setAllowOverride(!!c)
+                                                }
+                                            />
+                                            <label
+                                                htmlFor="override"
+                                                className="text-xs leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                            >
+                                                Allow overlapping (Subject
+                                                Buckets / Split)
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    )}
-                </div>
+                        )}
 
-                <DialogFooter>
-                    <Button
-                        variant="outline"
-                        onClick={() => onOpenChange(false)}
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        onClick={handleSave}
-                        disabled={!!conflict && !allowOverride}
-                    >
-                        Save Session
-                    </Button>
-                </DialogFooter>
+                        {/* Loading indicator for conflict checking */}
+                        {isCheckingConflicts && (
+                            <div className="col-span-4 text-sm text-muted-foreground">
+                                Checking for conflicts...
+                            </div>
+                        )}
+                    </div>
+
+                    <DialogFooter>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => onOpenChange(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="submit"
+                            disabled={isSubmitting || !!conflict}
+                        >
+                            {isSubmitting ? 'Saving...' : 'Save Session'}
+                        </Button>
+                    </DialogFooter>
+                </form>
             </DialogContent>
         </Dialog>
     );

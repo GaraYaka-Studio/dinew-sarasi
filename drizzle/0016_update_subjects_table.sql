@@ -1,0 +1,1 @@
+ALTER TABLE "subjects" ADD COLUMN "grades" text[] DEFAULT '{}' NOT NULL;

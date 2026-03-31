@@ -18,60 +18,197 @@ import {
     SheetTrigger,
 } from '@/components/ui/sheet';
 import { Search, Filter } from 'lucide-react';
+import { useRef } from 'react';
+import {
+    QRScanner,
+    useHardwareScanner,
+} from '@/components/features/qr-scanner';
 
-const FilterContent = () => (
-    <div className="flex w-full flex-col gap-4 md:flex-row">
-        <div className="relative flex-1">
-            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-                placeholder="Search by name, ID, or phone..."
-                className="w-full pl-9"
-            />
-        </div>
-        <Select>
-            <SelectTrigger className="w-full md:w-40">
-                <SelectValue placeholder="Grade" />
-            </SelectTrigger>
-            <SelectContent>
-                <SelectItem value="all">All Grades</SelectItem>
-                <SelectItem value="9">Grade 9</SelectItem>
-                <SelectItem value="10">Grade 10</SelectItem>
-                <SelectItem value="11">Grade 11</SelectItem>
-                <SelectItem value="12">Grade 12</SelectItem>
-            </SelectContent>
-        </Select>
-        <Select>
-            <SelectTrigger className="w-full md:w-40">
-                <SelectValue placeholder="Batch" />
-            </SelectTrigger>
-            <SelectContent>
-                <SelectItem value="all">All Batches</SelectItem>
-                <SelectItem value="2025">2025 A/L</SelectItem>
-                <SelectItem value="2026">2026 A/L</SelectItem>
-                <SelectItem value="2027">2027 O/L</SelectItem>
-                <SelectItem value="general">General</SelectItem>
-            </SelectContent>
-        </Select>
-        <Select>
-            <SelectTrigger className="w-full md:w-40">
-                <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="left">Left</SelectItem>
-            </SelectContent>
-        </Select>
-    </div>
-);
+interface StudentFiltersProps {
+    onSearchChange?: (query: string) => void;
+    enableScanner?: boolean;
+    onGradeChange?: (grade: string) => void;
+    onBatchChange?: (batch: string) => void;
+    onStatusChange?: (status: string) => void;
+    selectedGrade?: string;
+    selectedBatch?: string;
+    selectedStatus?: string;
+    grades?: string[]; // Dynamic grades from database
+}
 
-export function StudentFilters() {
+const FilterContent = ({
+    onSearchChange,
+    enableScanner = true,
+    onGradeChange,
+    onBatchChange,
+    onStatusChange,
+    selectedGrade,
+    selectedBatch,
+    selectedStatus,
+    grades = [],
+}: {
+    onSearchChange?: (query: string) => void;
+    enableScanner?: boolean;
+    onGradeChange?: (grade: string) => void;
+    onBatchChange?: (batch: string) => void;
+    onStatusChange?: (status: string) => void;
+    selectedGrade?: string;
+    selectedBatch?: string;
+    selectedStatus?: string;
+    grades?: string[];
+}) => {
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    // Global hardware scanner - works anywhere on page
+    useHardwareScanner((result) => {
+        onSearchChange?.(result);
+        inputRef.current?.focus();
+    }, enableScanner);
+
+    // Beep sound function
+    const playBeep = () => {
+        try {
+            const AudioContextClass =
+                window.AudioContext ||
+                (
+                    window as unknown as {
+                        webkitAudioContext: typeof AudioContext;
+                    }
+                ).webkitAudioContext;
+            const audioContext = new AudioContextClass();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(
+                0.01,
+                audioContext.currentTime + 0.1
+            );
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.1);
+        } catch {
+            // Ignore audio errors
+        }
+    };
+
+    return (
+        <>
+            <div className="flex w-full flex-col gap-4 md:flex-row">
+                <div className="relative flex-1">
+                    <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                        ref={inputRef}
+                        placeholder="Search by name, ID, phone, or QR code..."
+                        className="w-full pl-9"
+                        onChange={(e) => onSearchChange?.(e.target.value)}
+                    />
+                </div>
+
+                {/* Small Camera Preview Thumbnail */}
+                {enableScanner && (
+                    <QRScanner
+                        onScan={(result) => {
+                            onSearchChange?.(result);
+                            inputRef.current?.focus();
+                        }}
+                        enabled={true}
+                        showIndicator={false}
+                        showPreview={true}
+                        previewSize={80}
+                        onBeep={playBeep}
+                    />
+                )}
+
+                <Select
+                    value={selectedGrade || 'all'}
+                    onValueChange={onGradeChange}
+                >
+                    <SelectTrigger className="w-full md:w-40">
+                        <SelectValue placeholder="Grade" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Grades</SelectItem>
+                        {grades.map((grade) => (
+                            <SelectItem key={grade} value={grade}>
+                                {grade}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                <Select
+                    value={selectedBatch || 'all'}
+                    onValueChange={onBatchChange}
+                >
+                    <SelectTrigger className="w-full md:w-40">
+                        <SelectValue placeholder="Batch" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Batches</SelectItem>
+                        <SelectItem value="2025">2025 A/L</SelectItem>
+                        <SelectItem value="2026">2026 A/L</SelectItem>
+                        <SelectItem value="2027">2027 O/L</SelectItem>
+                        <SelectItem value="general">General</SelectItem>
+                    </SelectContent>
+                </Select>
+                <Select
+                    value={selectedStatus || 'all'}
+                    onValueChange={onStatusChange}
+                >
+                    <SelectTrigger className="w-full md:w-40">
+                        <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="draft">Draft</SelectItem>
+                        <SelectItem value="left">Left</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+
+            {/* Scanner Status Text */}
+            {enableScanner && (
+                <p className="text-xs text-muted-foreground">
+                    ✓ Scanner active • Hardware or camera • Beep on success
+                </p>
+            )}
+        </>
+    );
+};
+
+export function StudentFilters({
+    onSearchChange,
+    enableScanner = true,
+    onGradeChange,
+    onBatchChange,
+    onStatusChange,
+    selectedGrade,
+    selectedBatch,
+    selectedStatus,
+    grades,
+}: StudentFiltersProps) {
     return (
         <div className="w-full">
             {/* Desktop View */}
             <div className="hidden items-center gap-4 md:flex">
-                <FilterContent />
+                <FilterContent
+                    onSearchChange={onSearchChange}
+                    enableScanner={enableScanner}
+                    onGradeChange={onGradeChange}
+                    onBatchChange={onBatchChange}
+                    onStatusChange={onStatusChange}
+                    selectedGrade={selectedGrade}
+                    selectedBatch={selectedBatch}
+                    selectedStatus={selectedStatus}
+                    grades={grades}
+                />
             </div>
 
             {/* Mobile View - Sheet */}
@@ -91,7 +228,17 @@ export function StudentFilters() {
                             </SheetDescription>
                         </SheetHeader>
                         <div className="py-6">
-                            <FilterContent />
+                            <FilterContent
+                                onSearchChange={onSearchChange}
+                                enableScanner={enableScanner}
+                                onGradeChange={onGradeChange}
+                                onBatchChange={onBatchChange}
+                                onStatusChange={onStatusChange}
+                                selectedGrade={selectedGrade}
+                                selectedBatch={selectedBatch}
+                                selectedStatus={selectedStatus}
+                                grades={grades}
+                            />
                         </div>
                     </SheetContent>
                 </Sheet>

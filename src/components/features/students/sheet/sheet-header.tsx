@@ -4,21 +4,24 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Printer, MessageCircle } from 'lucide-react';
-import type { StudentDetail } from '@/lib/mock-data';
+import { Student } from '@/types/schema.types';
+import { getInitials } from '@/lib/utils';
 
 interface SheetHeaderProps {
-    student: StudentDetail;
+    student: Student;
 }
 
 export function SheetHeader({ student }: SheetHeaderProps) {
     const handleWhatsApp = () => {
-        const phone = student.guardian.phone.replace(/^0/, '94');
-        window.open(`https://wa.me/${phone}`, '_blank');
+        const phone = student.guardian_phone?.replace(/^0/, '94');
+        if (phone) {
+            window.open(`https://wa.me/${phone}`, '_blank');
+        }
     };
 
     const handlePrint = () => {
         // TODO: Implement ID card print logic
-        console.log('Print ID Card:', student.studentId);
+        console.log('Print ID Card:', student.student_id);
     };
 
     return (
@@ -26,15 +29,15 @@ export function SheetHeader({ student }: SheetHeaderProps) {
             {/* Avatar */}
             <Avatar className="h-16 w-16">
                 <AvatarFallback className="text-lg">
-                    {student.initials}
+                    {getInitials(student.full_name)}
                 </AvatarFallback>
             </Avatar>
 
             {/* Info Block */}
             <div className="flex-1">
-                <h2 className="text-lg font-bold">{student.name}</h2>
+                <h2 className="text-lg font-bold">{student.full_name}</h2>
                 <p className="text-sm text-muted-foreground">
-                    {student.studentId}
+                    {student.student_id}
                 </p>
 
                 {/* Badges */}
@@ -46,9 +49,11 @@ export function SheetHeader({ student }: SheetHeaderProps) {
                                 : 'secondary'
                         }
                     >
-                        {student.status === 'active' ? '● Active' : '● Left'}
+                        {student.status === 'active'
+                            ? '● Active'
+                            : `● ${student.status}`}
                     </Badge>
-                    {student.admissionStatus === 'PENDING' && (
+                    {student.admission_status === 'pending' && (
                         <Badge variant="destructive">Adm. Pending</Badge>
                     )}
                 </div>

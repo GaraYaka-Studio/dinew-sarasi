@@ -3,6 +3,14 @@
         "next-devtools": {
             "command": "npx",
             "args": ["-y", "next-devtools-mcp@latest"]
+        },
+        "supabase": {
+            "command": "npx",
+            "args": ["-y", "@supabase/mcp-server"],
+            "env": {
+                "SUPABASE_URL": "https://kpuhqqflozssryzqrkjx.supabase.co",
+                "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtwdWhxcWZsb3pzc3J5enFya2p4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MzgyNzg5NSwiZXhwIjoyMDg5NDAzODk1fQ.ZjEN17a-KDOWSf7C6sGMg0OhAa-lSzy1RHnXP3_2mHg"
+            }
         }
     }
 }

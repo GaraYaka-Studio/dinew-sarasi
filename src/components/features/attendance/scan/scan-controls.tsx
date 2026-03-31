@@ -5,12 +5,17 @@ import { useRef, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import {
+    QRScanner,
+    useHardwareScanner,
+} from '@/components/features/qr-scanner';
 
 interface ScanControlsProps {
     isRapidMode: boolean;
     onToggleMode: () => void;
     onSearch: (value: string) => void;
     currentCount?: number;
+    enableScanner?: boolean;
 }
 
 export function ScanControls({
@@ -18,9 +23,20 @@ export function ScanControls({
     onToggleMode,
     onSearch,
     currentCount = 0,
+    enableScanner = true,
 }: ScanControlsProps) {
     const inputRef = useRef<HTMLInputElement>(null);
     const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+
+    // Global hardware scanner - works anywhere on page
+    useHardwareScanner(
+        (result) => {
+            onSearch(result);
+            inputRef.current?.focus();
+        },
+        enableScanner,
+        undefined // Will use default beep from QRScanner
+    );
 
     // Auto-focus input when entering Rapid Mode or on mount
     useEffect(() => {
@@ -29,11 +45,42 @@ export function ScanControls({
         }
     }, [isRapidMode, isSearchExpanded]);
 
+    // Beep sound function
+    const playBeep = () => {
+        try {
+            const AudioContextClass =
+                window.AudioContext ||
+                (
+                    window as unknown as {
+                        webkitAudioContext: typeof AudioContext;
+                    }
+                ).webkitAudioContext;
+            const audioContext = new AudioContextClass();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(
+                0.01,
+                audioContext.currentTime + 0.1
+            );
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.1);
+        } catch {
+            // Ignore audio errors
+        }
+    };
+
     return (
         <div className="flex w-full flex-col gap-[10px]">
-            {' '}
-            {/* Exact 10px spacing */}
-            {/* 1. Search Logic */}
+            {/* Search/Scanner Section */}
             <div
                 className={cn(
                     'relative w-full transition-all duration-300',
@@ -41,46 +88,67 @@ export function ScanControls({
                     isSearchExpanded && 'block'
                 )}
             >
-                <div className="relative">
-                    <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                        ref={inputRef}
-                        placeholder={
-                            isRapidMode
-                                ? 'Ready to Scan...'
-                                : 'Search ID/Name...'
-                        }
-                        className={cn(
-                            'h-10 bg-background pl-10 text-base transition-colors md:h-12 md:text-lg',
-                            isRapidMode &&
-                                'border-primary/50 bg-primary/5 ring-primary/20'
-                        )}
-                        onChange={(e) => onSearch(e.target.value)}
-                    />
+                <div className="flex gap-3">
+                    <div className="relative flex-1">
+                        <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                            ref={inputRef}
+                            placeholder={
+                                isRapidMode
+                                    ? 'Ready to scan...'
+                                    : 'Search by ID, name, or QR code...'
+                            }
+                            className={cn(
+                                'h-10 bg-background pl-10 text-base transition-colors md:h-12 md:text-lg',
+                                isRapidMode &&
+                                    'border-primary/50 bg-primary/5 ring-primary/20'
+                            )}
+                            onChange={(e) => onSearch(e.target.value)}
+                        />
+                    </div>
+
+                    {/* Small Camera Preview Thumbnail */}
+                    {enableScanner && (
+                        <QRScanner
+                            onScan={(result) => {
+                                onSearch(result);
+                                inputRef.current?.focus();
+                            }}
+                            enabled={true}
+                            showIndicator={true}
+                            showPreview={true}
+                            previewSize={80}
+                            onBeep={playBeep}
+                        />
+                    )}
                 </div>
+
                 {isRapidMode && (
-                    <p className="mt-1 hidden pl-1 text-xs text-muted-foreground md:block">
-                        <span className="font-semibold text-primary">TIP:</span>{' '}
-                        Auto-submits on detection.
+                    <p className="mt-2 text-xs text-muted-foreground">
+                        <span className="font-semibold text-primary">
+                            Scanner active
+                        </span>{' '}
+                        • Hardware scanner or camera • Beep on success
                     </p>
                 )}
             </div>
-            {/* 2. Controls Row (Toggle & Mobile Search Trigger) */}
+
+            {/* Mode Toggle */}
             <div
                 className={cn(
-                    'flex w-full gap-[10px]', // 10px gap for mobile row
+                    'flex w-full gap-[10px]',
                     isRapidMode
-                        ? 'flex-row items-center justify-between md:flex-col' // Mobile: Row, Desktop: Column
+                        ? 'flex-row items-center justify-between md:flex-col'
                         : 'flex-col'
                 )}
             >
-                {/* Mobile Search Trigger Icon (Only in Rapid Mode) */}
+                {/* Mobile Search Trigger (Only in Rapid Mode) */}
                 {isRapidMode && !isSearchExpanded && (
                     <Button
                         variant="outline"
                         size="icon"
                         onClick={() => setIsSearchExpanded(true)}
-                        className="h-14 w-14 shrink-0 bg-background md:hidden" // Match button height
+                        className="h-14 w-14 shrink-0 bg-background md:hidden"
                     >
                         <Search className="h-6 w-6" />
                         <span className="sr-only">Open Search</span>
@@ -92,10 +160,9 @@ export function ScanControls({
                     variant={isRapidMode ? 'default' : 'outline'}
                     className={cn(
                         'group relative w-full overflow-hidden transition-all',
-                        // Removed flex-1 to prevent vertical stretching
                         'h-14 md:h-16',
                         isRapidMode
-                            ? 'flex-1 bg-amber-600 text-white shadow-lg shadow-amber-500/20 hover:bg-amber-700 md:flex-none' // flex-1 only on mobile row
+                            ? 'flex-1 bg-amber-600 text-white shadow-lg shadow-amber-500/20 hover:bg-amber-700 md:flex-none'
                             : 'bg-background hover:bg-accent hover:text-accent-foreground'
                     )}
                     onClick={() => {
@@ -120,13 +187,11 @@ export function ScanControls({
                             </>
                         )}
                     </div>
-                    {/* Background Effect for Rapid Mode */}
                     {isRapidMode && (
                         <div className="absolute inset-0 translate-x-[-150%] skew-x-12 animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
                     )}
                 </Button>
 
-                {/* Mode Description */}
                 <p
                     className={cn(
                         'text-center text-xs text-muted-foreground',
@@ -138,8 +203,8 @@ export function ScanControls({
                         : 'Manual mode. Search & Confirm.'}
                 </p>
             </div>
-            {/* 3. Live Counter */}
-            {/* Removed mt-auto, added to the stack with 10px gap */}
+
+            {/* Live Counter */}
             <div className="w-full">
                 <div className="flex items-center justify-between rounded-lg border bg-card/50 p-3 shadow-sm md:p-4">
                     <div className="flex items-center gap-3">
