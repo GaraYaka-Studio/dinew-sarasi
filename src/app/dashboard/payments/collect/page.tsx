@@ -24,7 +24,7 @@ import {
     SheetTitle,
     SheetDescription,
 } from '@/components/ui/sheet';
-import { ClassFeeStructure } from '@/lib/mock-data';
+import { ClassFeeStructure, StudentDetail } from '@/lib/mock-data';
 import { searchStudents, getStudentFeeStructure } from '@/lib/db/select';
 import { recordPayment, PaymentCartItem } from '@/lib/db/insert';
 import {
@@ -58,7 +58,7 @@ interface ReceiptData {
 export default function FeesCollectionPage() {
     // State
     const [pageState, setPageState] = useState<PageState>('search');
-    const [student, setStudent] = useState<StudentSearchResult | null>(null);
+    const [student, setStudent] = useState<StudentDetail | null>(null);
     const [feeClasses, setFeeClasses] = useState<ClassFeeStructure[]>([]);
     const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
     const [cart, setCart] = useState<CartItem[]>([]);
@@ -315,9 +315,9 @@ export default function FeesCollectionPage() {
                 // Create receipt data
                 const receipt: ReceiptData = {
                     receiptNumber: String(result.receiptNumber || ''),
-                    studentName: student.name,
-                    studentId: student.studentId,
-                    grade: student.grade,
+                    studentName: student?.name || '',
+                    studentId: student?.studentId || '',
+                    grade: student?.grade || '',
                     items: cart.map((item) => ({
                         label: item.label,
                         amount: item.amount,

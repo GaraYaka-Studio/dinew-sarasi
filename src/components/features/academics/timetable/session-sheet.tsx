@@ -35,7 +35,7 @@ export function SessionSheet({
     const router = useRouter();
     // Use lazy initialization and key prop on Sheet to reset when session changes
     const [isCancelled, setIsCancelled] = useState(
-        session?.status === 'cancelled' ?? false
+        session?.status === 'cancelled'
     );
     const [isEditing, setIsEditing] = useState(false);
     const [editStartTime, setEditStartTime] = useState('');

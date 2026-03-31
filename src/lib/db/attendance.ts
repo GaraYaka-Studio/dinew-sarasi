@@ -21,6 +21,13 @@ import {
 } from '@/lib/utils/time';
 
 // Types
+export interface PaymentStatus {
+    hasPaid: boolean;
+    arrears: number;
+    feeAmount: number;
+    paidAmount: number;
+    status: string;
+}
 export interface ClassWithSession {
     id: string;
     name: string;
@@ -76,7 +83,7 @@ interface SessionData {
     date: string;
     startTime: string;
     endTime: string;
-    status: string;
+    status: string | null;
 }
 
 interface ClassData {

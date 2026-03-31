@@ -11,7 +11,7 @@ import type {
     ReportType,
     FinancialTabType,
     StudentPaymentRecord,
-    TeacherPaymentRecord,
+    TeacherPaymentGroup,
     FinancialSummary,
     AttendanceLogSessionWithDate,
     AttendanceSummary,
@@ -50,7 +50,7 @@ export default function ReportsPage() {
         StudentPaymentRecord[]
     >([]);
     const [teacherPayments, setTeacherPayments] = useState<
-        TeacherPaymentRecord[]
+        TeacherPaymentGroup[]
     >([]);
     const [financialSummary, setFinancialSummary] =
         useState<FinancialSummary | null>(null);
@@ -225,7 +225,7 @@ export default function ReportsPage() {
                 );
             } else if (reportType === 'activity') {
                 // Export Activity Log
-                const csv = generateCSV(activityLog, [
+                const csv = generateCSV(activityLog as unknown as Record<string, unknown>[], [
                     { key: 'date', label: 'Date' },
                     { key: 'time', label: 'Time' },
                     { key: 'className', label: 'Class' },

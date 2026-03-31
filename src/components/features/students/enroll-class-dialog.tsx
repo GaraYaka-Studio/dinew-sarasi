@@ -40,6 +40,7 @@ interface ClassOption {
     hallName: string | null;
     subjectName: string;
     teacherName: string | null;
+    schedule: string;
     enrolled?: boolean;
 }
 
@@ -77,10 +78,11 @@ export function EnrollClassDialog({
     useEffect(() => {
         if (isOpen && student.current_grade) {
             let isMounted = true;
+            const grade = student.current_grade; // Capture value for use in timeout
             // Defer loading to avoid synchronous setState in effect
             const timeoutId = setTimeout(() => {
                 setIsLoading(true);
-                getClassesByGrade(student.current_grade)
+                getClassesByGrade(grade)
                     .then((classes) => {
                         if (isMounted) {
                             const transformed = classes.map((cls) => {
